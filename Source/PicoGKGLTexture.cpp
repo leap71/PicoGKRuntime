@@ -39,6 +39,7 @@
 #include <memory>
 #include <fstream>
 #include <vector>
+#include <cstring>
 
 #pragma pack(1)
 
