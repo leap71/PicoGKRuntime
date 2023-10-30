@@ -434,7 +434,8 @@ public:
         fVolume *= oVoxelSize;
         fVolume *= oVoxelSize; // cubic!
         
-        *poBBox = oResult;
+        *pfVolume   = fVolume;
+        *poBBox     = oResult;
     }
     
     inline bool bFindClosestPointOnSurface( Vector3 vecSearch,
