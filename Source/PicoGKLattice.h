@@ -199,7 +199,7 @@ public:
                     float fRadE,
                     bool bRoundCap)
     {
-        if (bRoundCap && ((vecS-vecE).fLength() < 1))
+        if (bRoundCap && ((vecS-vecE).fLength() < std::numeric_limits<float>::epsilon()))
         {
             // this is a sphere...
             AddSphere(vecS, std::max(fRadS, fRadE));
