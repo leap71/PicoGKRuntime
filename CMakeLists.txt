@@ -37,8 +37,9 @@ cmake_minimum_required(VERSION 3.27.4)
 
 # Define the version
 set(LIB_VERSION_MAJOR 1)
-set(LIB_VERSION_MINOR 0)
-set(LIB_VERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}")
+set(LIB_VERSION_MINOR 1)
+set(LIB_VERSION_SUBMINOR 0)
+set(LIB_VERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_SUBMINOR}")
 
 cmake_policy( SET CMP0091 NEW ) #enable MSVC_RUNTIME_LIBRARY property
 cmake_policy( SET CMP0042 NEW ) #enable MACOSX_RPATH
@@ -55,7 +56,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Lib)
 set(PICOGK_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Define the library name
-set(LIB_NAME "picogk.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}")
+set(LIB_NAME "picogk")
 
 # Option to control submodule update and initialization
 option(PICOGK_UPDATE_SUBMODULES "Update and initialize Git submodules" OFF)
@@ -112,6 +113,16 @@ FetchContent_MakeAvailable( glfw )
 
 # Add library target
 add_library(${LIB_NAME} SHARED)
+
+# Add a preprocessor definition for the debug build
+target_compile_definitions(${LIB_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG_BUILD>)
+
+if ( APPLE )
+    set_target_properties( ${LIB_NAME} PROPERTIES
+        VERSION ${LIB_VERSION}
+        SOVERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.0"
+    )
+endif()
 
 # Add all .cpp and .c files recursively from the Source directory
 file(GLOB_RECURSE SOURCES

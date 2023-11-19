@@ -79,7 +79,11 @@ public:
     
     std::string strName() const
     {
+#ifdef DEBUG_BUILD
+        return "PicoGK Core Library (Debug Version)";
+#else
         return "PicoGK Core Library";
+#endif
     }
     
     std::string strLibraryName() const
