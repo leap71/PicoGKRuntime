@@ -169,7 +169,8 @@ public:
         oFilter.offset(fSize2Vx);
     }
     
-    void TripleOffset(float fSize, VoxelSize oVoxelSize)
+    void TripleOffset(  float fSize,
+                        VoxelSize oVoxelSize)
     {
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roFloatGrid);
         
@@ -283,39 +284,38 @@ public:
     	std::vector< openvdb::Vec3I > oTriangles;
     	std::vector< openvdb::Vec4I > oQuads;
 		
-		openvdb::tools::volumeToMesh<openvdb::FloatGrid>(
-        	*m_roFloatGrid,
-        	oPoints,
-        	oTriangles,
-        	oQuads,
-        	0.0f,
-        	0.0,
-        	false);
+        openvdb::tools::volumeToMesh<openvdb::FloatGrid>(*m_roFloatGrid,
+                                                         oPoints,
+                                                         oTriangles,
+                                                         oQuads,
+                                                         0.0f,
+                                                         0.0,
+                                                         false);
 
-	    for (const openvdb::Vec4I oQuad : oQuads)
-	    {
-	        openvdb::Vec3I o1(oQuad[0], oQuad[1], oQuad[2]);
-	        oTriangles.push_back(o1);
+        for (const openvdb::Vec4I oQuad : oQuads)
+        {
+            openvdb::Vec3I o1(oQuad[0], oQuad[1], oQuad[2]);
+            oTriangles.push_back(o1);
 
-	        openvdb::Vec3I o2(oQuad[2], oQuad[3], oQuad[0]);
-	        oTriangles.push_back(o2);
-	    }
+            openvdb::Vec3I o2(oQuad[2], oQuad[3], oQuad[0]);
+            oTriangles.push_back(o2);
+        }
 	    
-	    for (const openvdb::Vec3s& v : oPoints)
-	    {
-	        Vector3 vec(v.x(), v.y(), v.z());
+        for (const openvdb::Vec3s& v : oPoints)
+        {
+            Vector3 vec(v.x(), v.y(), v.z());
             vec *= fVoxelSizeMM;
             roMesh->nAddVertex(vec);
-	    }
+        }
 
-	    for (const openvdb::Vec3I oTri : oTriangles)
-	    {
-	        roMesh->nAddTriangle(   PicoGK::Triangle(   oTri[2],
-	                                                    oTri[1],
-	                                                    oTri[0]));
-	    }
-    
-    	return roMesh;
+        for (const openvdb::Vec3I oTri : oTriangles)
+        {
+            roMesh->nAddTriangle(   PicoGK::Triangle(   oTri[2],
+                                                        oTri[1],
+                                                        oTri[0]));
+        }
+
+        return roMesh;
     }
     
     void ProjectZSliceDn(   float fZStart,
@@ -573,7 +573,7 @@ public:
         CoordBBox oBBox = m_roFloatGrid->evalActiveVoxelBoundingBox();
         openvdb::Coord xyz(0, 0, nZSlice + oBBox.min().z());
         
-        auto oAccess    = m_roFloatGrid->getConstAccessor();
+        auto oAccess = m_roFloatGrid->getConstAccessor();
         
         int32_t n=0;
         for (xyz.x()=oBBox.min().x(); xyz.x()<=oBBox.max().x(); xyz.x()++)
