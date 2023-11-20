@@ -56,7 +56,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Lib)
 set(PICOGK_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Define the library name
-set(LIB_NAME "picogk")
+if( WIN32 )
+	set(LIB_NAME "picogk.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}")
+else()
+	# unix-like systems automatically append version number
+	set(LIB_NAME "picogk")
+endif()
 
 # Option to control submodule update and initialization
 option(PICOGK_UPDATE_SUBMODULES "Update and initialize Git submodules" OFF)
