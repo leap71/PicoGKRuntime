@@ -22,3 +22,4 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 brew install boost
 brew install tbb
 brew install c-blosc
+brew install doxygen
