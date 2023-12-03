@@ -576,8 +576,8 @@ public:
         auto oAccess = m_roFloatGrid->getConstAccessor();
         
         int32_t n=0;
-        for (xyz.x()=oBBox.min().x(); xyz.x()<=oBBox.max().x(); xyz.x()++)
         for (xyz.y()=oBBox.min().y(); xyz.y()<=oBBox.max().y(); xyz.y()++)
+        for (xyz.x()=oBBox.min().x(); xyz.x()<=oBBox.max().x(); xyz.x()++)
         {
             pfBuffer[n] = oAccess.getValue(xyz);
             n++;
