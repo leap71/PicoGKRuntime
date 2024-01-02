@@ -156,18 +156,25 @@ protected:
         float ra = m_fRadS;
         float rb = m_fRadE;
         
-        float rba = rb - ra;
-        float baba = (b - a).fDot(b - a);
-        float papa = (p - a).fDot(p - a);
-        float paba = (p - a).fDot(b - a) / baba;
-        float x = std::sqrt(papa - paba * paba * baba);
-        float cax = std::max(0.0f, (float) (x - ((paba < 0.5f) ? ra : rb)));
-        float cay = std::abs(paba - 0.5f) - 0.5f;
-        float k = rba * rba + baba;
-        float f = Math::fClamp((rba * (x - ra) + paba * baba) / k, 0.0f, 1.0f);
-        float cbx = x - ra - f * rba;
-        float cby = paba - f;
-        float s = (cbx < 0.0 && cay < 0.0) ? -1.0f : 1.0f;
+        float rba   = rb - ra;
+        float baba  = (b - a).fDot(b - a);
+        float papa  = (p - a).fDot(p - a);
+        float paba  = (p - a).fDot(b - a) / baba;
+        
+        // eliminate negative values
+        float x     = std::sqrt(std::max(   0.0f,
+                                            (float) (papa - paba * paba * baba)));
+        // eliminate negative values
+        float cax   = std::max( 0.0f,
+                                (float) (x - ((paba < 0.5f) ? ra : rb)));
+        
+        float cay   = std::abs(paba - 0.5f) - 0.5f;
+        float k     = rba * rba + baba;
+        float f     = Math::fClamp((rba * (x - ra) + paba * baba) / k, 0.0f, 1.0f);
+        float cbx   = x - ra - f * rba;
+        float cby   = paba - f;
+        float s     = (cbx < 0.0f && cay < 0.0f) ? -1.0f : 1.0f;
+        
         return s * sqrtf(std::min(  cax * cax + cay * cay * baba,
                                     cbx * cbx + cby * cby * baba));
     }
