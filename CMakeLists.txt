@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 3.27.4)
 # Define the version
 set(LIB_VERSION_MAJOR 1)
 set(LIB_VERSION_MINOR 1)
-set(LIB_VERSION_SUBMINOR 0)
+set(LIB_VERSION_SUBMINOR 1)
 set(LIB_VERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_SUBMINOR}")
 
 cmake_policy( SET CMP0091 NEW ) #enable MSVC_RUNTIME_LIBRARY property
@@ -101,20 +101,7 @@ endif()
 
 #include GLFW
 
-set( GLFW_SOURCE_DIR ${PICOGK_ROOT_DIR}/GLFW )
-
-include( FetchContent )
-set( FETCHCONTENT_QUIET off )
-set( FETCHCONTENT_BASE_DIR ${GLFW_SOURCE_DIR} )
-set( repo_glfw https://github.com/glfw/glfw.git )
-
-FetchContent_Declare( glfw
-  GIT_REPOSITORY                      ${repo_glfw}
-  GIT_TAG                             3.3.8
-  GIT_PROGRESS                        TRUE
-  FETCHCONTENT_TRY_FIND_PACKAGE_MODE  ON )
-
-FetchContent_MakeAvailable( glfw )
+add_subdirectory( ${PICOGK_ROOT_DIR}/GLFW EXCLUDE_FROM_ALL )
 
 # Add library target
 add_library(${LIB_NAME} SHARED)
@@ -125,7 +112,8 @@ target_compile_definitions(${LIB_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG_BUILD>)
 if ( APPLE )
     set_target_properties( ${LIB_NAME} PROPERTIES
         VERSION ${LIB_VERSION}
-        SOVERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.0"
+        SOVERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_SUBMINOR}"
+        XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME YES
     )
 endif()
 
