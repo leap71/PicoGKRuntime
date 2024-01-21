@@ -279,7 +279,7 @@ public:
 private:
     Library()
     {
-        
+        openvdb::initialize();
     }
     
     ~Library()
