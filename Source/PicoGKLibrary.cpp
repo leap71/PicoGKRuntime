@@ -92,6 +92,8 @@ PICOGK_API void Mesh_Destroy(PKMESH hThis)
 {
     Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
     assert(Library::oLib().bMeshIsValid(proThis));
+
+    Library::oLib().MeshDestroy(proThis);
 }
 
 PICOGK_API int32_t Mesh_nAddVertex( PKMESH hThis,
