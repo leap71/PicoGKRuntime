@@ -22,6 +22,8 @@
 #include <thread>
 #include <assert.h>
 
+// Change this to run tests
+#define TESTFILE_PATH "/Users/richard/PicoGK_TestFiles"
 
 PKVIEWER g_hViewer = nullptr;
 
@@ -140,7 +142,7 @@ void KeyPressed(        PKVIEWER    hViewer,
         
     if (iKey ==  258)
     {
-        Viewer_RequestScreenShot(hViewer, "/Users/richard/Documents/PicoGKTestInput/SShot.tga");
+        Viewer_RequestScreenShot(hViewer, TESTFILE_PATH"/SShot.tga");
     }
 }
 
@@ -182,7 +184,7 @@ int main(int argc, const char * argv[])
 {
     char pszInfo[PKINFOSTRINGLEN];
     
-    Library_Init(0.8f);
+    Library_Init(1.0f);
     
     Library_GetName(pszInfo);
     std::cout << pszInfo << " ";
@@ -199,11 +201,11 @@ int main(int argc, const char * argv[])
     std::vector<PKVector3>  oVertices;
     std::vector<PKTriangle> oTriangles;
     
-    if (!PicoGKStl::bReadStlFile(  "/Users/userk/Documents/PicoGKTestInput/Cube.stl",
+    if (!PicoGKStl::bReadStlFile(  TESTFILE_PATH"/Teapot.stl",
                                     &oVertices,
                                     &oTriangles))
     {
-        std::cout << "Failed to load STL";
+        std::cout << "Failed to load STL from" << TESTFILE_PATH << "\n";;
     }
     else
     {
@@ -224,7 +226,7 @@ int main(int argc, const char * argv[])
     vecSize.Y = 2048;
     
     g_hViewer = Viewer_hCreate(
-                    "Hello World",
+                    "Hello PicoGK",
                     &vecSize,
                     LogInfo,
                     UpdateRequested,
@@ -240,22 +242,23 @@ int main(int argc, const char * argv[])
     std::vector<char>* poDiffuse    = nullptr;
     std::vector<char>* poSpecular   = nullptr;
     
-    bLoadFileIntoBuffer("/Users/userk/Documents/PicoGKTestInput/BarcelonaD.dds", &poDiffuse);
-    bLoadFileIntoBuffer("/Users/userk/Documents/PicoGKTestInput/BarcelonaS.dds", &poSpecular);
+    if (    bLoadFileIntoBuffer(TESTFILE_PATH"/Diffuse.dds", &poDiffuse) &&
+            bLoadFileIntoBuffer(TESTFILE_PATH"/Specular.dds", &poSpecular))
+    {
+        Viewer_bLoadLightSetup( g_hViewer,
+                               poDiffuse->data(),
+                               (int32_t) poDiffuse->size(),
+                               poSpecular->data(),
+                               (int32_t) poSpecular->size());
+    }
+    else
+    {
+        std::cout << "Failed to load viewer textures from " << TESTFILE_PATH << "\n";
+    }
             
-    Viewer_bLoadLightSetup( g_hViewer,
-                            poDiffuse->data(),
-                            (int32_t) poDiffuse->size(),
-                            poSpecular->data(),
-                           (int32_t) poSpecular->size());
-        
     PKVOXELS hVoxels = Voxels_hCreate();
     assert(Voxels_bIsValid(hVoxels));
     Voxels_RenderMesh(hVoxels, hMesh);
-    
-    PKMESH hFromVoxels = Mesh_hCreateFromVoxels(hVoxels);
-    
-    Viewer_AddMesh(g_hViewer, 0, hFromVoxels);
     
     PKVector3 vecSearch;
     vecSearch.X = 50;
@@ -280,6 +283,32 @@ int main(int argc, const char * argv[])
         Viewer_AddPolyLine(g_hViewer, 0, hPoly);
     }
     
+    PKVDBFILE hVdb = VdbFile_hCreate();
+    
+    int nIndex = VdbFile_nAddVoxels(hVdb, "Voxels", hVoxels);
+    
+    if (!VdbFile_bSaveToFile(hVdb, TESTFILE_PATH"/Voxels.vdb"))
+    {
+        std::cout << "Failed to save Vdb to " << TESTFILE_PATH << "\n";
+    }
+    
+    VdbFile_Destroy(hVdb);
+    
+    PKVDBFILE   hVdbRead    = VdbFile_hCreateFromFile(TESTFILE_PATH"/Voxels.vdb");
+    PKVOXELS    hVoxelsRead = hVoxels;
+    if (hVdbRead == nullptr)
+    {
+        std::cout << "Failed to read Vdb from " << TESTFILE_PATH << "\n";
+    }
+    else
+    {
+        hVoxelsRead = VdbFile_hGetVoxels(hVdbRead, nIndex);
+        VdbFile_Destroy(hVdbRead);
+    }
+
+    PKMESH hFromVoxels = Mesh_hCreateFromVoxels(hVoxelsRead);
+    Viewer_AddMesh(g_hViewer, 0, hFromVoxels);
+    
     Viewer_RequestUpdate(g_hViewer);
     
     while (Viewer_bPoll(g_hViewer))
@@ -287,7 +316,6 @@ int main(int argc, const char * argv[])
         std::this_thread::yield();
     }
     
-    Viewer_RemoveMesh(g_hViewer, hMesh);
     Viewer_RemoveMesh(g_hViewer, hFromVoxels);
     
     PKLATTICE hLattice = Lattice_hCreate();
@@ -297,6 +325,9 @@ int main(int argc, const char * argv[])
     Mesh_Destroy(hMesh);
     Mesh_Destroy(hFromVoxels);
     Voxels_Destroy(hVoxels);
+    
+    if (hVoxelsRead != hVoxels)
+        Voxels_Destroy(hVoxelsRead);
     
     return 0;
 }

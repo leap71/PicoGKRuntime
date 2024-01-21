@@ -78,6 +78,7 @@ PICOGK_API void         Library_GetBuildInfo(       char psz[PKINFOSTRINGLEN]);
 #define PKPOLYLINE  PKHANDLE
 #define PKVOXELS    PKHANDLE
 #define PKVIEWER    PKHANDLE
+#define PKVDBFILE   PKHANDLE
 
 // MESH
 
@@ -295,6 +296,25 @@ PICOGK_API  void        Viewer_SetGroupMaterial(    PKVIEWER                hThi
 PICOGK_API void         Viewer_SetGroupMatrix(      PKVIEWER                hThis,
                                                     int32_t                 nGroupID,
                                                     const PKMatrix4x4*      pmat);
+
+PICOGK_API PKVDBFILE    VdbFile_hCreate();
+
+PICOGK_API PKVDBFILE    VdbFile_hCreateFromFile(    const char*             pszFileName);
+
+PICOGK_API bool         VdbFile_bIsValid(           PKVDBFILE                hThis);
+
+PICOGK_API void         VdbFile_Destroy(            PKVDBFILE                hThis);
+
+PICOGK_API bool         VdbFile_bSaveToFile(        PKVDBFILE               hVdbFile,
+                                                    const char*             pszFileName);
+
+PICOGK_API PKVOXELS     VdbFile_hGetVoxels(         PKVDBFILE               hVdbFile,
+                                                    int32_t                 nIndex);
+
+PICOGK_API int32_t      VdbFile_nAddVoxels(         PKVDBFILE               hVdbFile,
+                                                    const char*             pszFieldName,
+                                                    PKVOXELS                hVoxels);
+
 #endif
  
 

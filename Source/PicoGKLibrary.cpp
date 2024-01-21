@@ -666,3 +666,59 @@ PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
     
     poThis->SetGroupMatrix(nGroupID, *pmat);
 }
+
+PICOGK_API PKVDBFILE VdbFile_hCreate()
+{
+    return (PKVDBFILE) Library::oLib().proVdbFileCreate();
+}
+
+PICOGK_API PKVDBFILE VdbFile_hCreateFromFile(const char* pszFileName)
+{
+    return (PKVDBFILE) Library::oLib().proVdbFileCreateFromFile(pszFileName);
+}
+
+PICOGK_API bool VdbFile_bIsValid(PKVDBFILE hThis)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    return Library::oLib().bVdbFileIsValid(proThis);
+}
+
+PICOGK_API void VdbFile_Destroy(PKVDBFILE hThis)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::oLib().VdbFileDestroy(proThis);
+}
+
+PICOGK_API bool VdbFile_bSaveToFile(    PKVDBFILE       hThis,
+                                        const char*     pszFileName)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    
+    return (*proThis)->bSaveToFile(pszFileName);
+}
+
+PICOGK_API PKVOXELS VdbFile_hGetVoxels( PKVDBFILE   hThis,
+                                        int32_t     nIndex)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    
+    return (PKVOXELS) Library::oLib().proVdbFileGetVoxels(*proThis, nIndex);
+}
+
+PICOGK_API int32_t VdbFile_nAddVoxels(  PKVDBFILE   hThis,
+                                        const char* pszFieldName,
+                                        PKVOXELS    hVoxels)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    
+    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
+    assert(Library::oLib().bVoxelsIsValid(proVoxels));
+    
+    return Library::oLib().nVdbFileAddVoxels(   *proThis,
+                                                pszFieldName,
+                                                *proVoxels);
+}

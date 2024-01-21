@@ -44,6 +44,7 @@
 #include "PicoGKLattice.h"
 #include "PicoGKPolyLine.h"
 #include "PicoGKVdbVoxels.h"
+#include "PicoGKVdbFile.h"
 
 namespace PicoGK
 {
@@ -271,6 +272,90 @@ public: // Voxels functions
         assert(false);
     }
     
+public: // VdbFile functions
+    
+    VdbFile::Ptr* proVdbFileCreate()
+    {
+        VdbFile::Ptr    roVdbFile =  std::make_shared<VdbFile>();
+        VdbFile::Ptr*   proVdbFile  = new VdbFile::Ptr(roVdbFile);
+        m_oVdbFiles[proVdbFile]     = proVdbFile;
+        return proVdbFile;
+    }
+    
+    VdbFile::Ptr* proVdbFileCreateFromFile(std::string strFileName)
+    {
+        VdbFile::Ptr roVdbFile = VdbFile::roFromFile(strFileName);
+        if (roVdbFile == nullptr)
+            return nullptr;
+        
+        VdbFile::Ptr*   proVdbFile  = new VdbFile::Ptr(roVdbFile);
+        m_oVdbFiles[proVdbFile]     = proVdbFile;
+        return proVdbFile;
+    }
+    
+    bool bVdbSaveToFile(std::string strFileName)
+    {
+        VdbFile::Ptr roVdbFile = VdbFile::roFromFile(strFileName);
+        if (roVdbFile == nullptr)
+            return false;
+        
+        return roVdbFile->bSaveToFile(strFileName);
+    }
+    
+    bool bVdbFileFind(const VdbFile::Ptr* proVdbFile) const
+    {
+        return (m_oVdbFiles.find(proVdbFile) != m_oVdbFiles.end());
+    }
+    
+    bool bVdbFileIsValid(const VdbFile::Ptr* proVdbFile)
+    {
+        if (proVdbFile == nullptr)
+            return false;
+        
+        return bVdbFileFind(proVdbFile);
+    }
+        
+    void VdbFileDestroy(VdbFile::Ptr* proVdbFile)
+    {
+        auto it = m_oVdbFiles.find(proVdbFile);
+        
+        if (it != m_oVdbFiles.end())
+        {
+            m_oVdbFiles.erase(it);
+            delete proVdbFile; // free reference to shared pointer
+            return;
+        }
+        
+        // not found, trying to free an element that doesn't exist
+        assert(false);
+    }
+    
+    Voxels::Ptr* proVdbFileGetVoxels(   VdbFile::Ptr roVdbFile,
+                                        int32_t nIndex)
+    {
+        GridBase::Ptr roGrid = roVdbFile->roGridAt(nIndex);
+        
+        if (!roGrid->isType<FloatGrid>())
+            return nullptr;
+        
+        if (roGrid->getGridClass() != GRID_LEVEL_SET)
+            return nullptr; // not a voxel field
+        
+        Voxels::Ptr roVoxels = std::make_shared<Voxels>(PICOGK_VOXEL_DEFAULTBACKGROUND, gridPtrCast<FloatGrid>(roGrid));
+        
+        Voxels::Ptr* proVoxels = new Voxels::Ptr(roVoxels);
+        m_oVoxels[proVoxels]   = proVoxels;
+        return proVoxels;
+
+    }
+    
+    int32_t nVdbFileAddVoxels(  VdbFile::Ptr roVdbFile,
+                                std::string strName,
+                                Voxels::Ptr roVoxels)
+    {
+        return roVdbFile->nAddGrid(strName, roVoxels->m_roFloatGrid);
+    }
+    
 public:
 
     Library(const Library&)                 = delete;
@@ -294,7 +379,7 @@ protected:
     std::map<const Lattice::Ptr*,   Lattice::Ptr*>  m_oLattices;
     std::map<const PolyLine::Ptr*,  PolyLine::Ptr*> m_oPolyLines;
     std::map<const Voxels::Ptr*,    Voxels::Ptr*>   m_oVoxels;
-
+    std::map<const VdbFile::Ptr*,   VdbFile::Ptr*>  m_oVdbFiles;
 };
 
 } // namespace PicoGK

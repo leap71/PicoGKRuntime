@@ -47,6 +47,8 @@
 
 using namespace openvdb;
 
+#define PICOGK_VOXEL_DEFAULTBACKGROUND 3.0f
+
 namespace PicoGK
 {
 
@@ -56,7 +58,7 @@ class Voxels
 public:
     typedef std::shared_ptr<Voxels> Ptr;
     
-    Voxels(float fBackground = 3.0f)
+    Voxels(float fBackground = PICOGK_VOXEL_DEFAULTBACKGROUND)
     {
         m_roFloatGrid = FloatGrid::create(fBackground);
         m_roFloatGrid->setGridClass(GRID_LEVEL_SET);
