@@ -81,11 +81,12 @@ public:
         m_roGrids = roGrids;
     }
     
-    int32_t nAddGrid(   std::string             strGridName,
-                        openvdb::FloatGrid::Ptr roGrid)
+    int32_t nAddGrid(   std::string                     strGridName,
+                        const openvdb::FloatGrid::Ptr   roGrid)
     {
-        roGrid->setName(strGridName);
-        m_roGrids->push_back(roGrid);
+        openvdb::FloatGrid::Ptr roCopy = deepCopyTypedGrid<FloatGrid>(roGrid);
+        roCopy->setName(strGridName);
+        m_roGrids->push_back(roCopy);
         return (int32_t) m_roGrids->size()-1;
     }
     
@@ -106,7 +107,7 @@ public:
         return roGrid->getName();
     }
     
-    std::string strTypeAt(int32_t nIndex) const
+    int nTypeAt(int32_t nIndex) const
     {
         auto roGrid = roGridAt(nIndex);
         
@@ -115,7 +116,7 @@ public:
             switch (roGrid->getGridClass())
             {
                 case openvdb::GRID_LEVEL_SET:
-                    return "Voxels";
+                    return 0;
                     break;
                     
                 default:
@@ -123,7 +124,7 @@ public:
             }
         }
         
-        return "Unsupported";
+        return -1;
     }
     
     bool bSaveToFile(std::string strFileName)
@@ -149,7 +150,6 @@ public:
         
         catch (...)
         {
-            
         }
         
         return false;

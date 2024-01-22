@@ -315,6 +315,15 @@ PICOGK_API int32_t      VdbFile_nAddVoxels(         PKVDBFILE               hVdb
                                                     const char*             pszFieldName,
                                                     PKVOXELS                hVoxels);
 
+PICOGK_API int32_t      VdbFile_nFieldCount(        PKVDBFILE               hVdbFile);
+
+PICOGK_API void         VdbFile_GetFieldName(       PKVDBFILE               hVdbFile,
+                                                    int32_t                 nIndex,
+                                                    char psz[PKINFOSTRINGLEN]);
+
+PICOGK_API int32_t      VdbFile_nFieldType(         PKVDBFILE               hVdbFile,
+                                                    int32_t                 nIndex);
+
 #endif
  
 

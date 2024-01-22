@@ -722,3 +722,32 @@ PICOGK_API int32_t VdbFile_nAddVoxels(  PKVDBFILE   hThis,
                                                 pszFieldName,
                                                 *proVoxels);
 }
+
+PICOGK_API int32_t VdbFile_nFieldCount(PKVDBFILE hThis)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    
+    return (*proThis)->nGridCount();
+}
+
+PICOGK_API void VdbFile_GetFieldName(   PKVDBFILE   hThis,
+                                        int32_t     nIndex,
+                                        char        psz[PKINFOSTRINGLEN])
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    
+    SafeCopyInfoString( (*proThis)->strNameAt(nIndex),
+                        psz);
+}
+
+PICOGK_API int VdbFile_nFieldType(  PKVDBFILE   hThis,
+                                    int32_t     nIndex)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    
+    return (*proThis)->nTypeAt(nIndex);
+}
+
