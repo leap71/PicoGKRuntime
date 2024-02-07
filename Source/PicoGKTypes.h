@@ -382,28 +382,28 @@ public:
     
     Coord xyzToVoxels(const Vector3& vecMM)
     {
-        Coord xyzVoxels( vecMM.X / m_fVoxelSizeMM,
-                         vecMM.Y / m_fVoxelSizeMM,
-                         vecMM.Z / m_fVoxelSizeMM);
+        Coord xyzVoxels(    iToVoxels(vecMM.X),
+                            iToVoxels(vecMM.Y),
+                            iToVoxels(vecMM.Z));
         
         return xyzVoxels;
     }
 
     inline int32_t iToVoxels(float fMM)
     {
-        return (int) (fMM / m_fVoxelSizeMM);
+        return (int) 0.5f + fToVoxels(fMM);
     }
     
     inline float fToVoxels(float fMM)
     {
-        return (fMM / m_fVoxelSizeMM);
+        return fMM / m_fVoxelSizeMM;
     }
 
     Vector3 vecToMM(const Coord& xyzVoxels)
     {
-        Vector3 vecMM(  xyzVoxels.X * m_fVoxelSizeMM,
-                        xyzVoxels.Y * m_fVoxelSizeMM,
-                        xyzVoxels.Z * m_fVoxelSizeMM);
+        Vector3 vecMM(  fToMM(xyzVoxels.X),
+                        fToMM(xyzVoxels.Y),
+                        fToMM(xyzVoxels.Z));
         
         return vecMM;
     }
