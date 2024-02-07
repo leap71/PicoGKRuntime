@@ -326,8 +326,8 @@ public:
     {
         assert(fZStart > fZEnd);
         
-        int32_t iZStart = oVoxelSize.iToVoxels(fZStart+0.5f);
-        int32_t iZEnd   = oVoxelSize.iToVoxels(fZEnd-0.5f);
+        int32_t iZStart = oVoxelSize.iToVoxels(fZStart);
+        int32_t iZEnd   = oVoxelSize.iToVoxels(fZEnd);
         CoordBBox oBBox = m_roFloatGrid->evalActiveVoxelBoundingBox();
         
         auto oAccess = m_roFloatGrid->getAccessor();
@@ -365,8 +365,8 @@ public:
     {
         assert(fZStart < fZEnd);
         
-        int32_t iZStart = oVoxelSize.iToVoxels(fZStart-0.5f);
-        int32_t iZEnd   = oVoxelSize.iToVoxels(fZEnd+0.5f);
+        int32_t iZStart = oVoxelSize.iToVoxels(fZStart);
+        int32_t iZEnd   = oVoxelSize.iToVoxels(fZEnd);
         CoordBBox oBBox = m_roFloatGrid->evalActiveVoxelBoundingBox();
         
         auto oAccess = m_roFloatGrid->getAccessor();
