@@ -407,6 +407,15 @@ public:
         
         return vecMM;
     }
+    
+    Vector3 vecToVoxels(const Vector3& vecMM)
+    {
+        Vector3 vecVox( fToVoxels(vecMM.X),
+                        fToVoxels(vecMM.Y),
+                        fToVoxels(vecMM.Z));
+        
+        return vecVox;
+    }
 
     float fToMM(int iVoxels)
     {
