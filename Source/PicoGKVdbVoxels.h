@@ -42,6 +42,7 @@
 #include <openvdb/tools/VolumeToMesh.h>
 #include <openvdb/tools/LevelSetRebuild.h>
 #include <openvdb/tools/LevelSetFilter.h>
+#include <openvdb/tools/RayIntersector.h>
 
 #include "PicoGKMesh.h"
 
@@ -440,6 +441,25 @@ public:
         *poBBox     = oResult;
     }
     
+    inline void GetSurfaceNormal(   Vector3 vecPt,
+                                    VoxelSize oVoxelSize,
+                                    Vector3* pvecNormal)
+    {
+        math::GradStencil oStencil(*m_roFloatGrid);
+        Coord xyz = oVoxelSize.xyzToVoxels(vecPt);
+    
+        oStencil.moveTo(    openvdb::Coord( xyz.X,
+                                            xyz.Y,
+                                            xyz.Z));
+        
+        auto vecGradient = oStencil.gradient();
+        vecGradient.normalize();
+        
+        pvecNormal->X = vecGradient.x();
+        pvecNormal->Y = vecGradient.y();
+        pvecNormal->Z = vecGradient.z();
+    }
+    
     inline bool bFindClosestPointOnSurface( Vector3 vecSearch,
                                             VoxelSize oVoxelSize,
                                             Vector3* pvecSurfacePoint)
@@ -489,68 +509,23 @@ public:
                                     VoxelSize oVoxelSize,
                                     Vector3* pvecSurfacePoint)
     {
-        Coord xyzStart = oVoxelSize.xyzToVoxels(vecSearch);
-        Vector3 vecStart(xyzStart.X, xyzStart.Y, xyzStart.Z); // voxel coords
-        Vector3 vecD = vecDirection;
-        vecD.Normalize();
-
-        // Determine the step direction for each axis
-        int iStepX = (vecD.X >= 0) ? 1 : -1;
-        int iStepY = (vecD.Y >= 0) ? 1 : -1;
-        int iStepZ = (vecD.Z >= 0) ? 1 : -1;
-
-        // Initialize the ray's starting position
-        openvdb::Coord xyz( (int32_t) vecStart.X,
-                            (int32_t) vecStart.Y,
-                            (int32_t) vecStart.Z);
-
-        // Calculate the distance to the next voxel boundary along each axis
-        float fMaxX = (iStepX > 0) ? (vecStart.X + 1.0f) - vecStart.X : vecStart.X - vecStart.X;
-        float fMaxY = (iStepY > 0) ? (vecStart.Y + 1.0f) - vecStart.Y : vecStart.Y - vecStart.Y;
-        float fMaxZ = (iStepZ > 0) ? (vecStart.Z + 1.0f) - vecStart.Z : vecStart.Z - vecStart.Z;
-
-        // Calculate the increment for each axis
-        float fDeltaX = std::abs(1.0f / vecD.X);
-        float fDeltaY = std::abs(1.0f / vecD.Y);
-        float fDeltaZ = std::abs(1.0f / vecD.Z);
+        tools::LevelSetRayIntersector oIntersector(*m_roFloatGrid);
+        math::Ray<Real> oRay(   Vec3f(  oVoxelSize.fToVoxels(vecSearch.X),
+                                        oVoxelSize.fToVoxels(vecSearch.Y),
+                                        oVoxelSize.fToVoxels(vecSearch.Z)),
+                                Vec3f(  vecDirection.X,
+                                        vecDirection.Y,
+                                        vecDirection.Z));
         
-        CoordBBox oBBox = m_roFloatGrid->evalActiveVoxelBoundingBox();
-        oBBox.expand(openvdb::Coord(xyzStart.X, xyzStart.Y, xyzStart.Z));
-        // Add the search point to the BBox
+        math::Vec3<Real> xyz;
+        math::Vec3<Real> vecNormal;
         
-        auto oAccess    = m_roFloatGrid->getConstAccessor();
-        
-        bool bStartInside = oAccess.getValue(xyz) <= 0.0f;
-
-        // Perform the DDA ray casting
-        while (oBBox.isInside(xyz))
+        if (oIntersector.intersectsIS(oRay, xyz))
         {
-            // Check if the current voxel is filled
-            
-            bool bInside = oAccess.getValue(xyz) <= 0.0f;
-            if (bInside != bStartInside)
-            {
-                // Store the intersection coordinate and return true
-                *pvecSurfacePoint = oVoxelSize.vecToMM(Coord(xyz.x(), xyz.y(), xyz.z()));
-                return true;
-            }
-
-            // Find the axis (X, Y, Z) at which the next voxel boundary is closer
-            if (fMaxX < fMaxY && fMaxX < fMaxZ)
-            {
-                xyz.x() += iStepX;
-                fMaxX += fDeltaX;
-            }
-            else if (fMaxY < fMaxZ)
-            {
-                xyz.y() += iStepY;
-                fMaxY += fDeltaY;
-            }
-            else
-            {
-                xyz.z() += iStepZ;
-                fMaxZ += fDeltaZ;
-            }
+            *pvecSurfacePoint = oVoxelSize.vecToMM( Coord(  xyz.x(),
+                                                            xyz.y(),
+                                                            xyz.z()));
+            return true;
         }
 
         // If the ray reaches its maximum range without hitting a filled voxel,

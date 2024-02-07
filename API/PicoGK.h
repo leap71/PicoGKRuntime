@@ -196,6 +196,10 @@ PICOGK_API void         Voxels_CalculateProperties( PKVOXELS                hThi
                                                     float*                  pfVolume,
                                                     PKBBox3*                poBBox);
 
+PICOGK_API void         Voxels_GetSurfaceNormal(        PKVOXELS            hThis,
+                                                        const PKVector3*    pvecSurfacePoint,
+                                                        PKVector3*          pvecNormal);
+
 PICOGK_API bool         Voxels_bClosestPointOnSurface(  PKVOXELS            hThis,
                                                         const PKVector3*    pvecSearch,
                                                         PKVector3*          pvecSurfacePoint);

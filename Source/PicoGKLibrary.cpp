@@ -388,6 +388,16 @@ PICOGK_API void Voxels_CalculateProperties( PKVOXELS hThis,
     (*proThis)->CalculateProperties(pfVolume, poBBox, Library::oLib().fVoxelSizeMM());
 }
 
+PICOGK_API void Voxels_GetSurfaceNormal(    PKVOXELS            hThis,
+                                            const PKVector3*    pvecSurfacePoint,
+                                            PKVector3*          pvecNormal)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    
+    (*proThis)->GetSurfaceNormal(*pvecSurfacePoint, Library::oLib().fVoxelSizeMM(), pvecNormal);
+}
+
 PICOGK_API bool Voxels_bClosestPointOnSurface(  PKVOXELS            hThis,
                                                 const PKVector3*    pvecSearch,
                                                 PKVector3*          pvecSurfacePoint)
@@ -395,7 +405,9 @@ PICOGK_API bool Voxels_bClosestPointOnSurface(  PKVOXELS            hThis,
     Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
     assert(Library::oLib().bVoxelsIsValid(proThis));
     
-    return (*proThis)->bFindClosestPointOnSurface(*pvecSearch, Library::oLib().fVoxelSizeMM(), pvecSurfacePoint);
+    return (*proThis)->bFindClosestPointOnSurface(  *pvecSearch,
+                                                    Library::oLib().fVoxelSizeMM(),
+                                                    pvecSurfacePoint);
 }
 
 PICOGK_API bool Voxels_bRayCastToSurface(   PKVOXELS            hThis,
