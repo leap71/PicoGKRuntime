@@ -75,14 +75,6 @@ public:
     {
         m_roFloatGrid   = deepCopyTypedGrid<FloatGrid>(oSource.m_roFloatGrid);
     };
-    
-    static Voxels::Ptr roFromMesh(  const Mesh& oMesh,
-                                    float fVoxelSizeMM,
-                                    float fBackground = 3.0f)
-    {
-        FloatGrid::Ptr roGrid = roFloatGridFromMesh(oMesh, fVoxelSizeMM, fBackground);
-        return std::make_shared<Voxels>(fBackground, roGrid);
-    }
 
     ~Voxels()
     {
@@ -191,9 +183,34 @@ public:
     }
 
     void RenderMesh(	const Mesh& oMesh,
-    					float fVoxelSizeMM)
+    					VoxelSize oVoxelSize)
     {
-        FloatGrid::Ptr roVoxelized = roFloatGridFromMesh(oMesh, fVoxelSizeMM, fBackground());
+        // We have to convert the mesh to voxel coords before
+        // we transfer it to openvdb for rendering
+        // We should use the openvdb transformations in the
+        // future and inform the openvdb float grid of our
+        // voxel size. This is, however, a bit of a larger
+        // project and will be done at a later time.
+        
+        Mesh oMeshInVoxelCoord;
+        for (int32_t n=0; n<oMesh.nTriangleCount(); n++)
+        {
+            Vector3 vecA(0,0,0);
+            Vector3 vecB(0,0,0);
+            Vector3 vecC(0,0,0);
+            oMesh.GetTriangle(n, &vecA, &vecB, &vecC);
+            
+            vecA = oVoxelSize.vecToVoxels(vecA);
+            vecB = oVoxelSize.vecToVoxels(vecB);
+            vecC = oVoxelSize.vecToVoxels(vecC);
+            
+            oMeshInVoxelCoord.nAddTriangle(vecA, vecB, vecC);
+        }
+        
+        FloatGrid::Ptr roVoxelized = roFloatGridFromMesh(   oMeshInVoxelCoord,
+                                                            1.0f,
+                                                            fBackground());
+        
         openvdb::tools::csgUnion(*m_roFloatGrid, *roVoxelized);
     }
     
