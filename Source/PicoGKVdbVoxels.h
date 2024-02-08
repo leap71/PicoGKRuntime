@@ -613,7 +613,7 @@ protected:
             Vector3 vecSample = oVoxelSize.vecToMM(Coord(x,y,z));
             
             // Boolean add to existing value, if one exists
-            float fValue = std::min(    oLattice.fSdValue(vecSample),
+            float fValue = std::min(    oVoxelSize.fToVoxels(oLattice.fSdValue(vecSample)),
                                         poAccess->getValue(xyz));
                     
             if (fValue < fBackground)
