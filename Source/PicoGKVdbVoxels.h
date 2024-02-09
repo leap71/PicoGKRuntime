@@ -581,10 +581,7 @@ public:
     FloatGrid::Ptr roVdbGrid() const 	{return m_roFloatGrid;}
     
     inline float fBackground() const    {return m_roFloatGrid->background();}
-
-    Coord 	        m_xyzSize;
     FloatGrid::Ptr	m_roFloatGrid;
-    
     
 protected:
     
