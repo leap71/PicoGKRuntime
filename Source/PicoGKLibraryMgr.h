@@ -57,6 +57,14 @@ ClassName::Ptr* pro##ClassName##Create()                                \
     return pro;                                                         \
 }                                                                       \
                                                                         \
+ClassName::Ptr* pro##ClassName##CreateCopy(const ClassName& oSource)    \
+{                                                                       \
+    ClassName::Ptr  ro          =  std::make_shared<ClassName>(oSource);\
+    ClassName::Ptr* pro         = new ClassName::Ptr(ro);               \
+    m_o##ClassName##List[pro]  = pro;                                   \
+    return pro;                                                         \
+}                                                                       \
+                                                                        \
 bool b##ClassName##Find(const ClassName::Ptr* pro) const                \
 {                                                                       \
     return (m_o##ClassName##List.find(pro)                              \
@@ -198,14 +206,6 @@ public: // PolyLine functions
 public: // Voxels functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(Voxels)
     
-    Voxels::Ptr* proVoxelsCreateCopy(const Voxels& oSource)
-    {
-        Voxels::Ptr   roNew = std::make_shared<Voxels>(oSource);
-        Voxels::Ptr* proNew = new Voxels::Ptr(roNew);
-        m_oVoxelsList[proNew]   = proNew;
-        return proNew;
-    }
-    
 public: // VdbFile functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(VdbFile)
     
@@ -304,6 +304,15 @@ public: // VdbFile functions
     
 public: // ScalarField functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(ScalarField)
+    
+    ScalarField::Ptr* proScalarFieldCreateFromVoxels(const Voxels& oVoxels)
+    {
+        ScalarField::Ptr roField = std::make_shared<ScalarField>(oVoxels.roVdbGrid());
+        
+        ScalarField::Ptr* proField      = new ScalarField::Ptr(roField);
+        m_oScalarFieldList[proField]    = proField;
+        return proField;
+    }
     
 public: // VectorField
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(VectorField)

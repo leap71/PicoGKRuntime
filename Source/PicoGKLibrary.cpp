@@ -816,6 +816,12 @@ PICOGK_API PKSCALARFIELD ScalarField_hCreate()
     return (PKSCALARFIELD) Library::oLib().proScalarFieldCreate();
 }
 
+PICOGK_API PKSCALARFIELD ScalarField_hCreateCopy(PKSCALARFIELD hSource)
+{
+    ScalarField::Ptr* proSource = (ScalarField::Ptr*) hSource;
+    return (PKSCALARFIELD) Library::oLib().proScalarFieldCreateCopy(**proSource);
+}
+
 PICOGK_API bool ScalarField_bIsValid(PKSCALARFIELD hThis)
 {
     ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
@@ -828,6 +834,15 @@ PICOGK_API void ScalarField_Destroy(PKSCALARFIELD   hThis)
     assert(Library::oLib().bScalarFieldIsValid(proThis));
     
     Library::oLib().ScalarFieldDestroy(proThis);
+}
+
+PICOGK_API PKSCALARFIELD ScalarField_hCreateFromVoxels(PKVOXELS hVoxels)
+{
+    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
+    assert(Library::oLib().bVoxelsIsValid(proVoxels));
+    
+    ScalarField::Ptr* proField = Library::oLib().proScalarFieldCreateFromVoxels(**proVoxels);
+    return (PKVECTORFIELD) proField;
 }
 
 PICOGK_API void ScalarField_SetValue(   PKSCALARFIELD       hThis,
@@ -857,6 +872,12 @@ PICOGK_API bool ScalarField_bGetValue(  PKSCALARFIELD       hThis,
 PICOGK_API PKVECTORFIELD VectorField_hCreate()
 {
     return (PKVECTORFIELD) Library::oLib().proVectorFieldCreate();
+}
+
+PICOGK_API PKVECTORFIELD VectorField_hCreateCopy(PKVECTORFIELD hSource)
+{
+    VectorField::Ptr* proSource = (VectorField::Ptr*) hSource;
+    return (PKVECTORFIELD) Library::oLib().proVectorFieldCreateCopy(**proSource);
 }
 
 PICOGK_API bool VectorField_bIsValid(PKVECTORFIELD hThis)
@@ -903,7 +924,7 @@ PICOGK_API bool VectorField_bGetValue(  PKSCALARFIELD       hThis,
     VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
     assert(Library::oLib().bVectorFieldIsValid(proThis));
     
-    return (*proThis)->bGetValue(  *pvecPosition,
+    return (*proThis)->bGetValue(   *pvecPosition,
                                     Library::oLib().fVoxelSizeMM(),
                                     pvecValue);
 }

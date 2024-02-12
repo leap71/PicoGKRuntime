@@ -346,6 +346,10 @@ PICOGK_API int32_t          VdbFile_nFieldType(             PKVDBFILE           
 
 PICOGK_API PKSCALARFIELD    ScalarField_hCreate();
 
+PICOGK_API PKSCALARFIELD    ScalarField_hCreateCopy(        PKSCALARFIELD       hSource);
+
+PICOGK_API PKSCALARFIELD    ScalarField_hCreateFromVoxels(  PKVOXELS            hVoxels);
+
 PICOGK_API bool             ScalarField_bIsValid(           PKSCALARFIELD       hThis);
 
 PICOGK_API void             ScalarField_Destroy(            PKSCALARFIELD       hThis);
@@ -355,10 +359,12 @@ PICOGK_API void             ScalarField_SetValue(           PKSCALARFIELD       
                                                             float               fValue);
 
 PICOGK_API bool             ScalarField_bGetValue(          PKSCALARFIELD       hThis,
-                                                            const PKVector3*    pvecValue,
+                                                            const PKVector3*    pvecPosition,
                                                             float*              pfValue);
 
 PICOGK_API PKVECTORFIELD    VectorField_hCreate();
+
+PICOGK_API PKVECTORFIELD    VectorField_hCreateCopy(        PKVECTORFIELD       hSource);
 
 PICOGK_API PKVECTORFIELD    VectorField_hCreateFromVoxels(  PKVOXELS            hVoxels);
 
