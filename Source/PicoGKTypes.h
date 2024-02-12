@@ -51,12 +51,6 @@
 #define PKSTRINGIFY(x)              #x
 #define PKEXPAND_AND_STRINGIFY(x)   PKSTRINGIFY(x)
 
-#define PKTRAVERSEVOXELFIELD(pVoxels)\
-Coord xyzSZ = (pVoxels)->xyzSize();\
-for (int x=0; x<xyzSZ.X; x++)\
-for (int y=0; y<xyzSZ.Y; y++)\
-for (int z=0; z<xyzSZ.Z; z++)
-
 namespace PicoGK
 {
 
