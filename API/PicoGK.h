@@ -72,13 +72,15 @@ PICOGK_API void         Library_GetVersion(         char psz[PKINFOSTRINGLEN]);
 
 PICOGK_API void         Library_GetBuildInfo(       char psz[PKINFOSTRINGLEN]);
 
-#define PKHANDLE    void*
-#define PKMESH      PKHANDLE
-#define PKLATTICE   PKHANDLE
-#define PKPOLYLINE  PKHANDLE
-#define PKVOXELS    PKHANDLE
-#define PKVIEWER    PKHANDLE
-#define PKVDBFILE   PKHANDLE
+#define PKHANDLE        void*
+#define PKMESH          PKHANDLE
+#define PKLATTICE       PKHANDLE
+#define PKPOLYLINE      PKHANDLE
+#define PKVOXELS        PKHANDLE
+#define PKVIEWER        PKHANDLE
+#define PKVDBFILE       PKHANDLE
+#define PKSCALARFIELD   PKHANDLE
+#define PKVECTORFIELD   PKHANDLE
 
 // MESH
 
@@ -301,33 +303,76 @@ PICOGK_API void         Viewer_SetGroupMatrix(      PKVIEWER                hThi
                                                     int32_t                 nGroupID,
                                                     const PKMatrix4x4*      pmat);
 
-PICOGK_API PKVDBFILE    VdbFile_hCreate();
+PICOGK_API PKVDBFILE        VdbFile_hCreate();
 
-PICOGK_API PKVDBFILE    VdbFile_hCreateFromFile(    const char*             pszFileName);
+PICOGK_API PKVDBFILE        VdbFile_hCreateFromFile(        const char*             pszFileName);
 
-PICOGK_API bool         VdbFile_bIsValid(           PKVDBFILE                hThis);
+PICOGK_API bool             VdbFile_bIsValid(               PKVDBFILE                hThis);
 
-PICOGK_API void         VdbFile_Destroy(            PKVDBFILE                hThis);
+PICOGK_API void             VdbFile_Destroy(                PKVDBFILE                hThis);
 
-PICOGK_API bool         VdbFile_bSaveToFile(        PKVDBFILE               hVdbFile,
-                                                    const char*             pszFileName);
+PICOGK_API bool             VdbFile_bSaveToFile(            PKVDBFILE               hVdbFile,
+                                                            const char*             pszFileName);
 
-PICOGK_API PKVOXELS     VdbFile_hGetVoxels(         PKVDBFILE               hVdbFile,
-                                                    int32_t                 nIndex);
+PICOGK_API PKVOXELS         VdbFile_hGetVoxels(             PKVDBFILE               hVdbFile,
+                                                            int32_t                 nIndex);
 
-PICOGK_API int32_t      VdbFile_nAddVoxels(         PKVDBFILE               hVdbFile,
-                                                    const char*             pszFieldName,
-                                                    PKVOXELS                hVoxels);
+PICOGK_API int32_t          VdbFile_nAddVoxels(             PKVDBFILE               hVdbFile,
+                                                            const char*             pszFieldName,
+                                                            PKVOXELS                hVoxels);
 
-PICOGK_API int32_t      VdbFile_nFieldCount(        PKVDBFILE               hVdbFile);
+PICOGK_API PKSCALARFIELD    VdbFile_hGetScalarField(        PKVDBFILE               hVdbFile,
+                                                            int32_t                 nIndex);
 
-PICOGK_API void         VdbFile_GetFieldName(       PKVDBFILE               hVdbFile,
-                                                    int32_t                 nIndex,
-                                                    char psz[PKINFOSTRINGLEN]);
+PICOGK_API int32_t          VdbFile_nAddScalarField(        PKVDBFILE               hVdbFile,
+                                                            const char*             pszFieldName,
+                                                            PKSCALARFIELD           hScalarField);
 
-PICOGK_API int32_t      VdbFile_nFieldType(         PKVDBFILE               hVdbFile,
-                                                    int32_t                 nIndex);
+PICOGK_API PKVECTORFIELD    VdbFile_hGetVectorField(        PKVDBFILE               hVdbFile,
+                                                            int32_t                 nIndex);
 
+PICOGK_API int32_t          VdbFile_nAddVectorField(        PKVDBFILE               hVdbFile,
+                                                            const char*             pszFieldName,
+                                                            PKVECTORFIELD           hVectorField);
+
+PICOGK_API int32_t          VdbFile_nFieldCount(            PKVDBFILE               hVdbFile);
+
+PICOGK_API void             VdbFile_GetFieldName(           PKVDBFILE               hVdbFile,
+                                                            int32_t                 nIndex,
+                                                            char psz[PKINFOSTRINGLEN]);
+
+PICOGK_API int32_t          VdbFile_nFieldType(             PKVDBFILE               hVdbFile,
+                                                            int32_t                 nIndex);
+
+PICOGK_API PKSCALARFIELD    ScalarField_hCreate();
+
+PICOGK_API bool             ScalarField_bIsValid(           PKSCALARFIELD       hThis);
+
+PICOGK_API void             ScalarField_Destroy(            PKSCALARFIELD       hThis);
+
+PICOGK_API void             ScalarField_SetValue(           PKSCALARFIELD       hThis,
+                                                            const PKVector3*    pvecPosition,
+                                                            float               fValue);
+
+PICOGK_API bool             ScalarField_bGetValue(          PKSCALARFIELD       hThis,
+                                                            const PKVector3*    pvecValue,
+                                                            float*              pfValue);
+
+PICOGK_API PKVECTORFIELD    VectorField_hCreate();
+
+PICOGK_API PKVECTORFIELD    VectorField_hCreateFromVoxels(  PKVOXELS            hVoxels);
+
+PICOGK_API bool             VectorField_bIsValid(           PKVECTORFIELD       hThis);
+
+PICOGK_API void             VectorField_Destroy(            PKVECTORFIELD       hThis);
+
+PICOGK_API void             VectorField_SetValue(           PKVECTORFIELD       hThis,
+                                                            const PKVector3*    pvecPosition,
+                                                            const PKVector3*    pvecValue);
+
+PICOGK_API bool             VectorField_bGetValue(          PKSCALARFIELD       hThis,
+                                                            const PKVector3*    pvecPosition,
+                                                            PKVector3*          pvecValue);
 #endif
  
 
