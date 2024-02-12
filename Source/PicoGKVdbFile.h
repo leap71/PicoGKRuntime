@@ -90,6 +90,15 @@ public:
         return (int32_t) m_roGrids->size()-1;
     }
     
+    int32_t nAddGrid(   std::string                     strGridName,
+                        const openvdb::Vec3SGrid::Ptr   roGrid)
+    {
+        openvdb::Vec3SGrid::Ptr roCopy = deepCopyTypedGrid<Vec3SGrid>(roGrid);
+        roCopy->setName(strGridName);
+        m_roGrids->push_back(roCopy);
+        return (int32_t) m_roGrids->size()-1;
+    }
+    
     int32_t nGridCount() const
     {
         return (int32_t) m_roGrids->size();
@@ -119,9 +128,17 @@ public:
                     return 0;
                     break;
                     
+                case openvdb::GRID_FOG_VOLUME:
+                    return 1;
+                    break;
+                    
                 default:
                     break;
             }
+        }
+        else if (roGrid->isType<openvdb::Vec3SGrid>())
+        {
+            return 2;
         }
         
         return -1;
