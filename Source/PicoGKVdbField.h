@@ -162,7 +162,6 @@ public:
             {
                 oStencil.moveTo(xyz);
                 auto vecGradient = oStencil.gradient();
-                vecGradient.normalize();
                 oField.setValue(xyz, vecGradient);
             }
         }
@@ -199,7 +198,8 @@ public:
         
         pvecValue->X = vec.x();
         pvecValue->Y = vec.y();
-        pvecValue->Y = vec.z();
+        pvecValue->Z = vec.z();
+        
         return true;
     }
 };
