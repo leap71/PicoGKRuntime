@@ -218,7 +218,8 @@ PICOGK_API void         Voxels_GetVoxelDimensions(      PKVOXELS            hThi
 
 PICOGK_API void         Voxels_GetSlice(                PKVOXELS            hThis,
                                                         int32_t             nZSlice,
-                                                        float*              pfBuffer);
+                                                        float*              pfBuffer,
+                                                        float*              pfBackgroundValue);
 
 // POLYLINE
 

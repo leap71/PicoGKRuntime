@@ -437,11 +437,13 @@ PICOGK_API void Voxels_GetVoxelDimensions(  PKVOXELS hThis,
 
 PICOGK_API void Voxels_GetSlice(    PKVOXELS    hThis,
                                     int32_t     nZSlice,
-                                    float*      pfBuffer)
+                                    float*      pfBuffer,
+                                    float*      pfBackgroundValue)
 {
     Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
     assert(Library::oLib().bVoxelsIsValid(proThis));
     
+    *pfBackgroundValue = (*proThis)->fBackground();
     return (*proThis)->GetSlice(nZSlice, pfBuffer);
 }
 
