@@ -199,7 +199,6 @@ public:
         pvecValue->X = vec.x();
         pvecValue->Y = vec.y();
         pvecValue->Z = vec.z();
-        
         return true;
     }
 };

@@ -619,7 +619,7 @@ protected:
             float fValue = std::min(    oVoxelSize.fToVoxels(oLattice.fSdValue(vecSample)),
                                         poAccess->getValue(xyz));
                     
-            if (fValue < fBackground)
+            if (std::abs(fValue) < fBackground)
                 poAccess->setValue(xyz, fValue);
         }
     }
