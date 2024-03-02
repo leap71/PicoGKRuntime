@@ -52,7 +52,7 @@ public:
         try
         {
             oFile.open();
-            openvdb::GridPtrVecPtr roGrids = oFile.getGrids();
+            GridPtrVecPtr  roGrids = oFile.getGrids();
             oFile.close();
             return make_shared<VdbFile>(roGrids);
         }
