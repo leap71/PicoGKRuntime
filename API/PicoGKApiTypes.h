@@ -122,6 +122,14 @@ struct PKColorFloat
 
 typedef float (*PKPFnfSdf)(const PKVector3* pvecCoord);
 
+// Callback iterating across active voxels
+
+typedef void (*PKFnTraverseActiveS)(    const PKVector3* pvecCoord,
+                                        float fValue);
+
+typedef void (*PKFnTraverseActiveV)(    const PKVector3* pvecCoord,
+                                        const PKVector3* pvecValue);
+
 // Viewer callbacks
 
 typedef void (*PKFInfo)(                const char*         pszMessage,

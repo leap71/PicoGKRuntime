@@ -233,6 +233,14 @@ PICOGK_API PKVOXELS Voxels_hCreateCopy(PKVOXELS hSource)
     return (PKVOXELS) Library::oLib().proVoxelsCreateCopy(**proSource);
 }
 
+PICOGK_API PKVOXELS Voxels_hCreateFromScalarField(PKSCALARFIELD hSource)
+{
+    ScalarField::Ptr* proSource = (ScalarField::Ptr*) hSource;
+    assert(Library::oLib().bScalarFieldIsValid(proSource));
+    
+    return (PKVOXELS) Library::oLib().proVoxelsCreateFromScalarField(**proSource);
+}
+
 PICOGK_API bool Voxels_bIsValid(PKVOXELS hThis)
 {
     Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
@@ -871,6 +879,25 @@ PICOGK_API bool ScalarField_bGetValue(  PKSCALARFIELD       hThis,
                                     pfValue);
 }
 
+PICOGK_API void ScalarField_RemoveValue(    PKSCALARFIELD       hThis,
+                                            const PKVector3*    pvecPosition)
+{
+    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
+    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    
+    (*proThis)->RemoveValue( *pvecPosition,
+                             Library::oLib().fVoxelSizeMM());
+}
+
+PICOGK_API void ScalarField_TraverseActive( PKSCALARFIELD hThis,
+                                            PKFnTraverseActiveS pfnCallback)
+{
+    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
+    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    
+    (*proThis)->TraverseActive(pfnCallback, Library::oLib().fVoxelSizeMM());
+}
+
 PICOGK_API PKVECTORFIELD VectorField_hCreate()
 {
     return (PKVECTORFIELD) Library::oLib().proVectorFieldCreate();
@@ -929,4 +956,23 @@ PICOGK_API bool VectorField_bGetValue(  PKSCALARFIELD       hThis,
     return (*proThis)->bGetValue(   *pvecPosition,
                                     Library::oLib().fVoxelSizeMM(),
                                     pvecValue);
+}
+
+PICOGK_API void VectorField_RemoveValue(    PKVECTORFIELD       hThis,
+                                            const PKVector3*    pvecPosition)
+{
+    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
+    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    
+    (*proThis)->RemoveValue( *pvecPosition,
+                             Library::oLib().fVoxelSizeMM());
+}
+
+PICOGK_API void VectorField_TraverseActive( PKVECTORFIELD hThis,
+                                            PKFnTraverseActiveV pfnCallback)
+{
+    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
+    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    
+    (*proThis)->TraverseActive(pfnCallback, Library::oLib().fVoxelSizeMM());
 }

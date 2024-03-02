@@ -148,7 +148,9 @@ PICOGK_API PKVOXELS     Voxels_hCreate();
 
 PICOGK_API PKVOXELS     Voxels_hCreateCopy(         PKVOXELS                hSource);
 
-PICOGK_API bool         Voxels_bIsValid(            PKVOXELS                hThis);
+PICOGK_API PKVOXELS     Voxels_hCreateFromScalarField(  PKSCALARFIELD           hSource);
+
+PICOGK_API bool         Voxels_bIsValid(           PKVOXELS                hThis);
 
 PICOGK_API void         Voxels_Destroy(             PKVOXELS                hThis);
 
@@ -363,6 +365,12 @@ PICOGK_API bool             ScalarField_bGetValue(          PKSCALARFIELD       
                                                             const PKVector3*    pvecPosition,
                                                             float*              pfValue);
 
+PICOGK_API void             ScalarField_RemoveValue(        PKVECTORFIELD       hThis,
+                                                            const PKVector3*    pvecPosition);
+
+PICOGK_API void             ScalarField_TraverseActive(     PKSCALARFIELD       hThis,
+                                                            PKFnTraverseActiveS pfnCallback);
+
 PICOGK_API PKVECTORFIELD    VectorField_hCreate();
 
 PICOGK_API PKVECTORFIELD    VectorField_hCreateCopy(        PKVECTORFIELD       hSource);
@@ -377,9 +385,15 @@ PICOGK_API void             VectorField_SetValue(           PKVECTORFIELD       
                                                             const PKVector3*    pvecPosition,
                                                             const PKVector3*    pvecValue);
 
-PICOGK_API bool             VectorField_bGetValue(          PKSCALARFIELD       hThis,
+PICOGK_API bool             VectorField_bGetValue(          PKVECTORFIELD       hThis,
                                                             const PKVector3*    pvecPosition,
                                                             PKVector3*          pvecValue);
+
+PICOGK_API void             VectorField_RemoveValue(        PKVECTORFIELD       hThis,
+                                                            const PKVector3*    pvecPosition);
+
+PICOGK_API void             VectorField_TraverseActive(     PKVECTORFIELD       hThis,
+                                                            PKFnTraverseActiveV pfnCallback);
 #endif
  
 

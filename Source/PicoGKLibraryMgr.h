@@ -206,6 +206,14 @@ public: // PolyLine functions
 public: // Voxels functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(Voxels)
     
+    Voxels::Ptr* proVoxelsCreateFromScalarField(const ScalarField& oScalarField)
+    {
+        Voxels::Ptr roField    = std::make_shared<Voxels>(oScalarField.roVdbGrid());
+        Voxels::Ptr* proField  = new Voxels::Ptr(roField);
+        m_oVoxelsList[proField] = proField;
+        return proField;
+    }
+    
 public: // VdbFile functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(VdbFile)
     
@@ -240,7 +248,7 @@ public: // VdbFile functions
         if (roGrid->getGridClass() != GRID_LEVEL_SET)
             return nullptr; // not a voxel field
         
-        Voxels::Ptr roVoxels = std::make_shared<Voxels>(PICOGK_VOXEL_DEFAULTBACKGROUND, gridPtrCast<FloatGrid>(roGrid));
+        Voxels::Ptr roVoxels = std::make_shared<Voxels>(gridPtrCast<FloatGrid>(roGrid));
         
         Voxels::Ptr* proVoxels      = new Voxels::Ptr(roVoxels);
         m_oVoxelsList[proVoxels]    = proVoxels;

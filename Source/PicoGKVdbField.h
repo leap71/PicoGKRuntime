@@ -121,11 +121,39 @@ public:
                             oVoxelSize.iToVoxels(vecPos.Y),
                             oVoxelSize.iToVoxels(vecPos.Z));
         
-        if (!oAccess.isValueOn(xyz))
-            return false;
-        
         *pfValue = oAccess.getValue(xyz);
-        return true;
+        return oAccess.isValueOn(xyz);
+    }
+    
+    void RemoveValue(   Vector3 vecPos,
+                        VoxelSize oVoxelSize)
+    {
+        auto oAccess = m_roGrid->getAccessor();
+        
+        openvdb::Coord xyz(     oVoxelSize.iToVoxels(vecPos.X),
+                                oVoxelSize.iToVoxels(vecPos.Y),
+                                oVoxelSize.iToVoxels(vecPos.Z));
+        
+        oAccess.setValueOff(xyz);
+    }
+    
+    void TraverseActive(    PKFnTraverseActiveS pfnCallback,
+                            VoxelSize oVoxelSize)
+    {
+        for (auto iter = m_roGrid->cbeginValueOn(); iter; ++iter)
+        {
+            openvdb::Coord xyz = iter.getCoord();
+            Vector3 vecLocation = oVoxelSize.vecToMM(   Coord(  xyz.x(),
+                                                                xyz.y(),
+                                                                xyz.z()));
+            pfnCallback(    &vecLocation,
+                            iter.getValue());
+        }
+    }
+    
+    inline FloatGrid::Ptr roGrid() const
+    {
+        return m_roGrid;
     }
 };
 
@@ -191,15 +219,45 @@ public:
                             oVoxelSize.iToVoxels(vecPos.Y),
                             oVoxelSize.iToVoxels(vecPos.Z));
         
-        if (!oAccess.isValueOn(xyz))
-            return false;
-        
         Vec3s vec = oAccess.getValue(xyz);
         
         pvecValue->X = vec.x();
         pvecValue->Y = vec.y();
         pvecValue->Z = vec.z();
-        return true;
+        
+        return oAccess.isValueOn(xyz);
+    }
+    
+    void RemoveValue(   Vector3 vecPos,
+                        VoxelSize oVoxelSize)
+    {
+        auto oAccess = m_roGrid->getAccessor();
+        
+        openvdb::Coord xyz(     oVoxelSize.iToVoxels(vecPos.X),
+                                oVoxelSize.iToVoxels(vecPos.Y),
+                                oVoxelSize.iToVoxels(vecPos.Z));
+        
+        oAccess.setValueOff(xyz);
+    }
+    
+    void TraverseActive(    PKFnTraverseActiveV pfnCallback,
+                            VoxelSize oVoxelSize)
+    {
+        for (auto iter = m_roGrid->cbeginValueOn(); iter; ++iter)
+        {
+            openvdb::Coord xyz = iter.getCoord();
+            Vector3 vecLocation = oVoxelSize.vecToMM(   Coord(  xyz.x(),
+                                                                xyz.y(),
+                                                                xyz.z()));
+            auto oValue = iter.getValue();
+            
+            Vector3 vecValue(   oValue.x(),
+                                oValue.y(),
+                                oValue.z());
+            
+            pfnCallback(    &vecLocation,
+                            &vecValue);
+        }
     }
 };
 

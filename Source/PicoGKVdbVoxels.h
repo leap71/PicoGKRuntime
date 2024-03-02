@@ -65,8 +65,8 @@ public:
         m_roGrid->setGridClass(GRID_LEVEL_SET);
     };
     
-    Voxels( float fBackground,
-            FloatGrid::Ptr roGrid)
+    Voxels( FloatGrid::Ptr roGrid,
+            float fBackground = PICOGK_VOXEL_DEFAULTBACKGROUND)
     {
         m_roGrid = roGrid;
         m_roGrid->setGridClass(GRID_LEVEL_SET);
@@ -74,7 +74,7 @@ public:
     
     Voxels(const Voxels& oSource)
     {
-        m_roGrid   = deepCopyTypedGrid<FloatGrid>(oSource.m_roGrid);
+        m_roGrid = deepCopyTypedGrid<FloatGrid>(oSource.m_roGrid);
         m_roGrid->setGridClass(GRID_LEVEL_SET);
     };
 
@@ -618,9 +618,13 @@ protected:
             // Boolean add to existing value, if one exists
             float fValue = std::min(    oVoxelSize.fToVoxels(oLattice.fSdValue(vecSample)),
                                         poAccess->getValue(xyz));
-                    
-            if (std::abs(fValue) < fBackground)
-                poAccess->setValue(xyz, fValue);
+            
+            poAccess->setValue(xyz, std::clamp(    fValue,
+                                                    -fBackground,
+                                                    fBackground));
+            
+            if (std::abs(fValue) > fBackground)
+                poAccess->setValueOff(xyz);
         }
     }
     
