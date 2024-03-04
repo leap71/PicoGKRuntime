@@ -206,14 +206,6 @@ public: // PolyLine functions
 public: // Voxels functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(Voxels)
     
-    Voxels::Ptr* proVoxelsCreateFromScalarField(const ScalarField& oScalarField)
-    {
-        Voxels::Ptr roField    = std::make_shared<Voxels>(oScalarField.roVdbGrid());
-        Voxels::Ptr* proField  = new Voxels::Ptr(roField);
-        m_oVoxelsList[proField] = proField;
-        return proField;
-    }
-    
 public: // VdbFile functions
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(VdbFile)
     
@@ -315,7 +307,7 @@ public: // ScalarField functions
     
     ScalarField::Ptr* proScalarFieldCreateFromVoxels(const Voxels& oVoxels)
     {
-        ScalarField::Ptr roField = std::make_shared<ScalarField>(oVoxels.roVdbGrid());
+        ScalarField::Ptr roField = std::make_shared<ScalarField>(oVoxels);
         
         ScalarField::Ptr* proField      = new ScalarField::Ptr(roField);
         m_oScalarFieldList[proField]    = proField;

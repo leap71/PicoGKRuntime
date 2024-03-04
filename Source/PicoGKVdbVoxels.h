@@ -255,19 +255,7 @@ public:
             float fValue = std::min(    oVoxelSize.fToVoxels((*pfn)(&vecSample)),
                                         oAccess.getValue(xyz));
             
-            if (fValue < fBackground())
-            {
-                // inside or near inside
-                
-                if (fValue > -fBackground())
-                {
-                    oAccess.setValue(xyz, fValue);
-                }
-                else
-                {
-                    oAccess.setValue(xyz, -fBackground());
-                }
-            }
+            SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
         }
     }
     
@@ -363,19 +351,7 @@ public:
             float fValue = std::min(    oAccess.getValue(xyzUnder),
                                         oAccess.getValue(xyz));
             
-            if (fValue < fBackground())
-            {
-                // inside or near inside
-                
-                if (fValue > -fBackground())
-                {
-                    oAccess.setValue(xyzUnder, fValue);
-                }
-                else
-                {
-                    oAccess.setValue(xyzUnder, -fBackground());
-                }
-            }
+            SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
         }
     }
     
@@ -401,19 +377,7 @@ public:
             float fValue = std::min(    oAccess.getValue(xyzOver),
                                         oAccess.getValue(xyz));
             
-            if (fValue < fBackground())
-            {
-                // inside or near inside
-                
-                if (fValue > -fBackground())
-                {
-                    oAccess.setValue(xyzOver, fValue);
-                }
-                else
-                {
-                    oAccess.setValue(xyzOver, -fBackground());
-                }
-            }
+            SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
         }
     }
 
@@ -556,14 +520,21 @@ public:
         return false;
     }
     
-    void GetVoxelDimensions(    int32_t* pnXSize,
+    void GetVoxelDimensions(    int32_t* pnXMin,
+                                int32_t* pnYMin,
+                                int32_t* pnZMin,
+                                int32_t* pnXSize,
                                 int32_t* pnYSize,
                                 int32_t* pnZSize) const
     {
         CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
-        *pnXSize = oBBox.extents().x();
-        *pnYSize = oBBox.extents().y();
-        *pnZSize = oBBox.extents().z();
+        
+        *pnXMin     = oBBox.min().x();
+        *pnYMin     = oBBox.min().y();
+        *pnZMin     = oBBox.min().z();
+        *pnXSize    = oBBox.extents().x();
+        *pnYSize    = oBBox.extents().y();
+        *pnZSize    = oBBox.extents().z();
     }
     
     void GetSlice( int32_t nZSlice,
@@ -619,12 +590,7 @@ protected:
             float fValue = std::min(    oVoxelSize.fToVoxels(oLattice.fSdValue(vecSample)),
                                         poAccess->getValue(xyz));
             
-            poAccess->setValue(xyz, std::clamp(    fValue,
-                                                    -fBackground,
-                                                    fBackground));
-            
-            if (std::abs(fValue) > fBackground)
-                poAccess->setValueOff(xyz);
+            SetSdValue(poAccess, xyz, fBackground, fValue);
         }
     }
     
@@ -706,6 +672,19 @@ protected:
         }
         
         return false;
+    }
+    
+    static void SetSdValue( FloatGrid::Accessor* poAccess,
+                            openvdb::Coord xyz,
+                            float fBackground,
+                            float fValue)
+    {
+        poAccess->setValue(xyz, std::clamp( fValue,
+                                            -fBackground,
+                                            fBackground));
+        
+        if (std::abs(fValue) >= fBackground)
+            poAccess->setValueOff(xyz);
     }
     
 };

@@ -87,8 +87,8 @@ public:
         m_roGrid->setGridClass(GRID_FOG_VOLUME);
     }
     
-    ScalarField(const Voxels& roSource)
-    : ScalarField(roSource.roVdbGrid())
+    ScalarField(const Voxels& oSource)
+    : ScalarField(deepCopyTypedGrid<FloatGrid>(oSource.roVdbGrid()))
     {
     }
     
@@ -135,6 +135,40 @@ public:
                                 oVoxelSize.iToVoxels(vecPos.Z));
         
         oAccess.setValueOff(xyz);
+    }
+    
+    void GetVoxelDimensions(    int32_t* pnXMin,
+                                int32_t* pnYMin,
+                                int32_t* pnZMin,
+                                int32_t* pnXSize,
+                                int32_t* pnYSize,
+                                int32_t* pnZSize) const
+    {
+        CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
+        
+        *pnXMin     = oBBox.min().x();
+        *pnYMin     = oBBox.min().y();
+        *pnZMin     = oBBox.min().z();
+        *pnXSize    = oBBox.extents().x();
+        *pnYSize    = oBBox.extents().y();
+        *pnZSize    = oBBox.extents().z();
+    }
+    
+    void GetSlice( int32_t nZSlice,
+                   float* pfBuffer)
+    {
+        CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
+        openvdb::Coord xyz(0, 0, nZSlice + oBBox.min().z());
+        
+        auto oAccess = m_roGrid->getConstAccessor();
+        
+        int32_t n=0;
+        for (xyz.y()=oBBox.min().y(); xyz.y()<=oBBox.max().y(); xyz.y()++)
+        for (xyz.x()=oBBox.min().x(); xyz.x()<=oBBox.max().x(); xyz.x()++)
+        {
+            pfBuffer[n] = oAccess.getValue(xyz);
+            n++;
+        }
     }
     
     void TraverseActive(    PKFnTraverseActiveS pfnCallback,

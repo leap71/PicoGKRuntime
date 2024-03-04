@@ -71,6 +71,24 @@ PICOGK_API void Library_GetBuildInfo(char psz[PKINFOSTRINGLEN])
     SafeCopyInfoString(Library::oLib().strBuildInfo(), psz);
 }
 
+PICOGK_API void Library_VoxelsToMm( const PKVector3* pvecVoxelCoordinate,
+                                    PKVector3* pvecMmCoordinate)
+{
+    VoxelSize oVoxelSize(Library::oLib().fVoxelSizeMM());
+    pvecMmCoordinate->X = oVoxelSize.fToMM(pvecVoxelCoordinate->X);
+    pvecMmCoordinate->Y = oVoxelSize.fToMM(pvecVoxelCoordinate->Y);
+    pvecMmCoordinate->Z = oVoxelSize.fToMM(pvecVoxelCoordinate->Z);
+}
+
+PICOGK_API void Library_MmToVoxels( const PKVector3* pvecMmCoordinate,
+                                    PKVector3* pvecVoxelCoordinate)
+{
+    VoxelSize oVoxelSize(Library::oLib().fVoxelSizeMM());
+    pvecVoxelCoordinate->X = oVoxelSize.iToVoxels(pvecMmCoordinate->X);
+    pvecVoxelCoordinate->Y = oVoxelSize.iToVoxels(pvecMmCoordinate->Y);
+    pvecVoxelCoordinate->Z = oVoxelSize.iToVoxels(pvecMmCoordinate->Z);
+}
+
 PICOGK_API PKMESH Mesh_hCreate()
 {
     return (PKMESH) Library::oLib().proMeshCreate();
@@ -231,14 +249,6 @@ PICOGK_API PKVOXELS Voxels_hCreateCopy(PKVOXELS hSource)
     assert(Library::oLib().bVoxelsIsValid(proSource));
     
     return (PKVOXELS) Library::oLib().proVoxelsCreateCopy(**proSource);
-}
-
-PICOGK_API PKVOXELS Voxels_hCreateFromScalarField(PKSCALARFIELD hSource)
-{
-    ScalarField::Ptr* proSource = (ScalarField::Ptr*) hSource;
-    assert(Library::oLib().bScalarFieldIsValid(proSource));
-    
-    return (PKVOXELS) Library::oLib().proVoxelsCreateFromScalarField(**proSource);
 }
 
 PICOGK_API bool Voxels_bIsValid(PKVOXELS hThis)
@@ -433,6 +443,9 @@ PICOGK_API bool Voxels_bRayCastToSurface(   PKVOXELS            hThis,
 }
 
 PICOGK_API void Voxels_GetVoxelDimensions(  PKVOXELS hThis,
+                                            int32_t* pnXOrigin,
+                                            int32_t* pnYOrigin,
+                                            int32_t* pnZOrigin,
                                             int32_t* pnXSize,
                                             int32_t* pnYSize,
                                             int32_t* pnZSize)
@@ -440,7 +453,12 @@ PICOGK_API void Voxels_GetVoxelDimensions(  PKVOXELS hThis,
     Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
     assert(Library::oLib().bVoxelsIsValid(proThis));
     
-    return (*proThis)->GetVoxelDimensions(pnXSize, pnYSize, pnZSize);
+    return (*proThis)->GetVoxelDimensions(  pnXOrigin,
+                                            pnYOrigin,
+                                            pnZOrigin,
+                                            pnXSize,
+                                            pnYSize,
+                                            pnZSize);
 }
 
 PICOGK_API void Voxels_GetSlice(    PKVOXELS    hThis,
@@ -887,6 +905,34 @@ PICOGK_API void ScalarField_RemoveValue(    PKSCALARFIELD       hThis,
     
     (*proThis)->RemoveValue( *pvecPosition,
                              Library::oLib().fVoxelSizeMM());
+}
+
+PICOGK_API void ScalarField_GetVoxelDimensions( PKSCALARFIELD hThis,
+                                                int32_t* pnXOrigin,
+                                                int32_t* pnYOrigin,
+                                                int32_t* pnZOrigin,
+                                                int32_t* pnXSize,
+                                                int32_t* pnYSize,
+                                                int32_t* pnZSize)
+{
+    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
+    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    
+    return (*proThis)->GetVoxelDimensions(  pnXOrigin,
+                                            pnYOrigin,
+                                            pnZOrigin,
+                                            pnXSize,
+                                            pnYSize,
+                                            pnZSize);
+}
+
+PICOGK_API void ScalarField_GetSlice(   PKSCALARFIELD   hThis,
+                                        int32_t     nZSlice,
+                                        float*      pfBuffer)
+{
+    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
+    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    return (*proThis)->GetSlice(nZSlice, pfBuffer);
 }
 
 PICOGK_API void ScalarField_TraverseActive( PKSCALARFIELD hThis,

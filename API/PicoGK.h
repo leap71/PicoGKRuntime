@@ -72,6 +72,12 @@ PICOGK_API void         Library_GetVersion(         char psz[PKINFOSTRINGLEN]);
 
 PICOGK_API void         Library_GetBuildInfo(       char psz[PKINFOSTRINGLEN]);
 
+PICOGK_API void         Library_VoxelsToMm(         const PKVector3* pvecVoxelCoordinate,
+                                                    PKVector3* pvecMmCoordinate);
+
+PICOGK_API void         Library_MmToVoxels(         const PKVector3* pvecMmCoordinate,
+                                                    PKVector3* pvecVoxelCoordinate);
+
 #define PKHANDLE        void*
 #define PKMESH          PKHANDLE
 #define PKLATTICE       PKHANDLE
@@ -148,9 +154,7 @@ PICOGK_API PKVOXELS     Voxels_hCreate();
 
 PICOGK_API PKVOXELS     Voxels_hCreateCopy(         PKVOXELS                hSource);
 
-PICOGK_API PKVOXELS     Voxels_hCreateFromScalarField(  PKSCALARFIELD           hSource);
-
-PICOGK_API bool         Voxels_bIsValid(           PKVOXELS                hThis);
+PICOGK_API bool         Voxels_bIsValid(            PKVOXELS                hThis);
 
 PICOGK_API void         Voxels_Destroy(             PKVOXELS                hThis);
 
@@ -214,6 +218,9 @@ PICOGK_API bool         Voxels_bRayCastToSurface(       PKVOXELS            hThi
                                                         PKVector3*          pvecSurfacePoint);
 
 PICOGK_API void         Voxels_GetVoxelDimensions(      PKVOXELS            hThis,
+                                                        int32_t*            pnXOrigin,
+                                                        int32_t*            pnYOrigin,
+                                                        int32_t*            pnZOrigin,
                                                         int32_t*            pnXSize,
                                                         int32_t*            pnYSize,
                                                         int32_t*            pnZSize);
@@ -367,6 +374,18 @@ PICOGK_API bool             ScalarField_bGetValue(          PKSCALARFIELD       
 
 PICOGK_API void             ScalarField_RemoveValue(        PKVECTORFIELD       hThis,
                                                             const PKVector3*    pvecPosition);
+
+PICOGK_API void             ScalarField_GetVoxelDimensions(     PKSCALARFIELD   hThis,
+                                                                int32_t*        pnXOrigin,
+                                                                int32_t*        pnYOrigin,
+                                                                int32_t*        pnZOrigin,
+                                                                int32_t*        pnXSize,
+                                                                int32_t*        pnYSize,
+                                                                int32_t*        pnZSize);
+
+PICOGK_API void             ScalarField_GetSlice(               PKSCALARFIELD   hThis,
+                                                                int32_t         nZSlice,
+                                                                float*          pfBuffer);
 
 PICOGK_API void             ScalarField_TraverseActive(     PKSCALARFIELD       hThis,
                                                             PKFnTraverseActiveS pfnCallback);
