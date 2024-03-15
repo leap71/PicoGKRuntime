@@ -87,6 +87,7 @@ PICOGK_API void         Library_MmToVoxels(         const PKVector3* pvecMmCoord
 #define PKVDBFILE       PKHANDLE
 #define PKSCALARFIELD   PKHANDLE
 #define PKVECTORFIELD   PKHANDLE
+#define PKMETADATA      PKHANDLE
 
 // MESH
 
@@ -413,6 +414,59 @@ PICOGK_API void             VectorField_RemoveValue(        PKVECTORFIELD       
 
 PICOGK_API void             VectorField_TraverseActive(     PKVECTORFIELD       hThis,
                                                             PKFnTraverseActiveV pfnCallback);
+
+PICOGK_API PKMETADATA       Metadata_hFromVoxels(           PKVOXELS            hVoxels);
+
+PICOGK_API PKMETADATA       Metadata_hFromScalarField(      PKSCALARFIELD       hScalarField);
+
+PICOGK_API PKMETADATA       Metadata_hFromVectorField(      PKVECTORFIELD       hVectorField);
+
+PICOGK_API void             Metadata_Destroy(               PKMETADATA          hThis);
+
+PICOGK_API int32_t          Metadata_nCount(                PKMETADATA          hThis);
+
+PICOGK_API int32_t          Metadata_nNameLengthAt(         PKMETADATA          hThis,
+                                                            int32_t             nIndex);
+
+PICOGK_API bool             Metadata_bGetNameAt(            PKMETADATA          hThis,
+                                                            int32_t             nIndex,
+                                                            char*               psz,
+                                                            int32_t             nMaxStringLen);
+
+PICOGK_API int32_t          Metadata_nTypeAt(               PKMETADATA          hThis,
+                                                            const char*         psz);
+
+PICOGK_API int32_t          Metadata_nStringLengthAt(       PKMETADATA          hThis,
+                                                            const char*         psz);
+
+PICOGK_API bool             Metadata_bGetStringAt(          PKMETADATA          hThis,
+                                                            const char*         psz,
+                                                            char*               pszValue,
+                                                            int32_t             nMaxStringLen);
+
+PICOGK_API bool             Metadata_bGetFloatAt(           PKMETADATA          hThis,
+                                                            const char*         psz,
+                                                            float*              pfValue);
+
+PICOGK_API bool             Metadata_bGetVectorAt(          PKMETADATA          hThis,
+                                                            const char*         psz,
+                                                            PKVector3*          pvecValue);
+
+PICOGK_API void             Metadata_SetStringValue(        PKMETADATA          hThis,
+                                                            const char*         pszFieldName,
+                                                            const char*         pszValue);
+
+PICOGK_API void             Metadata_SetFloatValue(         PKMETADATA          hThis,
+                                                            const char*         pszFieldName,
+                                                            float               fValue);
+
+PICOGK_API void             Metadata_SetVectorValue(        PKMETADATA          hThis,
+                                                            const char*         pszFieldName,
+                                                            const PKVector3*    pvecValue);
+
+PICOGK_API void             MetaData_RemoveValue(           PKMETADATA          hThis,
+                                                            const char*         pszFieldName);
+
 #endif
  
 

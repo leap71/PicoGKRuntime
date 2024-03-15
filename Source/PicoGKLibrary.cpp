@@ -1022,3 +1022,180 @@ PICOGK_API void VectorField_TraverseActive( PKVECTORFIELD hThis,
     
     (*proThis)->TraverseActive(pfnCallback, Library::oLib().fVoxelSizeMM());
 }
+
+PICOGK_API PKMETADATA Metadata_hFromVoxels(PKVOXELS hField)
+{
+    Voxels::Ptr* proField = (Voxels::Ptr*) hField;
+    assert(Library::oLib().bVoxelsIsValid(proField));
+    
+    Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+}
+
+PICOGK_API PKMETADATA Metadata_hFromScalarField(PKSCALARFIELD hField)
+{
+    ScalarField::Ptr* proField = (ScalarField::Ptr*) hField;
+    assert(Library::oLib().bScalarFieldIsValid(proField));
+    
+    Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+}
+
+PICOGK_API PKMETADATA Metadata_hFromVectorField(PKVECTORFIELD hField)
+{
+    VectorField::Ptr* proField = (VectorField::Ptr*) hField;
+    assert(Library::oLib().bVectorFieldIsValid(proField));
+    
+    Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+}
+
+PICOGK_API void Metadata_Destroy(PKMETADATA hThis)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    Library::oLib().VdbMetaDestroy(proThis);
+}
+
+PICOGK_API int32_t Metadata_nCount(PKMETADATA hThis)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    return (*proThis)->nCount();
+}
+
+PICOGK_API int32_t Metadata_nNameLengthAt(  PKMETADATA  hThis,
+                                            int32_t     nIndex)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    std::string strName = (*proThis)->strNameAt(nIndex);
+    return (int32_t) strName.length();
+}
+
+PICOGK_API bool Metadata_bGetNameAt(        PKMETADATA  hThis,
+                                            int32_t     nIndex,
+                                            char*       psz,
+                                            int32_t     nMaxStringLen)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    if (nIndex >= (*proThis)->nCount())
+        return false;
+    
+    std::string s = (*proThis)->strNameAt(nIndex);
+    
+#ifdef _WINDOWS
+    strncpy_s(psz, nMaxStringLen-1, s.c_str(), s.length());
+#else
+    strncpy(psz, s.c_str(), nMaxStringLen-1);
+#endif
+    psz[nMaxStringLen-1] = 0;
+    
+    return true;
+}
+
+PICOGK_API int32_t Metadata_nTypeAt(    PKMETADATA  hThis,
+                                        const char* psz)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    return (int32_t) (*proThis)->eTypeAt(psz);
+}
+
+PICOGK_API int32_t Metadata_nStringLengthAt(    PKMETADATA          hThis,
+                                                const char*         psz)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    std::string str;
+    if (!(*proThis)->bGetValueAt(psz, &str))
+        return 0;
+    
+    return (int32_t) str.length();
+}
+
+PICOGK_API bool Metadata_bGetStringAt(  PKMETADATA      hThis,
+                                        const char*     psz,
+                                        char*           pszValue,
+                                        int32_t         nMaxStringLen)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    std::string s;
+    if (!(*proThis)->bGetValueAt(psz, &s))
+        return false;
+    
+#ifdef _WINDOWS
+    strncpy_s(pszValue, nMaxStringLen-1, s.c_str(), s.length());
+#else
+    strncpy(pszValue, s.c_str(), nMaxStringLen-1);
+#endif
+    pszValue[nMaxStringLen-1] = 0;
+    
+    return true;
+}
+
+PICOGK_API bool Metadata_bGetFloatAt(   PKMETADATA      hThis,
+                                        const char*     psz,
+                                        float*          pfValue)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    return (*proThis)->bGetValueAt(psz, pfValue);
+}
+
+PICOGK_API bool Metadata_bGetVectorAt(  PKMETADATA      hThis,
+                                        const char*     psz,
+                                        PKVector3*      pvecValue)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    return (*proThis)->bGetValueAt(psz, pvecValue);
+}
+
+PICOGK_API void Metadata_SetStringValue(    PKMETADATA     hThis,
+                                            const char*    pszFieldName,
+                                            const char*    pszValue)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    return (*proThis)->SetValue(pszFieldName, pszValue);
+}
+
+PICOGK_API void Metadata_SetFloatValue( PKMETADATA      hThis,
+                                        const char*     pszFieldName,
+                                        float           fValue)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    return (*proThis)->SetValue(pszFieldName, fValue);
+}
+
+PICOGK_API void Metadata_SetVectorValue(    PKMETADATA          hThis,
+                                            const char*         pszFieldName,
+                                            const PKVector3*    pvecValue)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    (*proThis)->SetValue(pszFieldName, *pvecValue);
+}
+
+PICOGK_API void MetaData_RemoveValue(   PKMETADATA  hThis,
+                                        const char* pszFieldName)
+{
+    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
+    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    
+    (*proThis)->RemoveAt(pszFieldName);
+}
+

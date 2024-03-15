@@ -46,6 +46,7 @@
 #include "PicoGKVdbVoxels.h"
 #include "PicoGKVdbFile.h"
 #include "PicoGKVdbField.h"
+#include "PicoGKVdbMeta.h"
 
 #define PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(ClassName)                  \
                                                                         \
@@ -318,6 +319,44 @@ public: // VectorField
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(VectorField)
     
 public:
+    VdbMeta::Ptr* proVdbMetaFromField(MetaMap::Ptr roMetaMap)
+    {
+        VdbMeta::Ptr roField = std::make_shared<VdbMeta>(roMetaMap);
+        
+        VdbMeta::Ptr* proField      = new VdbMeta::Ptr(roField);
+        m_oVdbMetaList[proField]    = proField;
+        return proField;
+    }
+    
+    bool bVdbMetaFind(const VdbMeta::Ptr* pro) const
+    {
+        return (m_oVdbMetaList.find(pro)
+            != m_oVdbMetaList.end());
+    }
+    
+    bool bVdbMetaIsValid(const VdbMeta::Ptr* pro)
+    {
+        if (pro == nullptr)
+            return false;
+
+        return bVdbMetaFind(pro);
+    }
+
+    void VdbMetaDestroy(VdbMeta::Ptr* pro)
+    {
+        auto it = m_oVdbMetaList.find(pro);
+        
+        if (it != m_oVdbMetaList.end())
+        {
+            m_oVdbMetaList.erase(it);
+            delete pro;
+            return;
+        }
+
+        assert(false);
+    }
+    
+public:
 
     Library(const Library&)                 = delete;
     Library& operator = (const Library&)    = delete;
@@ -343,6 +382,7 @@ protected:
     std::map<const VdbFile::Ptr*,       VdbFile::Ptr*>      m_oVdbFileList;
     std::map<const ScalarField::Ptr*,   ScalarField::Ptr*>  m_oScalarFieldList;
     std::map<const VectorField::Ptr*,   VectorField::Ptr*>  m_oVectorFieldList;
+    std::map<const VdbMeta::Ptr*,       VdbMeta::Ptr*>      m_oVdbMetaList;
 };
 
 } // namespace PicoGK
