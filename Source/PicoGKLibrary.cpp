@@ -1028,7 +1028,7 @@ PICOGK_API PKMETADATA Metadata_hFromVoxels(PKVOXELS hField)
     Voxels::Ptr* proField = (Voxels::Ptr*) hField;
     assert(Library::oLib().bVoxelsIsValid(proField));
     
-    Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+    return (PKMETADATA) Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
 }
 
 PICOGK_API PKMETADATA Metadata_hFromScalarField(PKSCALARFIELD hField)
@@ -1036,7 +1036,7 @@ PICOGK_API PKMETADATA Metadata_hFromScalarField(PKSCALARFIELD hField)
     ScalarField::Ptr* proField = (ScalarField::Ptr*) hField;
     assert(Library::oLib().bScalarFieldIsValid(proField));
     
-    Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+    return (PKMETADATA) Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
 }
 
 PICOGK_API PKMETADATA Metadata_hFromVectorField(PKVECTORFIELD hField)
@@ -1044,7 +1044,7 @@ PICOGK_API PKMETADATA Metadata_hFromVectorField(PKVECTORFIELD hField)
     VectorField::Ptr* proField = (VectorField::Ptr*) hField;
     assert(Library::oLib().bVectorFieldIsValid(proField));
     
-    Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+    return (PKMETADATA) Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
 }
 
 PICOGK_API void Metadata_Destroy(PKMETADATA hThis)
