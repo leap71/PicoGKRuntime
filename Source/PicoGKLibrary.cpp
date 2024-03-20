@@ -804,7 +804,7 @@ PICOGK_API int32_t VdbFile_nAddVectorField( PKVDBFILE       hThis,
     assert(Library::oLib().bVdbFileIsValid(proThis));
     
     VectorField::Ptr* proField = (VectorField::Ptr*) hVectorField;
-    assert(Library::oLib().bVectorieldIsValid(proField));
+    assert(Library::oLib().bVectorFieldIsValid(proField));
     
     return Library::oLib().nVdbFileAddVectorField(  *proThis,
                                                     pszFieldName,
@@ -976,6 +976,19 @@ PICOGK_API PKVECTORFIELD VectorField_hCreateFromVoxels(PKVOXELS hVoxels)
     
     VectorField::Ptr* proField = Library::oLib().proVectorFieldCreate();
     (*proField)->AddGradientFieldFrom(*proVoxels);
+    
+    return (PKVECTORFIELD) proField;
+}
+
+PICOGK_API PKVECTORFIELD VectorField_hBuildFromVoxels(  PKVOXELS hVoxels,
+                                                        const PKVector3* pvecValue,
+                                                        float fSdThreshold)
+{
+    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
+    assert(Library::oLib().bVoxelsIsValid(proVoxels));
+    
+    VectorField::Ptr* proField = Library::oLib().proVectorFieldCreate();
+    (*proField)->BuildFieldFrom(*proVoxels, *pvecValue, fSdThreshold);
     
     return (PKVECTORFIELD) proField;
 }

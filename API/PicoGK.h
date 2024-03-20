@@ -397,6 +397,10 @@ PICOGK_API PKVECTORFIELD    VectorField_hCreateCopy(        PKVECTORFIELD       
 
 PICOGK_API PKVECTORFIELD    VectorField_hCreateFromVoxels(  PKVOXELS            hVoxels);
 
+PICOGK_API PKVECTORFIELD    VectorField_hBuildFromVoxels(   PKVOXELS            hVoxels,
+                                                            const PKVector3*    vecValue,
+                                                            float               fSdThreshold);
+
 PICOGK_API bool             VectorField_bIsValid(           PKVECTORFIELD       hThis);
 
 PICOGK_API void             VectorField_Destroy(            PKVECTORFIELD       hThis);

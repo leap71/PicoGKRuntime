@@ -229,6 +229,29 @@ public:
         }
     }
     
+    void BuildFieldFrom(    Voxels::Ptr roVoxels,
+                            Vector3 vecValue,
+                            float fThreshold)
+    {
+        auto oField     = m_roGrid->getAccessor();
+        auto oVoxels    = roVoxels->roVdbGrid()->getConstAccessor();
+        CoordBBox oBBox = roVoxels->roVdbGrid()->evalActiveVoxelBoundingBox();
+        
+        openvdb::Vec3s vec(vecValue.X, vecValue.Y, vecValue.Z);
+        
+        for (auto x=oBBox.min().x(); x<=oBBox.max().x(); x++)
+        for (auto y=oBBox.min().y(); y<=oBBox.max().y(); y++)
+        for (auto z=oBBox.min().z(); z<=oBBox.max().z(); z++)
+        {
+            openvdb::Coord xyz(x,y,z);
+            
+            if (oVoxels.getValue(xyz) < fThreshold)
+            {
+                oField.setValue(xyz, vec);
+            }
+        }
+    }
+    
     void SetValue(  Vector3 vecPos,
                     VoxelSize oVoxelSize,
                     Vector3 vecValue)
