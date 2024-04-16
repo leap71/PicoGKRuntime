@@ -278,14 +278,103 @@ void SaveTGA(   const std::string strPath,
 
 bool Viewer::bPoll()
 {
+    if (m_bRedrawNeeded)
+    {
+        m_bRedrawNeeded = false;
+        Redraw();
+    }
+    
     glfwPollEvents();
-    bool bContinue = !glfwWindowShouldClose(m_pTheWindow);
+    return !glfwWindowShouldClose(m_pTheWindow);
+}
+
+void Viewer::RequestScreenShot(const std::string &strScreenShotPath)
+{
+    m_strScreenShotPath = strScreenShotPath;
+    RequestUpdate();
+}
+
+void Viewer::RequestClose()
+{
+    glfwSetWindowShouldClose(m_pTheWindow, GLFW_TRUE);
+}
+
+void Viewer::AddMesh(   int32_t             nGroupID,
+                        const Mesh::Ptr*    proMesh)
+{
+    roGroupAt(nGroupID)->AddMesh(proMesh);
+    RequestUpdate();
+}
+
+void Viewer::RemoveMesh(const Mesh::Ptr* proMesh)
+{
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        if (poGroup->bFindMesh(proMesh))
+        {
+            poGroup->RemoveMesh(proMesh);
+            return;
+        }
+    }
     
-    if (!m_bRedrawNeeded)
-        return bContinue;
+    ViewerManager::Info("Viewer::RemoveMesh - Trying to remove a mesh that doesn't exist.");
+}
+
+void Viewer::AddPolyLine(   int32_t                 nGroupID,
+                            const PolyLine::Ptr*    proPoly)
+{
+    roGroupAt(nGroupID)->AddPolyLine(proPoly);
+    RequestUpdate();
+}
+
+void Viewer::RemovePolyLine(const PolyLine::Ptr* proPolyLine)
+{
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        if (poGroup->bFindPolyLine(proPolyLine))
+        {
+            poGroup->RemovePolyLine(proPolyLine);
+            return;
+        }
+    }
     
-    m_bRedrawNeeded = false;
-    
+    ViewerManager::Info("Viewer::RemovePolyLine - Trying to remove a polyline that doesn't exist.");
+}
+
+void Viewer::SetGroupVisible(   int32_t     nGroupID,
+                                bool        bVisible)
+{
+    roGroupAt(nGroupID)->SetVisible(bVisible);
+    RequestUpdate();
+}
+
+void Viewer::SetGroupStatic(    int32_t     nGroupID,
+                                bool        bStatic)
+{
+    roGroupAt(nGroupID)->SetStatic(bStatic);
+    RequestUpdate();
+}
+
+void Viewer::SetGroupMaterial(  int32_t     nGroupID,
+                                ColorFloat  clr,
+                                float       fMetallic,
+                                float       fRoughness)
+{
+    roGroupAt(nGroupID)->SetMaterial(   clr,
+                                        fMetallic,
+                                        fRoughness);
+}
+
+void Viewer::SetGroupMatrix(    int32_t             nGroupID,
+                                const Matrix4x4&    mat)
+{
+    roGroupAt(nGroupID)->SetMatrix(mat);
+}
+
+void Viewer::Redraw()
+{
     try
     {
         glfwMakeContextCurrent(m_pTheWindow);
@@ -389,93 +478,6 @@ bool Viewer::bPoll()
     catch (...)
     {
     }
-    
-    return bContinue;
-}
-
-void Viewer::RequestScreenShot(const std::string &strScreenShotPath)
-{
-    m_strScreenShotPath = strScreenShotPath;
-    RequestUpdate();
-}
-
-void Viewer::RequestClose()
-{
-    glfwSetWindowShouldClose(m_pTheWindow, GLFW_TRUE);
-}
-
-void Viewer::AddMesh(   int32_t             nGroupID,
-                        const Mesh::Ptr*    proMesh)
-{
-    roGroupAt(nGroupID)->AddMesh(proMesh);
-    RequestUpdate();
-}
-
-void Viewer::RemoveMesh(const Mesh::Ptr* proMesh)
-{
-    for (auto Pair : m_oGroups)
-    {
-        Group::Ptr poGroup = Pair.second;
-        if (poGroup->bFindMesh(proMesh))
-        {
-            poGroup->RemoveMesh(proMesh);
-            return;
-        }
-    }
-    
-    ViewerManager::Info("Viewer::RemoveMesh - Trying to remove a mesh that doesn't exist.");
-}
-
-void Viewer::AddPolyLine(   int32_t                 nGroupID,
-                            const PolyLine::Ptr*    proPoly)
-{
-    roGroupAt(nGroupID)->AddPolyLine(proPoly);
-    RequestUpdate();
-}
-
-void Viewer::RemovePolyLine(const PolyLine::Ptr* proPolyLine)
-{
-    for (auto Pair : m_oGroups)
-    {
-        Group::Ptr poGroup = Pair.second;
-        if (poGroup->bFindPolyLine(proPolyLine))
-        {
-            poGroup->RemovePolyLine(proPolyLine);
-            return;
-        }
-    }
-    
-    ViewerManager::Info("Viewer::RemovePolyLine - Trying to remove a polyline that doesn't exist.");
-}
-
-void Viewer::SetGroupVisible(   int32_t     nGroupID,
-                                bool        bVisible)
-{
-    roGroupAt(nGroupID)->SetVisible(bVisible);
-    RequestUpdate();
-}
-
-void Viewer::SetGroupStatic(    int32_t     nGroupID,
-                                bool        bStatic)
-{
-    roGroupAt(nGroupID)->SetStatic(bStatic);
-    RequestUpdate();
-}
-
-void Viewer::SetGroupMaterial(  int32_t     nGroupID,
-                                ColorFloat  clr,
-                                float       fMetallic,
-                                float       fRoughness)
-{
-    roGroupAt(nGroupID)->SetMaterial(   clr,
-                                        fMetallic,
-                                        fRoughness);
-}
-
-void Viewer::SetGroupMatrix(    int32_t             nGroupID,
-                                const Matrix4x4&    mat)
-{
-    roGroupAt(nGroupID)->SetMatrix(mat);
 }
 
 Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine::Ptr& roPoly)

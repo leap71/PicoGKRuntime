@@ -150,6 +150,8 @@ protected:
 
         int         iPosAttrib            = -1;
     } m_sConfig;
+    
+    void Redraw();
 
     class Group
     {
