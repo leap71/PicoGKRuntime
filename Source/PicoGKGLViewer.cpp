@@ -278,121 +278,119 @@ void SaveTGA(   const std::string strPath,
 
 bool Viewer::bPoll()
 {
+    glfwPollEvents();
+    bool bContinue = !glfwWindowShouldClose(m_pTheWindow);
+    
+    if (!m_bRedrawNeeded)
+        return bContinue;
+    
+    m_bRedrawNeeded = false;
+    
     try
     {
-        if (m_bRedrawNeeded)
+        glfwMakeContextCurrent(m_pTheWindow);
+        
+        //get framebuffer size in device pixels
+        int iWidth, iHeight;
+        glfwGetFramebufferSize(m_pTheWindow, &iWidth, &iHeight);
+        glViewport(0, 0, iWidth, iHeight);
+        
+        ColorFloat clrBackground;
+        clrBackground.R = 1.0f;
+        clrBackground.G = 0.0f;
+        clrBackground.B = 0.0f;
+        clrBackground.A = 0.0f;
+        
+        Matrix4x4 matMVP;
+        Matrix4x4 matModelTrans;
+        Vector3   vecEye(0,0,0);
+        Matrix4x4 matStatic;
+        Vector3   vecEyeStatic(0,0,0);
+        
+        if (m_pfnUpdateCallback != nullptr)
         {
-            glfwMakeContextCurrent(m_pTheWindow);
+            Vector2 vecViewSize;
+            vecViewSize.X = (float) iWidth;
+            vecViewSize.Y = (float) iHeight;
             
-            //get framebuffer size in device pixels
-            int iWidth, iHeight;
-            glfwGetFramebufferSize(m_pTheWindow, &iWidth, &iHeight);
-            glViewport(0, 0, iWidth, iHeight);
-            
-            ColorFloat clrBackground;
-            clrBackground.R = 1.0f;
-            clrBackground.G = 0.0f;
-            clrBackground.B = 0.0f;
-            clrBackground.A = 0.0f;
-            
-            Matrix4x4 matMVP;
-            Matrix4x4 matModelTrans;
-            Vector3   vecEye(0,0,0);
-            Matrix4x4 matStatic;
-            Vector3   vecEyeStatic(0,0,0);
-            
-            if (m_pfnUpdateCallback != nullptr)
-            {
-                Vector2 vecViewSize;
-                vecViewSize.X = (float) iWidth;
-                vecViewSize.Y = (float) iHeight;
-                
-                m_pfnUpdateCallback(    this,
-                                        &vecViewSize,
-                                        &clrBackground,
-                                        &matMVP,
-                                        &matModelTrans,
-                                        &matStatic,
-                                        &vecEye,
-                                        &vecEyeStatic);
-            }
-            
-            glClearColor(   clrBackground.R,
-                            clrBackground.G,
-                            clrBackground.B,
-                            clrBackground.A);
-            
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glEnable(GL_DEPTH_TEST);
-            glEnable(GL_CULL_FACE);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            
-            glUseProgram(m_sConfig.nProgram);
-            
-            glUniformMatrix4fv( m_sConfig.iMVPUniform,  1,  GL_FALSE, (GLfloat*) &matMVP);
-            glUniform3fv(       m_sConfig.iEyeUniform,  1,  (GLfloat*) &vecEye);
-            
-            if (m_sConfig.nTexDiffuse != 0)
-            {
-                // We have a light setup
-                glUniform1i(m_sConfig.iDiffuseUniform,  0);
-                glUniform1i(m_sConfig.iSpecularUniform, 1);
-            }
-            
-            CHECKGLERRORS;
-            
-            // Draw the not-static stuff
-            
-            for (auto Pair : m_oGroups)
-            {
-                Group::Ptr poGroup = Pair.second;
-                if (!poGroup->bStatic())
-                {
-                    poGroup->Draw(matModelTrans, m_sConfig);
-                }
-            }
-            
-            // Now draw the static stuff
-            
-            glUniformMatrix4fv( m_sConfig.iMVPUniform,  1,  GL_FALSE, (GLfloat*) &matStatic);
-            glUniform3fv(       m_sConfig.iEyeUniform,  1,  (GLfloat*) &vecEyeStatic);
-            
-            for (auto Pair : m_oGroups)
-            {
-                Group::Ptr poGroup = Pair.second;
-                if (poGroup->bStatic())
-                {
-                    poGroup->Draw(matModelTrans, m_sConfig);
-                }
-            }
-            
-            if (m_strScreenShotPath != "")
-            {
-                std::vector<unsigned char> image(iWidth * iHeight * 3); // 3 bytes per pixel (RGB)
-                glReadPixels(0, 0, iWidth, iHeight, GL_BGR, GL_UNSIGNED_BYTE, image.data());
-                
-                // Save the image as a TGA file
-                SaveTGA(m_strScreenShotPath, image, iWidth, iHeight);
-                m_strScreenShotPath = "";
-            }
-            
-            glfwSwapBuffers(m_pTheWindow);
-            m_bRedrawNeeded = false;
+            m_pfnUpdateCallback(    this,
+                                    &vecViewSize,
+                                    &clrBackground,
+                                    &matMVP,
+                                    &matModelTrans,
+                                    &matStatic,
+                                    &vecEye,
+                                    &vecEyeStatic);
         }
         
-        glfwPollEvents();
-        bool bContinue = !glfwWindowShouldClose(m_pTheWindow);
+        glClearColor(   clrBackground.R,
+                        clrBackground.G,
+                        clrBackground.B,
+                        clrBackground.A);
         
-        return bContinue;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        glUseProgram(m_sConfig.nProgram);
+        
+        glUniformMatrix4fv( m_sConfig.iMVPUniform,  1,  GL_FALSE, (GLfloat*) &matMVP);
+        glUniform3fv(       m_sConfig.iEyeUniform,  1,  (GLfloat*) &vecEye);
+        
+        if (m_sConfig.nTexDiffuse != 0)
+        {
+            // We have a light setup
+            glUniform1i(m_sConfig.iDiffuseUniform,  0);
+            glUniform1i(m_sConfig.iSpecularUniform, 1);
+        }
+        
+        CHECKGLERRORS;
+        
+        // Draw the not-static stuff
+        
+        for (auto Pair : m_oGroups)
+        {
+            Group::Ptr poGroup = Pair.second;
+            if (!poGroup->bStatic())
+            {
+                poGroup->Draw(matModelTrans, m_sConfig);
+            }
+        }
+        
+        // Now draw the static stuff
+        
+        glUniformMatrix4fv( m_sConfig.iMVPUniform,  1,  GL_FALSE, (GLfloat*) &matStatic);
+        glUniform3fv(       m_sConfig.iEyeUniform,  1,  (GLfloat*) &vecEyeStatic);
+        
+        for (auto Pair : m_oGroups)
+        {
+            Group::Ptr poGroup = Pair.second;
+            if (poGroup->bStatic())
+            {
+                poGroup->Draw(matModelTrans, m_sConfig);
+            }
+        }
+        
+        if (m_strScreenShotPath != "")
+        {
+            std::vector<unsigned char> image(iWidth * iHeight * 3); // 3 bytes per pixel (RGB)
+            glReadPixels(0, 0, iWidth, iHeight, GL_BGR, GL_UNSIGNED_BYTE, image.data());
+            
+            // Save the image as a TGA file
+            SaveTGA(m_strScreenShotPath, image, iWidth, iHeight);
+            m_strScreenShotPath = "";
+        }
+        
+        glfwSwapBuffers(m_pTheWindow);
     }
     
     catch (...)
     {
-        //ViewerManager::Info("Viewer: Unhandled exception in bPoll");
-        return false;
     }
     
+    return bContinue;
 }
 
 void Viewer::RequestScreenShot(const std::string &strScreenShotPath)
