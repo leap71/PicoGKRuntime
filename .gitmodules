@@ -1,6 +1,8 @@
 [submodule "openvdb"]
 	path = openvdb
 	url = https://github.com/AcademySoftwareFoundation/openvdb
+	branch = master
 [submodule "GLFW"]
 	path = GLFW
 	url = https://github.com/glfw/glfw
+	branch = master

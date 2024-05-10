@@ -69,7 +69,7 @@ option(PICOGK_UPDATE_SUBMODULES "Update and initialize Git submodules" OFF)
 if(PICOGK_UPDATE_SUBMODULES)
     message(STATUS "Updating and initializing Git submodules...")
     execute_process(
-        COMMAND git submodule update --init --recursive
+        COMMAND git submodule update --init --recursive --remote
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 endif()
