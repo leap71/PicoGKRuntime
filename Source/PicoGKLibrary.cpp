@@ -329,6 +329,33 @@ PICOGK_API void Voxels_TripleOffset(    PKVOXELS hThis,
     (*proThis)->TripleOffset(fDist, Library::oLib().fVoxelSizeMM());
 }
 
+PICOGK_API void Voxels_Gaussian(    PKVOXELS    hThis,
+                                    float       fSize)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    
+    (*proThis)->Gaussian(fSize, Library::oLib().fVoxelSizeMM());
+}
+
+PICOGK_API void Voxels_Median(  PKVOXELS    hThis,
+                                float       fSize)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    
+    (*proThis)->Median(fSize, Library::oLib().fVoxelSizeMM());
+}
+
+PICOGK_API void Voxels_Mean(    PKVOXELS    hThis,
+                                float       fSize)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    
+    (*proThis)->Mean(fSize, Library::oLib().fVoxelSizeMM());
+}
+
 PICOGK_API void Voxels_RenderMesh(  PKVOXELS hThis,
                                     PKMESH hMesh)
 {

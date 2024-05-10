@@ -183,6 +183,28 @@ public:
         // but have lost a lot of detail = smooth
         oFilter.offset(-fSizeVx);
     }
+    
+    void Gaussian(float fSize, VoxelSize oVoxelSize)
+    {
+        openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
+        float fSizeVx = oVoxelSize.fToVoxels(std::abs(fSize));
+        oFilter.gaussian(fSizeVx);
+    }
+    
+    void Median(float fSize, VoxelSize oVoxelSize)
+    {
+        openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
+        float fSizeVx = oVoxelSize.fToVoxels(std::abs(fSize));
+        std::cout << "Voxel count for median:" << fSizeVx << "\n";
+        oFilter.median(fSizeVx);
+    }
+    
+    void Mean(float fSize, VoxelSize oVoxelSize)
+    {
+        openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
+        float fSizeVx = oVoxelSize.fToVoxels(std::abs(fSize));
+        oFilter.mean(fSizeVx);
+    }
 
     void RenderMesh(	const Mesh& oMesh,
     					VoxelSize oVoxelSize)

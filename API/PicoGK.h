@@ -178,6 +178,15 @@ PICOGK_API void             Voxels_DoubleOffset(            PKVOXELS            
 PICOGK_API void             Voxels_TripleOffset(            PKVOXELS            hThis,
                                                             float               fDist);
 
+PICOGK_API void             Voxels_Gaussian(                PKVOXELS            hThis,
+                                                            float               fDist);
+
+PICOGK_API void             Voxels_Median(                  PKVOXELS            hThis,
+                                                            float               fDist);
+
+PICOGK_API void             Voxels_Mean(                    PKVOXELS            hThis,
+                                                            float               fDist);
+
 PICOGK_API void             Voxels_RenderMesh(              PKVOXELS            hThis,
                                                             PKMESH              hMesh);
 
