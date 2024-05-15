@@ -373,7 +373,7 @@ public:
             float fValue = std::min(    oAccess.getValue(xyzUnder),
                                         oAccess.getValue(xyz));
             
-            SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+            SetSdValue(&oAccess, xyzUnder, m_roGrid->background(), fValue);
         }
     }
     
@@ -399,7 +399,7 @@ public:
             float fValue = std::min(    oAccess.getValue(xyzOver),
                                         oAccess.getValue(xyz));
             
-            SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+            SetSdValue(&oAccess, xyzOver, m_roGrid->background(), fValue);
         }
     }
 
