@@ -370,6 +370,10 @@ PICOGK_API PKSCALARFIELD    ScalarField_hCreateCopy(        PKSCALARFIELD       
 
 PICOGK_API PKSCALARFIELD    ScalarField_hCreateFromVoxels(  PKVOXELS            hVoxels);
 
+PICOGK_API PKSCALARFIELD    ScalarField_hBuildFromVoxels(   PKVOXELS            hVoxels,
+                                                            float               fScalarValue,
+                                                            float               fSdThreshold);
+
 PICOGK_API bool             ScalarField_bIsValid(           PKSCALARFIELD       hThis);
 
 PICOGK_API void             ScalarField_Destroy(            PKSCALARFIELD       hThis);

@@ -897,7 +897,20 @@ PICOGK_API PKSCALARFIELD ScalarField_hCreateFromVoxels(PKVOXELS hVoxels)
     assert(Library::oLib().bVoxelsIsValid(proVoxels));
     
     ScalarField::Ptr* proField = Library::oLib().proScalarFieldCreateFromVoxels(**proVoxels);
-    return (PKVECTORFIELD) proField;
+    return (PKSCALARFIELD) proField;
+}
+
+PICOGK_API PKSCALARFIELD ScalarField_hBuildFromVoxels(  PKVOXELS    hVoxels,
+                                                        float       fScalarValue,
+                                                        float       fSdThreshold)
+{
+    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
+    assert(Library::oLib().bVoxelsIsValid(proVoxels));
+    
+    ScalarField::Ptr* proField = Library::oLib().proScalarFieldCreate();
+    (*proField)->BuildFieldFrom(*proVoxels, fScalarValue, fSdThreshold);
+    
+   return (PKSCALARFIELD) proField;
 }
 
 PICOGK_API void ScalarField_SetValue(   PKSCALARFIELD       hThis,

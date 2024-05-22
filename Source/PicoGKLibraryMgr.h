@@ -315,6 +315,16 @@ public: // ScalarField functions
         return proField;
     }
     
+    ScalarField::Ptr* proScalarFieldBuildFromVoxels(    const Voxels& oVoxels,
+                                                        float fScalarValue)
+    {
+        ScalarField::Ptr roField = std::make_shared<ScalarField>(oVoxels);
+        
+        ScalarField::Ptr* proField      = new ScalarField::Ptr(roField);
+        m_oScalarFieldList[proField]    = proField;
+        return proField;
+    }
+    
 public: // VectorField
     PK_IMPLEMENT_STANDARD_LIB_FUNCTIONS(VectorField)
     

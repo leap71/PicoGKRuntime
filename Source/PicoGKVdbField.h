@@ -98,6 +98,27 @@ public:
         m_roGrid->setGridClass(GRID_FOG_VOLUME);
     }
     
+    void BuildFieldFrom(    Voxels::Ptr roVoxels,
+                            float fScalarValue,
+                            float fThreshold)
+    {
+        auto oField     = m_roGrid->getAccessor();
+        auto oVoxels    = roVoxels->roVdbGrid()->getConstAccessor();
+        CoordBBox oBBox = roVoxels->roVdbGrid()->evalActiveVoxelBoundingBox();
+        
+        for (auto x=oBBox.min().x(); x<=oBBox.max().x(); x++)
+        for (auto y=oBBox.min().y(); y<=oBBox.max().y(); y++)
+        for (auto z=oBBox.min().z(); z<=oBBox.max().z(); z++)
+        {
+            openvdb::Coord xyz(x,y,z);
+            
+            if (oVoxels.getValue(xyz) < fThreshold)
+            {
+                oField.setValue(xyz, fScalarValue);
+            }
+        }
+    }
+    
     void SetValue(  Vector3     vecPos,
                     VoxelSize   oVoxelSize,
                     float       fValue)
