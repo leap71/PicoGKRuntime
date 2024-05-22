@@ -375,6 +375,20 @@ public:
             
             SetSdValue(&oAccess, xyzUnder, m_roGrid->background(), fValue);
         }
+        
+        // Close the last slice, and update the background
+        for(int32_t z = iZEnd; z > iZEnd - (int) (0.5f + m_roGrid->background()); z--)
+        {
+            for(int32_t x = oBBox.min().x(); x <= oBBox.max().x(); x++)
+            for(int32_t y = oBBox.min().y(); y <= oBBox.max().y(); y++)
+            {
+                openvdb::Coord xyz(x,y,z);
+                openvdb::Coord xyzUnder(x,y,z-1);
+                
+                float fValue = (oAccess.getValue(xyz) + oAccess.getValue(xyzUnder)) / 2.0f;
+                SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+            }
+        }
     }
     
     void ProjectZSliceUp(   float fZStart,
@@ -391,7 +405,7 @@ public:
         
         for(int32_t x = oBBox.min().x(); x <= oBBox.max().x(); x++)
         for(int32_t y = oBBox.min().y(); y <= oBBox.max().y(); y++)
-        for(int32_t z = iZStart; z <= iZEnd; z++)
+        for(int32_t z = iZStart; z < iZEnd; z++)
         {
             openvdb::Coord xyz(x,y,z);
             openvdb::Coord xyzOver(x,y,z+1);
@@ -400,6 +414,20 @@ public:
                                         oAccess.getValue(xyz));
             
             SetSdValue(&oAccess, xyzOver, m_roGrid->background(), fValue);
+        }
+        
+        // Close the last slice, and update the background
+        for(int32_t z = iZEnd; z < iZEnd + (int) (0.5f + m_roGrid->background()); z++)
+        {
+            for(int32_t x = oBBox.min().x(); x <= oBBox.max().x(); x++)
+            for(int32_t y = oBBox.min().y(); y <= oBBox.max().y(); y++)
+            {
+                openvdb::Coord xyz(x,y,z);
+                openvdb::Coord xyzOver(x,y,z+1);
+                
+                float fValue = (oAccess.getValue(xyz) + oAccess.getValue(xyzOver)) / 2.0f;
+                SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+            }
         }
     }
 
