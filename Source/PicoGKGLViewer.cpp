@@ -247,6 +247,7 @@ bool Viewer::bLoadLightSetup(   const char* pDiffuseTextureDDS,
 
 Viewer::~Viewer()
 {
+    glfwDestroyWindow(m_pTheWindow);
 }
 
 namespace
