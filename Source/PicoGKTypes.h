@@ -279,20 +279,20 @@ struct Matrix4x4
             Vector4 vec2;
             Vector4 vec3;
             Vector4 vec4;
-        };
+        } vectors;
         
         float   m[16];
-    };
+    } matrix;
         
     Matrix4x4()
-    : vec1(Vector4(1.0f, 0.0f, 0.0f, 0.0f)),
-      vec2(Vector4(0.0f, 1.0f, 0.0f, 0.0f)),
-      vec3(Vector4(0.0f, 0.0f, 1.0f, 0.0f)),
-      vec4(Vector4(0.0f, 0.0f, 0.0f, 1.0f))
+    : matrix({Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+              Vector4(0.0f, 1.0f, 0.0f, 0.0f),
+              Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+              Vector4(0.0f, 0.0f, 0.0f, 1.0f)})
     {
-            
+
     }
-    
+
     void operator*=(const Matrix4x4& other)
     {
         Matrix4x4 result;
@@ -304,9 +304,9 @@ struct Matrix4x4
                 float sum = 0.0f;
                 for (int i = 0; i < 4; ++i)
                 {
-                    sum += m[row + i * 4] * other.m[col * 4 + i];
+                    sum += matrix.m[row + i * 4] * other.matrix.m[col * 4 + i];
                 }
-                result.m[col * 4 + row] = sum;
+                result.matrix.m[col * 4 + row] = sum;
             }
         }
 
