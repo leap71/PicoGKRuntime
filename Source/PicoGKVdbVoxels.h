@@ -195,7 +195,6 @@ public:
     {
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         float fSizeVx = oVoxelSize.fToVoxels(std::abs(fSize));
-        std::cout << "Voxel count for median:" << fSizeVx << "\n";
         oFilter.median(fSizeVx);
     }
     
