@@ -111,7 +111,39 @@ public:
     void InitLibrary(float fVoxelSizeMM)
     {
         assert(m_fVoxelSizeMM == 0.0f); // set only once
+        
+        if (m_fVoxelSizeMM != 0.0f)
+        {
+            std::cout << "PicoGK InitLibrary called multiple times - can only be called once";
+            throw false;
+        }
+        
         m_fVoxelSizeMM = fVoxelSizeMM;
+    }
+    
+    void DestroyLibrary()
+    {
+        assert(m_fVoxelSizeMM != 0.0f); // set only once
+        
+        if (m_fVoxelSizeMM == 0.0f)
+        {
+            std::cout << "PicoGK DestroyLibrary called without active library\n";
+            throw false;
+        }
+        
+        /// TODO we should probably move the library object to a destroyable object
+        /// this is a bit of a hack
+    
+        m_fVoxelSizeMM = 0.0f;
+        
+        m_oMeshList         .clear();
+        m_oLatticeList      .clear();
+        m_oPolyLineList     .clear();
+        m_oVoxelsList       .clear();
+        m_oVdbFileList      .clear();
+        m_oScalarFieldList  .clear();
+        m_oVectorFieldList  .clear();
+        m_oVdbMetaList      .clear();
     }
     
     inline float fVoxelSizeMM() const

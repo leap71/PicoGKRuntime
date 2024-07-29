@@ -603,6 +603,25 @@ public:
         }
     }
     
+    void GetInterpolatedSlice(  float fZSlice,
+                                float* pfBuffer)
+    {
+        CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
+        
+        auto oAccess = m_roGrid->getConstAccessor();
+        
+        openvdb::Vec3R vec(0, 0, fZSlice + oBBox.min().z());
+        openvdb::tools::BoxSampler oSampler;
+        
+        int32_t n=0;
+        for (vec.y()=oBBox.min().y(); vec.y()<=oBBox.max().y(); vec.y()++)
+        for (vec.x()=oBBox.min().x(); vec.x()<=oBBox.max().x(); vec.x()++)
+        {
+            pfBuffer[n] = oSampler.sample(oAccess, vec);
+            n++;
+        }
+    }
+    
     FloatGrid::Ptr roVdbGrid() const 	{return m_roGrid;}
     
     inline float fBackground() const    {return m_roGrid->background();}

@@ -56,6 +56,11 @@ PICOGK_API void Library_Init(float fVoxelSizeMM)
     Library::oLib().InitLibrary(fVoxelSizeMM);
 }
 
+PICOGK_API void Library_Destroy()
+{
+    Library::oLib().DestroyLibrary();
+}
+
 PICOGK_API void Library_GetName(char psz[PKINFOSTRINGLEN])
 {
    SafeCopyInfoString(Library::oLib().strName(), psz);
@@ -498,6 +503,18 @@ PICOGK_API void Voxels_GetSlice(    PKVOXELS    hThis,
     
     *pfBackgroundValue = (*proThis)->fBackground();
     return (*proThis)->GetSlice(nZSlice, pfBuffer);
+}
+
+PICOGK_API void Voxels_GetInterpolatedSlice(    PKVOXELS    hThis,
+                                                float       fZSlice,
+                                                float*      pfBuffer,
+                                                float*      pfBackgroundValue)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    
+    *pfBackgroundValue = (*proThis)->fBackground();
+    return (*proThis)->GetInterpolatedSlice(fZSlice, pfBuffer);
 }
 
 PICOGK_API PKPOLYLINE PolyLine_hCreate(const ColorFloat*  pclr)
