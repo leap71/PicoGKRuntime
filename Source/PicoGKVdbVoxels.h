@@ -595,7 +595,7 @@ public:
         auto oAccess = m_roGrid->getConstAccessor();
         
         int32_t n=0;
-        for (xyz.y()=oBBox.min().y(); xyz.y()<=oBBox.max().y(); xyz.y()++)
+        for (xyz.y()=oBBox.max().y(); xyz.y()>=oBBox.min().y(); xyz.y()--)
         for (xyz.x()=oBBox.min().x(); xyz.x()<=oBBox.max().x(); xyz.x()++)
         {
             pfBuffer[n] = oAccess.getValue(xyz);
@@ -614,7 +614,7 @@ public:
         openvdb::tools::BoxSampler oSampler;
         
         int32_t n=0;
-        for (vec.y()=oBBox.min().y(); vec.y()<=oBBox.max().y(); vec.y()++)
+        for (vec.y()=oBBox.max().y(); vec.y()>=oBBox.min().y(); vec.y()--)
         for (vec.x()=oBBox.min().x(); vec.x()<=oBBox.max().x(); vec.x()++)
         {
             pfBuffer[n] = oSampler.sample(oAccess, vec);
