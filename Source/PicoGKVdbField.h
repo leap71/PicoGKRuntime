@@ -54,7 +54,7 @@ public:
         m_roGrid = TFieldType::create();
     };
     
-    Field(TFieldType::Ptr roGrid)
+    Field(typename TFieldType::Ptr roGrid)
     {
         m_roGrid = roGrid;
     };
@@ -64,10 +64,10 @@ public:
         m_roGrid = deepCopyTypedGrid<TFieldType>(oSource.m_roGrid);
     };
     
-    TFieldType::Ptr roVdbGrid() const {return m_roGrid;}
+    typename TFieldType::Ptr roVdbGrid() const {return m_roGrid;}
     
 protected:
-    TFieldType::Ptr             m_roGrid;
+    typename TFieldType::Ptr             m_roGrid;
 };
 
 class ScalarField : public Field<FloatGrid>
