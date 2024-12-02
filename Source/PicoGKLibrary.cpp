@@ -334,6 +334,15 @@ PICOGK_API void Voxels_TripleOffset(    PKVOXELS hThis,
     (*proThis)->TripleOffset(fDist, Library::oLib().fVoxelSizeMM());
 }
 
+PICOGK_API void Voxels_Fillet(          PKVOXELS hThis,
+                                        int nIterations)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    
+    (*proThis)->Fillet(nIterations);
+}
+
 PICOGK_API void Voxels_Gaussian(    PKVOXELS    hThis,
                                     float       fSize)
 {

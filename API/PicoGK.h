@@ -178,6 +178,9 @@ PICOGK_API void             Voxels_DoubleOffset(            PKVOXELS            
 PICOGK_API void             Voxels_TripleOffset(            PKVOXELS            hThis,
                                                             float               fDist);
 
+PICOGK_API void             Voxels_Fillet(                  PKVOXELS            hThis,
+                                                            int                 nIterations);
+
 PICOGK_API void             Voxels_Gaussian(                PKVOXELS            hThis,
                                                             float               fDist);
 
