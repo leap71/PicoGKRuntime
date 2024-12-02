@@ -54,6 +54,7 @@ ClassName::Ptr* pro##ClassName##Create()                                \
 {                                                                       \
     ClassName::Ptr  ro          =  std::make_shared<ClassName>();       \
     ClassName::Ptr* pro         = new ClassName::Ptr(ro);               \
+    std::lock_guard guard(m_mtx);                                       \
     m_o##ClassName##List[pro]  = pro;                                   \
     return pro;                                                         \
 }                                                                       \
@@ -62,12 +63,15 @@ ClassName::Ptr* pro##ClassName##CreateCopy(const ClassName& oSource)    \
 {                                                                       \
     ClassName::Ptr  ro          =  std::make_shared<ClassName>(oSource);\
     ClassName::Ptr* pro         = new ClassName::Ptr(ro);               \
+                                                                        \
+    std::lock_guard guard(m_mtx);                                       \
     m_o##ClassName##List[pro]  = pro;                                   \
     return pro;                                                         \
 }                                                                       \
                                                                         \
 bool b##ClassName##Find(const ClassName::Ptr* pro) const                \
 {                                                                       \
+    std::lock_guard guard(m_mtx);                                       \
     return (m_o##ClassName##List.find(pro)                              \
         != m_o##ClassName##List.end());                                 \
 }                                                                       \
@@ -82,6 +86,7 @@ bool b##ClassName##IsValid(const ClassName::Ptr* pro)                   \
                                                                         \
 void ClassName##Destroy(ClassName::Ptr* pro)                            \
 {                                                                       \
+    std::lock_guard guard(m_mtx);                                       \
     auto it = m_o##ClassName##List.find(pro);                           \
                                                                         \
     if (it != m_o##ClassName##List.end())                               \
@@ -123,6 +128,8 @@ public:
     
     void DestroyLibrary()
     {
+        std::lock_guard<std::mutex> guard(m_mtx);
+        
         assert(m_fVoxelSizeMM != 0.0f); // set only once
         
         if (m_fVoxelSizeMM == 0.0f)
@@ -190,6 +197,8 @@ public: // Mesh Functions
     {
         Mesh::Ptr   roMesh      = oVoxels.roAsMesh(fVoxelSizeMM());
         Mesh::Ptr*  proMesh     = new Mesh::Ptr(roMesh);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oMeshList[proMesh]    = proMesh;
         return proMesh;
     }
@@ -203,12 +212,15 @@ public: // PolyLine functions
     {
         PolyLine::Ptr   roPolyLine      = std::make_shared<PolyLine>(clr);
         PolyLine::Ptr*  proPolyLine     = new PolyLine::Ptr(roPolyLine);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oPolyLineList[proPolyLine]    = proPolyLine;
         return proPolyLine;
     }
     
     bool bPolyLineFind(const PolyLine::Ptr* proPolyLine) const
     {
+        std::lock_guard guard(m_mtx);
         return (m_oPolyLineList.find(proPolyLine)
                 != m_oPolyLineList.end());
     }
@@ -223,6 +235,7 @@ public: // PolyLine functions
         
     void PolyLineDestroy(PolyLine::Ptr* proPolyLine)
     {
+        std::lock_guard<std::mutex> guard(m_mtx);
         auto it = m_oPolyLineList.find(proPolyLine);
         
         if (it != m_oPolyLineList.end())
@@ -249,6 +262,8 @@ public: // VdbFile functions
             return nullptr;
         
         VdbFile::Ptr*   proVdbFile  = new VdbFile::Ptr(roVdbFile);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oVdbFileList[proVdbFile]  = proVdbFile;
         return proVdbFile;
     }
@@ -276,6 +291,8 @@ public: // VdbFile functions
         Voxels::Ptr roVoxels = std::make_shared<Voxels>(gridPtrCast<FloatGrid>(roGrid));
         
         Voxels::Ptr* proVoxels      = new Voxels::Ptr(roVoxels);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oVoxelsList[proVoxels]    = proVoxels;
         return proVoxels;
 
@@ -309,6 +326,8 @@ public: // VdbFile functions
         ScalarField::Ptr roField = std::make_shared<ScalarField>(gridPtrCast<FloatGrid>(roGrid));
         
         ScalarField::Ptr* proField      = new ScalarField::Ptr(roField);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oScalarFieldList[proField]    = proField;
         return proField;
     }
@@ -331,6 +350,8 @@ public: // VdbFile functions
         VectorField::Ptr roField        = std::make_shared<VectorField>(gridPtrCast<Vec3SGrid>(roGrid));
         
         VectorField::Ptr* proField      = new VectorField::Ptr(roField);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oVectorFieldList[proField]    = proField;
         return proField;
     }
@@ -343,6 +364,8 @@ public: // ScalarField functions
         ScalarField::Ptr roField = std::make_shared<ScalarField>(oVoxels);
         
         ScalarField::Ptr* proField      = new ScalarField::Ptr(roField);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oScalarFieldList[proField]    = proField;
         return proField;
     }
@@ -353,6 +376,8 @@ public: // ScalarField functions
         ScalarField::Ptr roField = std::make_shared<ScalarField>(oVoxels);
         
         ScalarField::Ptr* proField      = new ScalarField::Ptr(roField);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oScalarFieldList[proField]    = proField;
         return proField;
     }
@@ -366,12 +391,16 @@ public:
         VdbMeta::Ptr roField = std::make_shared<VdbMeta>(roMetaMap);
         
         VdbMeta::Ptr* proField      = new VdbMeta::Ptr(roField);
+        
+        std::lock_guard<std::mutex> guard(m_mtx);
         m_oVdbMetaList[proField]    = proField;
         return proField;
     }
     
     bool bVdbMetaFind(const VdbMeta::Ptr* pro) const
     {
+        std::lock_guard guard(m_mtx);
+        
         return (m_oVdbMetaList.find(pro)
             != m_oVdbMetaList.end());
     }
@@ -386,6 +415,8 @@ public:
 
     void VdbMetaDestroy(VdbMeta::Ptr* pro)
     {
+        std::lock_guard<std::mutex> guard(m_mtx);
+        
         auto it = m_oVdbMetaList.find(pro);
         
         if (it != m_oVdbMetaList.end())
@@ -425,6 +456,8 @@ protected:
     std::map<const ScalarField::Ptr*,   ScalarField::Ptr*>  m_oScalarFieldList;
     std::map<const VectorField::Ptr*,   VectorField::Ptr*>  m_oVectorFieldList;
     std::map<const VdbMeta::Ptr*,       VdbMeta::Ptr*>      m_oVdbMetaList;
+    
+    mutable std::mutex m_mtx;
 };
 
 } // namespace PicoGK
