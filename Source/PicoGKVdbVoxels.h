@@ -184,6 +184,14 @@ public:
         oFilter.offset(-fSizeVx);
     }
     
+    void Fillet(int nIterations)
+    {
+        openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
+        
+        for (int n=0; n<nIterations;n++)
+            oFilter.fillet();
+    }
+    
     void Gaussian(float fSize, VoxelSize oVoxelSize)
     {
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
