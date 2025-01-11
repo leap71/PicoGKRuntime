@@ -41,6 +41,10 @@
 
 #include <fstream>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 namespace PicoGK
 {
 
@@ -188,6 +192,19 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glfwMakeContextCurrent(m_pTheWindow);
+    gladLoadGL(glfwGetProcAddress);
+    
+    // Initialize ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark(); // Optional: Use ImGui's default dark theme
+
+    // Initialize platform/renderer bindings
+    ImGui_ImplGlfw_InitForOpenGL(m_pTheWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 330"); // Use the appropriate GLSL version
 
     CHECKGLERRORS;
 }
@@ -380,6 +397,18 @@ void Viewer::Redraw()
     {
         glfwMakeContextCurrent(m_pTheWindow);
         
+        // Start ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        
+        ImGui::ShowDemoWindow();
+        
+        // Add ImGui elements here
+        ImGui::Begin("Viewer Controls");
+        ImGui::Text("Hello, ImGui!");
+        ImGui::End();
+        
         //get framebuffer size in device pixels
         int iWidth, iHeight;
         glfwGetFramebufferSize(m_pTheWindow, &iWidth, &iHeight);
@@ -472,6 +501,10 @@ void Viewer::Redraw()
             SaveTGA(m_strScreenShotPath, image, iWidth, iHeight);
             m_strScreenShotPath = "";
         }
+        
+        // Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         glfwSwapBuffers(m_pTheWindow);
     }
