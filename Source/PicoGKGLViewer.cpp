@@ -442,12 +442,12 @@ void Viewer::Redraw()
         
         for (auto Pair : m_oGroups)
         {
-            Group::Ptr poGroup = Pair.second;
-            if (!poGroup->bStatic())
+            Group::Ptr prGroup = Pair.second;
+            if (!prGroup->bStatic())
             {
-                poGroup->Draw(matModelTrans, m_sConfig);
+                prGroup->Draw(matModelTrans, m_sConfig);
             }
-        }
+        } 
         
         // Now draw the static stuff
         
@@ -456,10 +456,10 @@ void Viewer::Redraw()
         
         for (auto Pair : m_oGroups)
         {
-            Group::Ptr poGroup = Pair.second;
-            if (poGroup->bStatic())
+            Group::Ptr prGroup = Pair.second;
+            if (prGroup->bStatic())
             {
-                poGroup->Draw(matModelTrans, m_sConfig);
+                prGroup->Draw(matModelTrans, m_sConfig);
             }
         }
         
