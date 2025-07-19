@@ -119,6 +119,13 @@ PICOGK_API void Mesh_Destroy(PKMESH hThis)
     Library::oLib().MeshDestroy(proThis);
 }
 
+PICOGK_API int64_t Mesh_nMemUsage(PKMESH hThis)
+{
+    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
+    assert(Library::oLib().bMeshIsValid(proThis));
+    return (*proThis)->nMemUsage();
+}
+
 PICOGK_API int32_t Mesh_nAddVertex( PKMESH hThis,
                                     const Vector3* pvecVertex)
 {
@@ -215,6 +222,13 @@ PICOGK_API void Lattice_Destroy(PKLATTICE hThis)
     Library::oLib().LatticeDestroy(proThis);
 }
 
+PICOGK_API int64_t Lattice_nMemUsage(PKLATTICE hThis)
+{
+    Lattice::Ptr* proThis = (Lattice::Ptr*) hThis;
+    assert(Library::oLib().bLatticeIsValid(proThis));
+    return (*proThis)->nMemUsage();
+}
+
 PICOGK_API void Lattice_AddSphere(  PKLATTICE hThis,
                                     const Vector3* vecCenter,
                                     float fRadius)
@@ -268,6 +282,13 @@ PICOGK_API void Voxels_Destroy(PKVOXELS hThis)
     assert(Library::oLib().bVoxelsIsValid(proThis));
     
     Library::oLib().VoxelsDestroy(proThis);
+}
+
+PICOGK_API int64_t Voxels_nMemUsage(PKVOXELS hThis)
+{
+    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
+    assert(Library::oLib().bVoxelsIsValid(proThis));
+    return (*proThis)->nMemUsage();
 }
 
 PICOGK_API void Voxels_BoolAdd( PKVOXELS hThis,
@@ -536,6 +557,13 @@ PICOGK_API void PolyLine_Destroy(PKPOLYLINE hThis)
     Library::oLib().PolyLineDestroy(proThis);
 }
 
+PICOGK_API int64_t PolyLine_nMemUsage(PKPOLYLINE hThis)
+{
+    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
+    assert(Library::oLib().bPolyLineIsValid(proThis));
+    return (*proThis)->nMemUsage();
+}
+
 PICOGK_API int32_t PolyLine_nAddVertex( PKPOLYLINE hThis,
                                         const Vector3* pvec)
 {
@@ -774,6 +802,13 @@ PICOGK_API void VdbFile_Destroy(PKVDBFILE hThis)
     Library::oLib().VdbFileDestroy(proThis);
 }
 
+PICOGK_API int64_t VdbFile_nMemUsage(PKVDBFILE hThis)
+{
+    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
+    assert(Library::oLib().bVdbFileIsValid(proThis));
+    return (*proThis)->nMemUsage();
+}
+
 PICOGK_API bool VdbFile_bSaveToFile(    PKVDBFILE       hThis,
                                         const char*     pszFileName)
 {
@@ -906,6 +941,13 @@ PICOGK_API void ScalarField_Destroy(PKSCALARFIELD   hThis)
     assert(Library::oLib().bScalarFieldIsValid(proThis));
     
     Library::oLib().ScalarFieldDestroy(proThis);
+}
+
+PICOGK_API int64_t ScalarField_nMemUsage(PKSCALARFIELD hThis)
+{
+    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
+    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    return (*proThis)->nMemUsage();
 }
 
 PICOGK_API PKSCALARFIELD ScalarField_hCreateFromVoxels(PKVOXELS hVoxels)
@@ -1048,6 +1090,13 @@ PICOGK_API PKVECTORFIELD VectorField_hBuildFromVoxels(  PKVOXELS hVoxels,
     (*proField)->BuildFieldFrom(*proVoxels, *pvecValue, fSdThreshold);
     
     return (PKVECTORFIELD) proField;
+}
+
+PICOGK_API int64_t VectorField_nMemUsage(PKVECTORFIELD hThis)
+{
+    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
+    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    return (*proThis)->nMemUsage();
 }
 
 PICOGK_API void VectorField_SetValue(   PKVECTORFIELD       hThis,

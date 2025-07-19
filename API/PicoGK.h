@@ -99,6 +99,8 @@ PICOGK_API bool             Mesh_bIsValid(                  PKMESH              
 
 PICOGK_API void             Mesh_Destroy(                   PKMESH              hThis);
 
+PICOGK_API int64_t          Mesh_nMemUsage(                 PKMESH              hThis);
+
 PICOGK_API int32_t          Mesh_nAddVertex(                PKMESH              hThis,
                                                             const PKVector3*    pvecVertex);
 
@@ -130,6 +132,7 @@ PICOGK_API void             Mesh_GetBoundingBox(            PKMESH              
 
 PICOGK_API PKLATTICE        Lattice_hCreate();
 
+PICOGK_API int64_t          Lattice_nMemUsage(              PKLATTICE           hThis);
 
 PICOGK_API bool             Lattice_bIsValid(               PKLATTICE           hThis);
 
@@ -158,6 +161,8 @@ PICOGK_API PKVOXELS         Voxels_hCreateCopy(             PKVOXELS            
 PICOGK_API bool             Voxels_bIsValid(                PKVOXELS            hThis);
 
 PICOGK_API void             Voxels_Destroy(                 PKVOXELS            hThis);
+
+PICOGK_API int64_t          Voxels_nMemUsage(               PKVOXELS            hThis);
 
 PICOGK_API void             Voxels_BoolAdd(                 PKVOXELS            hThis,
                                                             PKVOXELS            hOther);
@@ -248,6 +253,8 @@ PICOGK_API bool             PolyLine_bIsValid(              PKPOLYLINE          
 
 PICOGK_API void             PolyLine_Destroy(               PKPOLYLINE          hThis);
 
+PICOGK_API int64_t          PolyLine_nMemUsage(             PKPOLYLINE          hThis);
+
 PICOGK_API int32_t          PolyLine_nAddVertex(            PKPOLYLINE          hThis,
                                                             const PKVector3*    pvec);
 
@@ -331,6 +338,8 @@ PICOGK_API bool             VdbFile_bIsValid(               PKVDBFILE           
 
 PICOGK_API void             VdbFile_Destroy(                PKVDBFILE           hThis);
 
+PICOGK_API int64_t          VdbFile_nMemUsage(              PKVDBFILE           hThis);
+
 PICOGK_API bool             VdbFile_bSaveToFile(            PKVDBFILE           hVdbFile,
                                                             const char*         pszFileName);
 
@@ -378,6 +387,8 @@ PICOGK_API bool             ScalarField_bIsValid(           PKSCALARFIELD       
 
 PICOGK_API void             ScalarField_Destroy(            PKSCALARFIELD       hThis);
 
+PICOGK_API int64_t          ScalarField_nMemUsage(          PKSCALARFIELD       hThis);
+
 PICOGK_API void             ScalarField_SetValue(           PKSCALARFIELD       hThis,
                                                             const PKVector3*    pvecPosition,
                                                             float               fValue);
@@ -417,6 +428,8 @@ PICOGK_API PKVECTORFIELD    VectorField_hBuildFromVoxels(   PKVOXELS            
 PICOGK_API bool             VectorField_bIsValid(           PKVECTORFIELD       hThis);
 
 PICOGK_API void             VectorField_Destroy(            PKVECTORFIELD       hThis);
+
+PICOGK_API int64_t          VectorField_nMemUsage(          PKVECTORFIELD       hThis);
 
 PICOGK_API void             VectorField_SetValue(           PKVECTORFIELD       hThis,
                                                             const PKVector3*    pvecPosition,
