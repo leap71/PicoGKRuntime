@@ -57,6 +57,11 @@ public:
     {
     }
     
+    int64_t nMemUsage() const
+    {
+        return sizeof(PolyLine) + m_oVertices.capacity() * sizeof(Vector3);
+    }
+    
     int32_t nAddVertex(const Vector3& vec)
     {
         m_oVertices.push_back(vec);

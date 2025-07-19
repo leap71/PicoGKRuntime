@@ -54,6 +54,11 @@ public:
     {
     }
     
+    inline int64_t nMemUsage() const
+    {
+        return sizeof(Mesh) + m_nMemUsage;
+    }
+    
     inline int32_t  nAddTriangle(   const Vector3& vecA,
                                     const Vector3& vecB,
                                     const Vector3& vecC)
@@ -66,6 +71,8 @@ public:
     
     inline int32_t nAddVertex(const Vector3& vecVertex)
     {
+        m_nMemUsage += sizeof(Vector3);
+        
         m_oBBox.Include(vecVertex);
         m_oVertices.push_back(vecVertex);
         return nVertexCount() - 1;
@@ -73,6 +80,8 @@ public:
     
     inline int32_t nAddTriangle(const Triangle& sTri)
     {
+        m_nMemUsage += sizeof(Triangle);
+        
         assert(sTri.A < nVertexCount());
         assert(sTri.B < nVertexCount());
         assert(sTri.C < nVertexCount());
@@ -156,9 +165,10 @@ public:
     }
     
 protected:
-    BBox3                  m_oBBox;
-    std::vector<Vector3>   m_oVertices;
-    std::vector<Triangle>  m_oTriangles;
+    BBox3                   m_oBBox;
+    std::vector<Vector3>    m_oVertices;
+    std::vector<Triangle>   m_oTriangles;
+    int64_t                 m_nMemUsage = 0;
     
     bool bIsPointInTriangle(    const Vector3& vecSurfacePoint,
                                 const Vector3& vecVertex1,

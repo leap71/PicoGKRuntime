@@ -64,6 +64,11 @@ public:
         m_roGrid = deepCopyTypedGrid<TFieldType>(oSource.m_roGrid);
     };
     
+    int64_t nMemUsage() const
+    {
+        return sizeof(TFieldType) + m_roGrid->memUsage();
+    }
+    
     typename TFieldType::Ptr roVdbGrid() const {return m_roGrid;}
     
 protected:

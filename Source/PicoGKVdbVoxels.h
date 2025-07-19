@@ -82,6 +82,11 @@ public:
     {
     }
     
+    int64_t nMemUsage() const
+    {
+        return sizeof(Voxels) + m_roGrid->memUsage();
+    }
+    
     bool bIsEqual(const Voxels& oCompare) const
     {
         CoordBBox oBBoxThis = m_roGrid->evalActiveVoxelBoundingBox();
