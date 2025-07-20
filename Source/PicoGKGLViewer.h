@@ -117,6 +117,8 @@ public:
     void SetGroupMatrix(    int32_t             nGroupID,
                             const Matrix4x4&    mat);
     
+    GLFWwindow* pTheWindow() const      {return m_pTheWindow;}
+    
 protected:
     GLFWwindow*                         m_pTheWindow                = nullptr;
     
