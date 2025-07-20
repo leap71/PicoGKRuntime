@@ -53,6 +53,10 @@ public:
         m_clrLines = clr;
     }
     
+    PolyLine(const PolyLine&)            = default;
+    
+    PolyLine& operator=(const PolyLine&) = default;
+    
     ~PolyLine()
     {
     }
