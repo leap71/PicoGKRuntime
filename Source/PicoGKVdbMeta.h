@@ -65,6 +65,14 @@ public:
         return (int32_t) m_roMetaMap->metaCount();
     }
     
+    int64_t nMemUsage() const
+    {
+        // This is way too small, but since it is a fairly irrelevant data
+        // type, it doesn't warrent spending too much time on counting all
+        // the elements, etc.
+        return sizeof(*m_roMetaMap);
+    }
+    
     std::string strNameAt(int32_t nIndex)
     {
         int32_t n=0;
