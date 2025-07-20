@@ -43,6 +43,7 @@
 #include <string>
 #include <map>
 #include "gl/gl.h"
+#include "PicoGKLibraryMgr.h"
 
 struct GLFWwindow;
 
@@ -88,15 +89,19 @@ public:
     
     void RequestClose();
     
-    void AddMesh(   int32_t             nGroupID,
-                    const Mesh::Ptr*    proMesh);
+    void AddMesh(   int32_t nGroupID,
+                    int64_t hLib,
+                    int64_t hMesh);
     
-    void RemoveMesh(const Mesh::Ptr* proMesh);
+    void RemoveMesh(    int64_t hLib,
+                        int64_t hMesh);
     
-    void AddPolyLine(   int32_t                 nGroupID,
-                        const PolyLine::Ptr*    proPoly);
+    void AddPolyLine(   int32_t nGroupID,
+                        int64_t hLib,
+                        int64_t hPoly);
         
-    void RemovePolyLine(const PolyLine::Ptr* proPoly);
+    void RemovePolyLine(    int64_t hLib,
+                            int64_t hPoly);
 
     void SetGroupVisible(   int32_t     nGroupID,
                             bool        bVisible);
@@ -169,14 +174,20 @@ protected:
             
         }
         
-        void AddMesh(const Mesh::Ptr* proMesh)
+        void AddMesh(int64_t hLib, int64_t hMesh)
         {
-            m_oViewMeshes[proMesh] = std::make_shared<ViewMesh>(*proMesh);
+            auto roLib  = Library::oLib().roGetInstance(hLib);
+            auto roMesh = roLib->m_oMeshes.roGet(hMesh);
+            
+            // Add a copy, so we dont depend on the original polyline
+            Mesh::Ptr roNew = std::make_shared<Mesh>(*roMesh);
+            
+            m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_shared<ViewMesh>(roNew);
         }
         
-        void RemoveMesh(const Mesh::Ptr* proMesh)
+        void RemoveMesh(int64_t hLib, int64_t hMesh)
         {
-            auto it = m_oViewMeshes.find(proMesh);
+            auto it = m_oViewMeshes.find(std::make_pair(hLib, hMesh));
             
             if (it == m_oViewMeshes.end())
             {
@@ -189,19 +200,25 @@ protected:
             }
         }
         
-        bool bFindMesh(const Mesh::Ptr* proMesh)
+        bool bFindMesh(int64_t hLib, int64_t hMesh)
         {
-            return !(m_oViewMeshes.find(proMesh) == m_oViewMeshes.end());
+            return !(m_oViewMeshes.find(std::make_pair(hLib, hMesh)) == m_oViewMeshes.end());
         }
         
-        void AddPolyLine(const PolyLine::Ptr* proPoly)
+        void AddPolyLine(int64_t hLib, int64_t hPoly)
         {
-            m_oViewPolyLines[proPoly] = std::make_shared<ViewPolyLine>(*proPoly);
+            auto roLib  = Library::oLib().roGetInstance(hLib);
+            auto roPoly = roLib->m_oPolyLines.roGet(hPoly);
+            
+            // Add a copy, so we dont depend on the original polyline
+            PolyLine::Ptr roNew = std::make_shared<PolyLine>(*roPoly);
+            
+            m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_shared<ViewPolyLine>(roNew);
         }
         
-        void RemovePolyLine(const PolyLine::Ptr* proPoly)
+        void RemovePolyLine(int64_t hLib, int64_t hPoly)
         {
-            auto it = m_oViewPolyLines.find(proPoly);
+            auto it = m_oViewPolyLines.find(std::make_pair(hLib, hPoly));
             
             if (it == m_oViewPolyLines.end())
             {
@@ -214,9 +231,9 @@ protected:
             }
         }
         
-        inline bool bFindPolyLine(const PicoGK::PolyLine::Ptr* proPoly)
+        inline bool bFindPolyLine(int64_t hLib, int64_t hPoly)
         {
-            return !(m_oViewPolyLines.find(proPoly) == m_oViewPolyLines.end());
+            return !(m_oViewPolyLines.find(std::make_pair(hLib, hPoly)) == m_oViewPolyLines.end());
         }
         
         inline void SetVisible(bool bVisible)
@@ -321,8 +338,8 @@ protected:
             PolyLine::Ptr m_roPolyLine;
         };
         
-        std::map<const Mesh::Ptr*,      ViewMesh::Ptr>        m_oViewMeshes;
-        std::map<const PolyLine::Ptr*,  ViewPolyLine::Ptr>    m_oViewPolyLines;
+        std::map<std::pair<int64_t, int64_t>, ViewMesh::Ptr>        m_oViewMeshes;
+        std::map<std::pair<int64_t, int64_t>, ViewPolyLine::Ptr>    m_oViewPolyLines;
     };
     
     Group::Ptr roGroupAt(int nGroupID)

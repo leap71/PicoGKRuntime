@@ -300,21 +300,23 @@ void Viewer::RequestClose()
     glfwSetWindowShouldClose(m_pTheWindow, GLFW_TRUE);
 }
 
-void Viewer::AddMesh(   int32_t             nGroupID,
-                        const Mesh::Ptr*    proMesh)
+void Viewer::AddMesh(   int32_t         nGroupID,
+                        int64_t         hLib,
+                        int64_t         hMesh)
 {
-    roGroupAt(nGroupID)->AddMesh(proMesh);
+    roGroupAt(nGroupID)->AddMesh(hLib, hMesh);
     RequestUpdate();
 }
 
-void Viewer::RemoveMesh(const Mesh::Ptr* proMesh)
+void Viewer::RemoveMesh(    int64_t         hLib,
+                            int64_t         hMesh)
 {
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
-        if (poGroup->bFindMesh(proMesh))
+        if (poGroup->bFindMesh(hLib, hMesh))
         {
-            poGroup->RemoveMesh(proMesh);
+            poGroup->RemoveMesh(hLib, hMesh);
             return;
         }
     }
@@ -322,21 +324,23 @@ void Viewer::RemoveMesh(const Mesh::Ptr* proMesh)
     ViewerManager::Info("Viewer::RemoveMesh - Trying to remove a mesh that doesn't exist.");
 }
 
-void Viewer::AddPolyLine(   int32_t                 nGroupID,
-                            const PolyLine::Ptr*    proPoly)
+void Viewer::AddPolyLine(   int32_t nGroupID,
+                            int64_t hLib,
+                            int64_t hPoly)
 {
-    roGroupAt(nGroupID)->AddPolyLine(proPoly);
+    roGroupAt(nGroupID)->AddPolyLine(hLib, hPoly);
     RequestUpdate();
 }
 
-void Viewer::RemovePolyLine(const PolyLine::Ptr* proPolyLine)
+void Viewer::RemovePolyLine(    int64_t hLib,
+                                int64_t hPoly)
 {
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
-        if (poGroup->bFindPolyLine(proPolyLine))
+        if (poGroup->bFindPolyLine(hLib, hPoly))
         {
-            poGroup->RemovePolyLine(proPolyLine);
+            poGroup->RemovePolyLine(hLib, hPoly);
             return;
         }
     }

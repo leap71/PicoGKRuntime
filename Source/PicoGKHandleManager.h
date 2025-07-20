@@ -35,7 +35,7 @@
 
 #ifndef PicoGKHandleManager_h
 #define PicoGKHandleManager_h
-#include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 #include <memory>
 #include <cstdint>
@@ -55,7 +55,7 @@ public:
     /// Add a new object, returns a unique handle.
     inline Handle hAdd(std::shared_ptr<T> obj) 
     {
-        std::lock_guard<std::mutex> lk(m_mtx);
+        std::unique_lock lk(m_mtx);
 
         m_hCurrent++;
         m_map.emplace(m_hCurrent, std::move(obj));
@@ -64,9 +64,9 @@ public:
 
     /// Retrieve the object for a handle. 
     /// Throws exception if invalid.
-    inline std::shared_ptr<T> roGet(Handle h) const 
+    inline std::shared_ptr<T> roGet(Handle h) const
     {
-        std::lock_guard<std::mutex> lk(m_mtx);
+        std::shared_lock lk(m_mtx);
 
         auto it = m_map.find(h);
 
@@ -78,39 +78,39 @@ public:
 
     /// Remove (and destroy) the object for a handle. 
     /// Returns true if existed.
-    inline bool bRemove(Handle h) 
+    inline bool bDestroy(Handle h) 
     {
-        std::lock_guard<std::mutex> lk(m_mtx);
+        std::unique_lock lk(m_mtx);
         return m_map.erase(h) > 0;
     }
 
     /// Check if a handle is valid (exists)
     inline bool bIsValid(Handle h) const 
     {
-        std::lock_guard<std::mutex> lk(m_mtx);
+        std::unique_lock lk(m_mtx);
         return m_map.count(h) != 0;
     }
 
     /// Returns the number of currently allocated objects 
     inline size_t nAllocatedCount() const
     {
-        std::lock_guard<std::mutex> lk(m_mtx);
+        std::shared_lock lk(m_mtx);
         return m_map.size();
     }
     
-    inline int64_t nMemoryUsage() const
+    inline int64_t nMemUsage() const
     {
-        std::lock_guard<std::mutex> lk(m_mtx);
+        std::shared_lock lk(m_mtx);
         
         int64_t nBytes = 0;
         for (const auto& pair : m_map)
-            nBytes += pair.second->nMemoryUsage();
+            nBytes += pair.second->nMemUsage();
         
         return nBytes;
     }
 
 private:
-    mutable std::mutex                              m_mtx;
+    mutable std::shared_mutex                       m_mtx;
     Handle                                          m_hCurrent = 0;
     std::unordered_map<Handle, std::shared_ptr<T>>  m_map;
 };

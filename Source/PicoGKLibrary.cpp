@@ -51,16 +51,6 @@ void SafeCopyInfoString(const std::string s, char psz[PKINFOSTRINGLEN])
     psz[PKINFOSTRINGLEN-1] = 0;
 }
 
-PICOGK_API void Library_Init(float fVoxelSizeMM)
-{
-    Library::oLib().InitLibrary(fVoxelSizeMM);
-}
-
-PICOGK_API void Library_Destroy()
-{
-    Library::oLib().DestroyLibrary();
-}
-
 PICOGK_API void Library_GetName(char psz[PKINFOSTRINGLEN])
 {
    SafeCopyInfoString(Library::oLib().strName(), psz);
@@ -76,426 +66,487 @@ PICOGK_API void Library_GetBuildInfo(char psz[PKINFOSTRINGLEN])
     SafeCopyInfoString(Library::oLib().strBuildInfo(), psz);
 }
 
-PICOGK_API void Library_VoxelsToMm( const PKVector3* pvecVoxelCoordinate,
+PICOGK_API PKINSTANCE Library_hCreateInstance(float fVoxelSizeMM)
+{
+    return Library::oLib().nCreateInstance(fVoxelSizeMM);
+}
+
+PICOGK_API void Library_DestroyInstance(PKINSTANCE hThis)
+{
+    Library::oLib().DestroyInstance(hThis);
+}
+
+PICOGK_API int64_t Library_nTotalMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->nMemUsage();
+}
+
+PICOGK_API int64_t Library_nMeshesMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oMeshes.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nLatticesMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oLattices.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nPolyLinesMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oPolyLines.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nVoxelsMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVoxels.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nVdbFilesMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVdbFiles.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nScalarFieldsMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oScalarFields.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nVectorFieldsMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVectorFields.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nVdbMetasMemUsage(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVdbMetas.nMemUsage();
+}
+
+PICOGK_API int64_t Library_nMeshesAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oMeshes.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nLatticesAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oLattices.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nPolyLinesAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oPolyLines.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nVoxelsAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVoxels.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nVdbFilesAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVdbFiles.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nScalarFieldsAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oScalarFields.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nVectorFieldsAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVectorFields.nAllocatedCount();
+}
+
+PICOGK_API int64_t Library_nVdbMetasAllocated(PKINSTANCE hThis)
+{
+    return Library::oLib().roGetInstance(hThis)->m_oVdbMetas.nAllocatedCount();
+}
+
+PICOGK_API void Library_VoxelsToMm( PKINSTANCE hLib,
+                                    const PKVector3* pvecVoxelCoordinate,
                                     PKVector3* pvecMmCoordinate)
 {
-    VoxelSize oVoxelSize(Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    VoxelSize oVoxelSize(roLib->fVoxelSizeMM());
+    
     pvecMmCoordinate->X = oVoxelSize.fToMM(pvecVoxelCoordinate->X);
     pvecMmCoordinate->Y = oVoxelSize.fToMM(pvecVoxelCoordinate->Y);
     pvecMmCoordinate->Z = oVoxelSize.fToMM(pvecVoxelCoordinate->Z);
 }
 
-PICOGK_API void Library_MmToVoxels( const PKVector3* pvecMmCoordinate,
+PICOGK_API void Library_MmToVoxels( PKINSTANCE hLib,
+                                    const PKVector3* pvecMmCoordinate,
                                     PKVector3* pvecVoxelCoordinate)
 {
-    VoxelSize oVoxelSize(Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    VoxelSize oVoxelSize(roLib->fVoxelSizeMM());
+    
     pvecVoxelCoordinate->X = oVoxelSize.iToVoxels(pvecMmCoordinate->X);
     pvecVoxelCoordinate->Y = oVoxelSize.iToVoxels(pvecMmCoordinate->Y);
     pvecVoxelCoordinate->Z = oVoxelSize.iToVoxels(pvecMmCoordinate->Z);
 }
 
-PICOGK_API PKMESH Mesh_hCreate()
+PICOGK_API PKMESH Mesh_hCreate(PKINSTANCE hLib)
 {
-    return (PKMESH) Library::oLib().proMeshCreate();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.hAdd(std::make_shared<Mesh>());
 }
 
-PICOGK_API PKMESH Mesh_hCreateFromVoxels(PKVOXELS hVoxels)
+PICOGK_API PKMESH Mesh_hCreateFromVoxels(   PKINSTANCE hLib,
+                                            PKVOXELS hVoxels)
 {
-    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
-    return (PKMESH) Library::oLib().proMeshCreateFromVoxels(**proVoxels);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    
+    Voxels::Ptr roVoxels = roLib->m_oVoxels.roGet(hVoxels);
+    return roLib->m_oMeshes.hAdd(roVoxels->roAsMesh(roLib->fVoxelSizeMM()));
 }
 
-PICOGK_API bool Mesh_bIsValid(PKMESH hThis)
+PICOGK_API bool Mesh_bIsValid(  PKINSTANCE hLib,
+                                PKMESH hThis)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    return Library::oLib().bMeshIsValid(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.bIsValid(hThis);
 }
 
-PICOGK_API void Mesh_Destroy(PKMESH hThis)
+PICOGK_API void Mesh_Destroy(   PKINSTANCE hLib,
+                                PKMESH hThis)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-
-    Library::oLib().MeshDestroy(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oMeshes.bDestroy(hThis);
 }
 
-PICOGK_API int64_t Mesh_nMemUsage(PKMESH hThis)
+PICOGK_API int64_t Mesh_nMemUsage(  PKINSTANCE hLib,
+                                    PKMESH hThis)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    return (*proThis)->nMemUsage();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API int32_t Mesh_nAddVertex( PKMESH hThis,
+PICOGK_API int32_t Mesh_nAddVertex( PKINSTANCE hLib,
+                                    PKMESH hThis,
                                     const Vector3* pvecVertex)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    return (*proThis)->nAddVertex(*pvecVertex);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.roGet(hThis)->nAddVertex(*pvecVertex);
 }
     
-PICOGK_API void Mesh_GetVertex( PKMESH      hThis,
+PICOGK_API void Mesh_GetVertex( PKINSTANCE hLib,
+                                PKMESH      hThis,
                                 int32_t     nVertex,
                                 Vector3*    pvecVertex)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    (*proThis)->GetVertex(nVertex, pvecVertex);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oMeshes.roGet(hThis)->GetVertex(nVertex, pvecVertex);
 }
 
-PICOGK_API int32_t Mesh_nVertexCount(PKMESH hThis)
+PICOGK_API int32_t Mesh_nVertexCount(   PKINSTANCE hLib,
+                                        PKMESH hThis)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    return (*proThis)->nVertexCount();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.roGet(hThis)->nVertexCount();
 }
 
-PICOGK_API int32_t Mesh_nAddTriangle(   PKMESH hThis,
+PICOGK_API int32_t Mesh_nAddTriangle(   PKINSTANCE hLib,
+                                        PKMESH hThis,
                                         const Triangle* psTri)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    return (*proThis)->nAddTriangle(*psTri);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.roGet(hThis)->nAddTriangle(*psTri);
 }
 
-PICOGK_API void Mesh_GetTriangle(   PKMESH hThis,
+PICOGK_API void Mesh_GetTriangle(   PKINSTANCE hLib,
+                                    PKMESH hThis,
                                     int32_t nTriangle,
                                     Triangle* psTri)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    return (*proThis)->GetTriangle( nTriangle,
-                                    psTri);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.roGet(hThis)->GetTriangle( nTriangle, psTri);
 }
 
-PICOGK_API void Mesh_GetTriangleV(  PKMESH      hThis,
+PICOGK_API void Mesh_GetTriangleV(  PKINSTANCE hLib,
+                                    PKMESH      hThis,
                                     int32_t     nTriangle,
                                     Vector3*    pvecA,
                                     Vector3*    pvecB,
                                     Vector3*    pvecC)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    (*proThis)->GetTriangle(    nTriangle,
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oMeshes.roGet(hThis)->GetTriangle(
+                                nTriangle,
                                 pvecA,
                                 pvecB,
                                 pvecC);
 }
 
-PICOGK_API void Mesh_GetBoundingBox(    PKMESH hThis,
+PICOGK_API void Mesh_GetBoundingBox(    PKINSTANCE hLib,
+                                        PKMESH hThis,
                                         BBox3* poBox)
 {
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oMeshes.roGet(hThis)->GetBoundingBox(poBox);
+}
+
+PICOGK_API int32_t Mesh_nTriangleCount( PKINSTANCE hLib,
+                                        PKMESH hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oMeshes.roGet(hThis)->nTriangleCount();
+}
+
+PICOGK_API PKLATTICE Lattice_hCreate(PKINSTANCE hLib)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oLattices.hAdd(std::make_shared<Lattice>());
+}
+
+PICOGK_API bool Lattice_bIsValid(   PKINSTANCE hLib,
+                                    PKLATTICE hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oLattices.bIsValid(hThis);
+}
+
+PICOGK_API void Lattice_Destroy(    PKINSTANCE hLib,
+                                    PKLATTICE hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oLattices.bDestroy(hThis);
+}
+
+PICOGK_API int64_t Lattice_nMemUsage(   PKINSTANCE hLib,
+                                        PKLATTICE hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    (*proThis)->GetBoundingBox(poBox);
-}
-
-PICOGK_API int32_t Mesh_nTriangleCount(PKMESH hThis)
-{
-    Mesh::Ptr* proThis = (Mesh::Ptr*) hThis;
-    assert(Library::oLib().bMeshIsValid(proThis));
-    
-    return (*proThis)->nTriangleCount();
-}
-
-PICOGK_API PKLATTICE Lattice_hCreate()
-{
-    return (PKLATTICE) Library::oLib().proLatticeCreate();
-}
-
-PICOGK_API bool Lattice_bIsValid(PKLATTICE hThis)
-{
     Lattice::Ptr* proThis = (Lattice::Ptr*) hThis;
-    return Library::oLib().bLatticeIsValid(proThis);
+    return roLib->m_oLattices.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API void Lattice_Destroy(PKLATTICE hThis)
-{
-    Lattice::Ptr* proThis = (Lattice::Ptr*) hThis;
-    Library::oLib().LatticeDestroy(proThis);
-}
-
-PICOGK_API int64_t Lattice_nMemUsage(PKLATTICE hThis)
-{
-    Lattice::Ptr* proThis = (Lattice::Ptr*) hThis;
-    assert(Library::oLib().bLatticeIsValid(proThis));
-    return (*proThis)->nMemUsage();
-}
-
-PICOGK_API void Lattice_AddSphere(  PKLATTICE hThis,
+PICOGK_API void Lattice_AddSphere(  PKINSTANCE hLib,
+                                    PKLATTICE hThis,
                                     const Vector3* vecCenter,
                                     float fRadius)
 {
-    Lattice::Ptr* proThis = (Lattice::Ptr*) hThis;
-    assert(Library::oLib().bLatticeIsValid(proThis));
-    
-    (*proThis)->AddSphere(  *vecCenter,
-                            fRadius);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oLattices.roGet(hThis)
+        ->AddSphere(     *vecCenter,
+                         fRadius);
 }
 
-PICOGK_API void Lattice_AddBeam(    PKLATTICE hThis,
+PICOGK_API void Lattice_AddBeam(    PKINSTANCE hLib,
+                                    PKLATTICE hThis,
                                     const Vector3* pvecA,
                                     const Vector3* pvecB,
                                     float fRadiusA,
                                     float fRadiusB,
                                     bool  bRoundCap)
 {
-    Lattice::Ptr* proThis = (Lattice::Ptr*) hThis;
-    assert(Library::oLib().bLatticeIsValid(proThis));
-    
-    (*proThis)->AddBeam(    *pvecA,
-                            *pvecB,
-                            fRadiusA,
-                            fRadiusB,
-                            bRoundCap);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oLattices.roGet(hThis)
+        ->AddBeam(  *pvecA,
+                    *pvecB,
+                    fRadiusA,
+                    fRadiusB,
+                    bRoundCap);
 }
 
-PICOGK_API PKVOXELS Voxels_hCreate()
+PICOGK_API PKVOXELS Voxels_hCreate(PKINSTANCE hLib)
 {
-    return (PKVOXELS) Library::oLib().proVoxelsCreate();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>());
 }
 
-PICOGK_API PKVOXELS Voxels_hCreateCopy(PKVOXELS hSource)
+PICOGK_API PKVOXELS Voxels_hCreateCopy( PKINSTANCE hLib,
+                                        PKVOXELS hSource)
 {
-    Voxels::Ptr* proSource = (Voxels::Ptr*) hSource;
-    assert(Library::oLib().bVoxelsIsValid(proSource));
-    
-    return (PKVOXELS) Library::oLib().proVoxelsCreateCopy(**proSource);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(*roLib->m_oVoxels.roGet(hSource)));
 }
 
-PICOGK_API bool Voxels_bIsValid(PKVOXELS hThis)
+PICOGK_API bool Voxels_bIsValid(    PKINSTANCE hLib,
+                                    PKVOXELS hThis)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    return Library::oLib().bVoxelsIsValid(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.bIsValid(hThis);
 }
 
-PICOGK_API void Voxels_Destroy(PKVOXELS hThis)
+PICOGK_API void Voxels_Destroy( PKINSTANCE hLib,
+                                PKVOXELS hThis)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Library::oLib().VoxelsDestroy(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.bDestroy(hThis);
 }
 
-PICOGK_API int64_t Voxels_nMemUsage(PKVOXELS hThis)
+PICOGK_API int64_t Voxels_nMemUsage(    PKINSTANCE hLib,
+                                        PKVOXELS hThis)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    return (*proThis)->nMemUsage();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API void Voxels_BoolAdd( PKVOXELS hThis,
+PICOGK_API void Voxels_BoolAdd( PKINSTANCE hLib,
+                                PKVOXELS hThis,
                                 PKVOXELS hOther)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Voxels::Ptr* proOther = (Voxels::Ptr*) hOther;
-    assert(Library::oLib().bVoxelsIsValid(proOther));
-    
-    (*proThis)->BoolAdd(**proOther);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)->BoolAdd(*roLib->m_oVoxels.roGet(hOther));
 }
 
-PICOGK_API void Voxels_BoolSubtract( PKVOXELS hThis,
-                                     PKVOXELS hOther)
-{
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Voxels::Ptr* proOther = (Voxels::Ptr*) hOther;
-    assert(Library::oLib().bVoxelsIsValid(proOther));
-    
-    (*proThis)->BoolSubtract(**proOther);
-}
-
-PICOGK_API void Voxels_BoolIntersect(   PKVOXELS hThis,
+PICOGK_API void Voxels_BoolSubtract(    PKINSTANCE hLib,
+                                        PKVOXELS hThis,
                                         PKVOXELS hOther)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Voxels::Ptr* proOther = (Voxels::Ptr*) hOther;
-    assert(Library::oLib().bVoxelsIsValid(proOther));
-    
-    (*proThis)->BoolIntersect(**proOther);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)->BoolSubtract(*roLib->m_oVoxels.roGet(hOther));
 }
 
-PICOGK_API void Voxels_Offset(  PKVOXELS hThis,
+PICOGK_API void Voxels_BoolIntersect(   PKINSTANCE hLib,
+                                        PKVOXELS hThis,
+                                        PKVOXELS hOther)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)->BoolIntersect(*roLib->m_oVoxels.roGet(hOther));
+}
+
+PICOGK_API void Voxels_Offset(  PKINSTANCE hLib,
+                                PKVOXELS hThis,
                                 float fDist)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->Offset(fDist, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)->Offset(fDist, roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_DoubleOffset(    PKVOXELS hThis,
+PICOGK_API void Voxels_DoubleOffset(    PKINSTANCE hLib,
+                                        PKVOXELS hThis,
                                         float fDist1,
                                         float fDist2)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->DoubleOffset(fDist1, fDist2, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)->DoubleOffset(fDist1, fDist2, roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_TripleOffset(    PKVOXELS hThis,
+PICOGK_API void Voxels_TripleOffset(    PKINSTANCE hLib,
+                                        PKVOXELS hThis,
                                         float fDist)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->TripleOffset(fDist, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)->TripleOffset(fDist, roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_Gaussian(    PKVOXELS    hThis,
-                                    float       fSize)
-{
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->Gaussian(fSize, Library::oLib().fVoxelSizeMM());
-}
 
-PICOGK_API void Voxels_Median(  PKVOXELS    hThis,
-                                float       fSize)
-{
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->Median(fSize, Library::oLib().fVoxelSizeMM());
-}
-
-PICOGK_API void Voxels_Mean(    PKVOXELS    hThis,
-                                float       fSize)
-{
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->Mean(fSize, Library::oLib().fVoxelSizeMM());
-}
-
-PICOGK_API void Voxels_RenderMesh(  PKVOXELS hThis,
+PICOGK_API void Voxels_RenderMesh(  PKINSTANCE hLib,
+                                    PKVOXELS hThis,
                                     PKMESH hMesh)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Mesh::Ptr* proMesh = (Mesh::Ptr*) hMesh;
-    assert(Library::oLib().bMeshIsValid(proMesh));
-    
-    (*proThis)->RenderMesh(**proMesh, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->RenderMesh(*roLib->m_oMeshes.roGet(hMesh), roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_RenderImplicit(  PKVOXELS hThis,
+PICOGK_API void Voxels_RenderImplicit(  PKINSTANCE hLib,
+                                        PKVOXELS hThis,
                                         const PKBBox3* poBBox,
                                         PKPFnfSdf pfnSDF)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->RenderImplicit(*poBBox, pfnSDF, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->RenderImplicit(   *poBBox,
+                            pfnSDF,
+                            roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_IntersectImplicit(   PKVOXELS hThis,
+PICOGK_API void Voxels_IntersectImplicit(   PKINSTANCE hLib,
+                                            PKVOXELS hThis,
                                             PKPFnfSdf pfnSDF)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->IntersectImplicit(pfnSDF, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->IntersectImplicit(    pfnSDF,
+                                roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_RenderLattice(   PKVOXELS hThis,
+PICOGK_API void Voxels_RenderLattice(   PKINSTANCE hLib,
+                                        PKVOXELS hThis,
                                         PKLATTICE hLattice)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Lattice::Ptr* proLattice = (Lattice::Ptr*) hLattice;
-    assert(Library::oLib().bLatticeIsValid(proLattice));
-    
-    (*proThis)->RenderLattice(**proLattice, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->RenderLattice(    *roLib->m_oLattices.roGet(hLattice),
+                            roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_ProjectZSlice( PKVOXELS hThis,
+PICOGK_API void Voxels_ProjectZSlice(   PKINSTANCE hLib,
+                                        PKVOXELS hThis,
                                       float fZStart,
                                       float fZEnd)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->ProjectZSlice(  fZStart,
-                                fZEnd,
-                                Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->ProjectZSlice(    fZStart,
+                            fZEnd,
+                            roLib->fVoxelSizeMM());
 }
 
-PICOGK_API bool Voxels_bIsEqual(    PKVOXELS hThis,
+PICOGK_API bool Voxels_bIsEqual(    PKINSTANCE hLib,
+                                    PKVOXELS hThis,
                                     PKVOXELS hOther)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    Voxels::Ptr* proOther = (Voxels::Ptr*) hOther;
-    assert(Library::oLib().bVoxelsIsValid(proOther));
-    
-    return (*proThis)->bIsEqual(**proOther);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)
+        ->bIsEqual(*roLib->m_oVoxels.roGet(hOther));
 }
 
-PICOGK_API void Voxels_CalculateProperties( PKVOXELS hThis,
+PICOGK_API void Voxels_CalculateProperties( PKINSTANCE hLib,
+                                            PKVOXELS hThis,
                                             float* pfVolume,
                                             BBox3* poBBox)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->CalculateProperties(pfVolume, poBBox, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->CalculateProperties(  pfVolume,
+                                poBBox,
+                                roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void Voxels_GetSurfaceNormal(    PKVOXELS            hThis,
+PICOGK_API void Voxels_GetSurfaceNormal(    PKINSTANCE hLib,
+                                            PKVOXELS            hThis,
                                             const PKVector3*    pvecSurfacePoint,
                                             PKVector3*          pvecNormal)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    (*proThis)->GetSurfaceNormal(*pvecSurfacePoint, Library::oLib().fVoxelSizeMM(), pvecNormal);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVoxels.roGet(hThis)
+        ->GetSurfaceNormal( *pvecSurfacePoint,
+                            roLib->fVoxelSizeMM(),
+                            pvecNormal);
 }
 
-PICOGK_API bool Voxels_bClosestPointOnSurface(  PKVOXELS            hThis,
+PICOGK_API bool Voxels_bClosestPointOnSurface(  PKINSTANCE hLib,
+                                                PKVOXELS            hThis,
                                                 const PKVector3*    pvecSearch,
                                                 PKVector3*          pvecSurfacePoint)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    return (*proThis)->bFindClosestPointOnSurface(  *pvecSearch,
-                                                    Library::oLib().fVoxelSizeMM(),
-                                                    pvecSurfacePoint);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)
+        ->bFindClosestPointOnSurface(  *pvecSearch,
+                                        roLib->fVoxelSizeMM(),
+                                        pvecSurfacePoint);
 }
 
-PICOGK_API bool Voxels_bRayCastToSurface(   PKVOXELS            hThis,
+PICOGK_API bool Voxels_bRayCastToSurface(   PKINSTANCE hLib,
+                                            PKVOXELS            hThis,
                                             const PKVector3*    pvecSearch,
                                             const PKVector3*    pvecDirection,
                                             PKVector3*          pvecSurfacePoint)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    return (*proThis)->bRayCastToSurface(   *pvecSearch,
-                                            *pvecDirection,
-                                            Library::oLib().fVoxelSizeMM(),
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)
+        ->bRayCastToSurface(    *pvecSearch,
+                                *pvecDirection,
+                                roLib->fVoxelSizeMM(),
                                             pvecSurfacePoint);
 }
 
-PICOGK_API void Voxels_GetVoxelDimensions(  PKVOXELS hThis,
+PICOGK_API void Voxels_GetVoxelDimensions(  PKINSTANCE hLib,
+                                            PKVOXELS hThis,
                                             int32_t* pnXOrigin,
                                             int32_t* pnYOrigin,
                                             int32_t* pnZOrigin,
@@ -503,101 +554,100 @@ PICOGK_API void Voxels_GetVoxelDimensions(  PKVOXELS hThis,
                                             int32_t* pnYSize,
                                             int32_t* pnZSize)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
-    
-    return (*proThis)->GetVoxelDimensions(  pnXOrigin,
-                                            pnYOrigin,
-                                            pnZOrigin,
-                                            pnXSize,
-                                            pnYSize,
-                                            pnZSize);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)
+        ->GetVoxelDimensions(   pnXOrigin,
+                                pnYOrigin,
+                                pnZOrigin,
+                                pnXSize,
+                                pnYSize,
+                                pnZSize);
 }
 
-PICOGK_API void Voxels_GetSlice(    PKVOXELS    hThis,
+PICOGK_API void Voxels_GetSlice(    PKINSTANCE hLib,
+                                    PKVOXELS    hThis,
                                     int32_t     nZSlice,
                                     float*      pfBuffer,
                                     float*      pfBackgroundValue)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    *pfBackgroundValue = (*proThis)->fBackground();
-    return (*proThis)->GetSlice(nZSlice, pfBuffer);
+    Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
+    *pfBackgroundValue = roThis->fBackground();
+    return roThis->GetSlice(nZSlice, pfBuffer);
 }
 
-PICOGK_API void Voxels_GetInterpolatedSlice(    PKVOXELS    hThis,
+PICOGK_API void Voxels_GetInterpolatedSlice(    PKINSTANCE hLib,
+                                                PKVOXELS    hThis,
                                                 float       fZSlice,
                                                 float*      pfBuffer,
                                                 float*      pfBackgroundValue)
 {
-    Voxels::Ptr* proThis = (Voxels::Ptr*) hThis;
-    assert(Library::oLib().bVoxelsIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    *pfBackgroundValue = (*proThis)->fBackground();
-    return (*proThis)->GetInterpolatedSlice(fZSlice, pfBuffer);
+    Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
+    *pfBackgroundValue = roThis->fBackground();
+    return roThis->GetInterpolatedSlice(fZSlice, pfBuffer);
 }
 
-PICOGK_API PKPOLYLINE PolyLine_hCreate(const ColorFloat*  pclr)
+PICOGK_API PKPOLYLINE PolyLine_hCreate( PKINSTANCE hLib,
+                                        const ColorFloat*  pclr)
 {
-    return Library::oLib().proPolyLineCreate(*pclr);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oPolyLines.hAdd(std::make_shared<PolyLine>(*pclr));
 }
 
-PICOGK_API bool PolyLine_bIsValid(PKPOLYLINE hThis)
+PICOGK_API bool PolyLine_bIsValid(  PKINSTANCE hLib,
+                                    PKPOLYLINE hThis)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    return Library::oLib().bPolyLineIsValid(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oPolyLines.bIsValid(hThis);
 }
 
-PICOGK_API void PolyLine_Destroy(PKPOLYLINE hThis)
+PICOGK_API void PolyLine_Destroy(   PKINSTANCE hLib,
+                                    PKPOLYLINE hThis)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    assert(Library::oLib().bPolyLineIsValid(proThis));
-    
-    Library::oLib().PolyLineDestroy(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oPolyLines.bDestroy(hThis);
 }
 
-PICOGK_API int64_t PolyLine_nMemUsage(PKPOLYLINE hThis)
+PICOGK_API int64_t PolyLine_nMemUsage(  PKINSTANCE hLib,
+                                        PKPOLYLINE hThis)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    assert(Library::oLib().bPolyLineIsValid(proThis));
-    return (*proThis)->nMemUsage();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oPolyLines.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API int32_t PolyLine_nAddVertex( PKPOLYLINE hThis,
+PICOGK_API int32_t PolyLine_nAddVertex( PKINSTANCE hLib,
+                                        PKPOLYLINE hThis,
                                         const Vector3* pvec)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    assert(Library::oLib().bPolyLineIsValid(proThis));
-    
-    return (*proThis)->nAddVertex(*pvec);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oPolyLines.roGet(hThis)->nAddVertex(*pvec);
 }
 
-PICOGK_API void PolyLine_GetVertex( PKPOLYLINE hThis,
+PICOGK_API void PolyLine_GetVertex( PKINSTANCE hLib,
+                                    PKPOLYLINE hThis,
                                     int32_t nIndex,
                                     Vector3* pvec)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    assert(Library::oLib().bPolyLineIsValid(proThis));
-    
-    (*proThis)->GetVertex(nIndex, pvec);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oPolyLines.roGet(hThis)->GetVertex(nIndex, pvec);
 }
 
-PICOGK_API int32_t PolyLine_nVertexCount(PKPOLYLINE hThis)
+PICOGK_API int32_t PolyLine_nVertexCount(   PKINSTANCE hLib,
+                                            PKPOLYLINE hThis)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    assert(Library::oLib().bPolyLineIsValid(proThis));
-    
-    return (*proThis)->nVertexCount();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oPolyLines.roGet(hThis)->nVertexCount();
 }
 
-PICOGK_API void PolyLine_GetColor(  PKPOLYLINE hThis,
+PICOGK_API void PolyLine_GetColor(  PKINSTANCE hLib,
+                                    PKPOLYLINE hThis,
                                     ColorFloat* pclr)
 {
-    PolyLine::Ptr* proThis = (PolyLine::Ptr*) hThis;
-    assert(Library::oLib().bPolyLineIsValid(proThis));
-    
-    *pclr = (*proThis)->clrLines();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    *pclr = roLib->m_oPolyLines.roGet(hThis)->clrLines();
 }
 
 
@@ -685,55 +735,47 @@ PICOGK_API bool Viewer_bLoadLightSetup( PKVIEWER        hThis,
                                     nSpecTextureSize);
 }
 
-PICOGK_API void Viewer_AddMesh( PKVIEWER    hThis,
+PICOGK_API void Viewer_AddMesh( PKINSTANCE hLib,
+                                PKVIEWER    hThis,
                                 int32_t     nGroupID,
                                 PKMESH      hMesh)
 {
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    Mesh::Ptr* proMesh = (Mesh::Ptr*) hMesh;
-    assert(Library::oLib().bMeshIsValid(proMesh));
-    
-    poThis->AddMesh(nGroupID, proMesh);
+    poThis->AddMesh(nGroupID, hLib, hMesh);
 }
 
-PICOGK_API void Viewer_RemoveMesh(  PKVIEWER hThis,
-                                    PKMESH   hMesh)
+PICOGK_API void Viewer_RemoveMesh(  PKINSTANCE hLib,
+                                    PKVIEWER    hThis,
+                                    PKMESH      hMesh)
 {
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    Mesh::Ptr* proMesh = (Mesh::Ptr*) hMesh;
-    assert(Library::oLib().bMeshIsValid(proMesh));
-    
-    poThis->RemoveMesh(proMesh);
+    poThis->RemoveMesh(hLib, hMesh);
 }
 
-PICOGK_API void Viewer_AddPolyLine( PKVIEWER    hThis,
+
+PICOGK_API void Viewer_AddPolyLine( PKINSTANCE hLib,
+                                    PKVIEWER    hThis,
                                     int32_t     nGroupID,
                                     PKPOLYLINE  hPolyLine)
 {
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    PolyLine::Ptr* proPoly = (PolyLine::Ptr*) hPolyLine;
-    assert(Library::oLib().bPolyLineIsValid(proPoly));
-    
-    poThis->AddPolyLine(    nGroupID,
-                            proPoly);
+    poThis->AddMesh(nGroupID, hLib, hPolyLine);
 }
 
-PICOGK_API void Viewer_RemovePolyLine(  PKVIEWER    hThis,
+PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
+                                        PKVIEWER    hThis,
                                         PKPOLYLINE  hPolyLine)
 {
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    PolyLine::Ptr* proPoly = (PolyLine::Ptr*) hPolyLine;
-    assert(Library::oLib().bPolyLineIsValid(proPoly));
-    
-    poThis->RemovePolyLine(proPoly);
+    poThis->RemovePolyLine(hLib, hPolyLine);
 }
 
 
@@ -779,234 +821,259 @@ PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
     poThis->SetGroupMatrix(nGroupID, *pmat);
 }
 
-PICOGK_API PKVDBFILE VdbFile_hCreate()
+PICOGK_API PKVDBFILE VdbFile_hCreate(PKINSTANCE hLib)
 {
-    return (PKVDBFILE) Library::oLib().proVdbFileCreate();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbFiles.hAdd(std::make_shared<VdbFile>());
 }
 
-PICOGK_API PKVDBFILE VdbFile_hCreateFromFile(const char* pszFileName)
+PICOGK_API PKVDBFILE VdbFile_hCreateFromFile(   PKINSTANCE hLib,
+                                                const char* pszFileName)
 {
-    return (PKVDBFILE) Library::oLib().proVdbFileCreateFromFile(pszFileName);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    
+    VdbFile::Ptr roVdbFile = VdbFile::roFromFile(pszFileName);
+            
+    if (roVdbFile == nullptr)
+        return 0;
+    
+    return roLib->m_oVdbFiles.hAdd(roVdbFile);
 }
 
-PICOGK_API bool VdbFile_bIsValid(PKVDBFILE hThis)
+PICOGK_API bool VdbFile_bIsValid(   PKINSTANCE hLib,
+                                    PKVDBFILE hThis)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    return Library::oLib().bVdbFileIsValid(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbFiles.bIsValid(hThis);
 }
 
-PICOGK_API void VdbFile_Destroy(PKVDBFILE hThis)
+PICOGK_API void VdbFile_Destroy(    PKINSTANCE hLib,
+                                    PKVDBFILE hThis)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
-    Library::oLib().VdbFileDestroy(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbFiles.bDestroy(hThis);
 }
 
-PICOGK_API int64_t VdbFile_nMemUsage(PKVDBFILE hThis)
+PICOGK_API int64_t VdbFile_nMemUsage(   PKINSTANCE hLib,
+                                        PKVDBFILE hThis)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
-    return (*proThis)->nMemUsage();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbFiles.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API bool VdbFile_bSaveToFile(    PKVDBFILE       hThis,
+PICOGK_API bool VdbFile_bSaveToFile(    PKINSTANCE hLib,
+                                        PKVDBFILE       hThis,
                                         const char*     pszFileName)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
-    
-    return (*proThis)->bSaveToFile(pszFileName);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbFiles.roGet(hThis)->bSaveToFile(pszFileName);
 }
 
-PICOGK_API PKVOXELS VdbFile_hGetVoxels( PKVDBFILE   hThis,
+PICOGK_API PKVOXELS VdbFile_hGetVoxels( PKINSTANCE hLib,
+                                        PKVDBFILE   hThis,
                                         int32_t     nIndex)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    auto roVdbFile = roLib->m_oVdbFiles.roGet(hThis);
     
-    return (PKVOXELS) Library::oLib().proVdbFileGetVoxels(*proThis, nIndex);
+    GridBase::Ptr roGrid = roVdbFile->roGridAt(nIndex);
+            
+    if (!roGrid->isType<FloatGrid>())
+        return 0;
+            
+    if (roGrid->getGridClass() != GRID_LEVEL_SET)
+        return 0; // not a voxel field
+            
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(gridPtrCast<FloatGrid>(roGrid)));
 }
 
-PICOGK_API int32_t VdbFile_nAddVoxels(  PKVDBFILE   hThis,
+PICOGK_API int32_t VdbFile_nAddVoxels(  PKINSTANCE hLib,
+                                        PKVDBFILE   hThis,
                                         const char* pszFieldName,
                                         PKVOXELS    hVoxels)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbFiles.roGet(hThis)
+        ->nAddGrid(pszFieldName, roLib->m_oVoxels.roGet(hVoxels)->roVdbGrid());
     
-    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
-    assert(Library::oLib().bVoxelsIsValid(proVoxels));
-    
-    return Library::oLib().nVdbFileAddVoxels(   *proThis,
-                                                pszFieldName,
-                                                *proVoxels);
 }
 
-PICOGK_API PKSCALARFIELD VdbFile_hGetScalarField(   PKVDBFILE hThis,
+PICOGK_API PKSCALARFIELD VdbFile_hGetScalarField(   PKINSTANCE hLib,
+                                                    PKVDBFILE hThis,
                                                     int32_t nIndex)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    auto roVdbFile = roLib->m_oVdbFiles.roGet(hThis);
     
-    return (PKSCALARFIELD) Library::oLib().proVdbFileGetScalarField(*proThis, nIndex);
+    GridBase::Ptr roGrid = roVdbFile->roGridAt(nIndex);
+            
+    if (!roGrid->isType<FloatGrid>())
+        return 0;
+            
+    // We treat all float grids as scalar fields, if loaded through this function
+    // PicoGK stores scalar fields as fog volumes
+    
+    return roLib->m_oScalarFields.hAdd(std::make_shared<ScalarField>(gridPtrCast<FloatGrid>(roGrid)));
 }
 
-PICOGK_API int32_t VdbFile_nAddScalarField( PKVDBFILE       hThis,
+PICOGK_API int32_t VdbFile_nAddScalarField( PKINSTANCE hLib,
+                                            PKVDBFILE       hThis,
                                             const char*     pszFieldName,
                                             PKSCALARFIELD   hScalarField)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
-    
-    ScalarField::Ptr* proField = (ScalarField::Ptr*) hScalarField;
-    assert(Library::oLib().bScalarFieldIsValid(proField));
-    
-    return Library::oLib().nVdbFileAddScalarField(  *proThis,
-                                                    pszFieldName,
-                                                    *proField);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbFiles.roGet(hThis)
+        ->nAddGrid(pszFieldName, roLib->m_oScalarFields.roGet(hScalarField)->roVdbGrid());
 }
 
-PICOGK_API PKVECTORFIELD VdbFile_hGetVectorField(   PKVDBFILE   hThis,
+PICOGK_API PKVECTORFIELD VdbFile_hGetVectorField(   PKINSTANCE hLib,
+                                                    PKVDBFILE   hThis,
                                                     int32_t     nIndex)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    auto roVdbFile = roLib->m_oVdbFiles.roGet(hThis);
     
-    return (PKVECTORFIELD) Library::oLib().proVdbFileGetVectorField(*proThis, nIndex);
+    GridBase::Ptr roGrid = roVdbFile->roGridAt(nIndex);
+    
+    if (!roGrid->isType<Vec3SGrid>())
+        return 0;
+        
+    return roLib->m_oVectorFields.hAdd(std::make_shared<VectorField>(gridPtrCast<Vec3SGrid>(roGrid)));
 }
 
-PICOGK_API int32_t VdbFile_nAddVectorField( PKVDBFILE       hThis,
+PICOGK_API int32_t VdbFile_nAddVectorField( PKINSTANCE hLib,
+                                            PKVDBFILE       hThis,
                                             const char*     pszFieldName,
                                             PKVECTORFIELD   hVectorField)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    VectorField::Ptr* proField = (VectorField::Ptr*) hVectorField;
-    assert(Library::oLib().bVectorFieldIsValid(proField));
-    
-    return Library::oLib().nVdbFileAddVectorField(  *proThis,
-                                                    pszFieldName,
-                                                    *proField);
+    return roLib->m_oVdbFiles.roGet(hThis)
+        ->nAddGrid(pszFieldName, roLib->m_oVectorFields.roGet(hVectorField)->roVdbGrid());
 }
 
-PICOGK_API int32_t VdbFile_nFieldCount(PKVDBFILE hThis)
+PICOGK_API int32_t VdbFile_nFieldCount( PKINSTANCE hLib,
+                                        PKVDBFILE hThis)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
-    
-    return (*proThis)->nGridCount();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbFiles.roGet(hThis)->nGridCount();
 }
 
-PICOGK_API void VdbFile_GetFieldName(   PKVDBFILE   hThis,
+PICOGK_API void VdbFile_GetFieldName(   PKINSTANCE hLib,
+                                        PKVDBFILE   hThis,
                                         int32_t     nIndex,
                                         char        psz[PKINFOSTRINGLEN])
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
-    
-    SafeCopyInfoString( (*proThis)->strNameAt(nIndex),
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    SafeCopyInfoString( roLib->m_oVdbFiles.roGet(hThis)->strNameAt(nIndex),
                         psz);
 }
 
-PICOGK_API int VdbFile_nFieldType(  PKVDBFILE   hThis,
+PICOGK_API int VdbFile_nFieldType(  PKINSTANCE hLib,
+                                    PKVDBFILE   hThis,
                                     int32_t     nIndex)
 {
-    VdbFile::Ptr* proThis = (VdbFile::Ptr*) hThis;
-    assert(Library::oLib().bVdbFileIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbFiles.roGet(hThis)->nTypeAt(nIndex);
+}
+
+PICOGK_API PKSCALARFIELD ScalarField_hCreate(PKINSTANCE hLib)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oScalarFields.hAdd(std::make_shared<ScalarField>());
+}
+
+PICOGK_API PKSCALARFIELD ScalarField_hCreateCopy(   PKINSTANCE hLib,
+                                                    PKSCALARFIELD hSource)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    return (*proThis)->nTypeAt(nIndex);
+    ScalarField::Ptr roSource = roLib->m_oScalarFields.roGet(hSource);
+    ScalarField::Ptr roNew = std::make_shared<ScalarField>(*roSource);
+    return roLib->m_oScalarFields.hAdd(roNew);
 }
 
-PICOGK_API PKSCALARFIELD ScalarField_hCreate()
+PICOGK_API bool ScalarField_bIsValid(   PKINSTANCE hLib,
+                                        PKSCALARFIELD hThis)
 {
-    return (PKSCALARFIELD) Library::oLib().proScalarFieldCreate();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oScalarFields.bIsValid(hThis);
 }
 
-PICOGK_API PKSCALARFIELD ScalarField_hCreateCopy(PKSCALARFIELD hSource)
+PICOGK_API void ScalarField_Destroy(    PKINSTANCE hLib,
+                                        PKSCALARFIELD   hThis)
 {
-    ScalarField::Ptr* proSource = (ScalarField::Ptr*) hSource;
-    return (PKSCALARFIELD) Library::oLib().proScalarFieldCreateCopy(**proSource);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oScalarFields.bDestroy(hThis);
 }
 
-PICOGK_API bool ScalarField_bIsValid(PKSCALARFIELD hThis)
+PICOGK_API int64_t ScalarField_nMemUsage(   PKINSTANCE hLib,
+                                            PKSCALARFIELD hThis)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    return Library::oLib().bScalarFieldIsValid(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oScalarFields.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API void ScalarField_Destroy(PKSCALARFIELD   hThis)
+PICOGK_API PKSCALARFIELD ScalarField_hCreateFromVoxels( PKINSTANCE hLib,
+                                                        PKVOXELS hVoxels)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    Library::oLib().ScalarFieldDestroy(proThis);
+    Voxels::Ptr         roSource = roLib->m_oVoxels.roGet(hVoxels);
+    ScalarField::Ptr    roNew = std::make_shared<ScalarField>(*roSource);
+    return roLib->m_oScalarFields.hAdd(roNew);
 }
 
-PICOGK_API int64_t ScalarField_nMemUsage(PKSCALARFIELD hThis)
-{
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
-    return (*proThis)->nMemUsage();
-}
-
-PICOGK_API PKSCALARFIELD ScalarField_hCreateFromVoxels(PKVOXELS hVoxels)
-{
-    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
-    assert(Library::oLib().bVoxelsIsValid(proVoxels));
-    
-    ScalarField::Ptr* proField = Library::oLib().proScalarFieldCreateFromVoxels(**proVoxels);
-    return (PKSCALARFIELD) proField;
-}
-
-PICOGK_API PKSCALARFIELD ScalarField_hBuildFromVoxels(  PKVOXELS    hVoxels,
+PICOGK_API PKSCALARFIELD ScalarField_hBuildFromVoxels(  PKINSTANCE hLib,
+                                                        PKVOXELS    hVoxels,
                                                         float       fScalarValue,
                                                         float       fSdThreshold)
 {
-    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
-    assert(Library::oLib().bVoxelsIsValid(proVoxels));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    ScalarField::Ptr* proField = Library::oLib().proScalarFieldCreate();
-    (*proField)->BuildFieldFrom(*proVoxels, fScalarValue, fSdThreshold);
+    Voxels::Ptr         roSource = roLib->m_oVoxels.roGet(hVoxels);
+    ScalarField::Ptr    roNew = std::make_shared<ScalarField>(*roSource);
     
-   return (PKSCALARFIELD) proField;
+    roNew->BuildFieldFrom(roSource, fScalarValue, fSdThreshold);
+    return roLib->m_oScalarFields.hAdd(roNew);
 }
 
-PICOGK_API void ScalarField_SetValue(   PKSCALARFIELD       hThis,
+PICOGK_API void ScalarField_SetValue(   PKINSTANCE hLib,
+                                        PKSCALARFIELD       hThis,
                                         const PKVector3*    pvecPosition,
                                         float               fValue)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    (*proThis)->SetValue(   *pvecPosition,
-                            Library::oLib().fVoxelSizeMM(),
-                            fValue);
+    roLib->m_oScalarFields.roGet(hThis)
+        ->SetValue(     *pvecPosition,
+                        roLib->fVoxelSizeMM(),
+                        fValue);
 }
 
-PICOGK_API bool ScalarField_bGetValue(  PKSCALARFIELD       hThis,
+PICOGK_API bool ScalarField_bGetValue(  PKINSTANCE hLib,
+                                        PKSCALARFIELD       hThis,
                                         const PKVector3*    pvecPosition,
                                         float*              pfValue)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
-    
-    return (*proThis)->bGetValue(   *pvecPosition,
-                                    Library::oLib().fVoxelSizeMM(),
-                                    pfValue);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oScalarFields.roGet(hThis)
+        ->bGetValue(    *pvecPosition,
+                        roLib->fVoxelSizeMM(),
+                        pfValue);
 }
 
-PICOGK_API void ScalarField_RemoveValue(    PKSCALARFIELD       hThis,
+PICOGK_API void ScalarField_RemoveValue(    PKINSTANCE hLib,
+                                            PKSCALARFIELD       hThis,
                                             const PKVector3*    pvecPosition)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
-    
-    (*proThis)->RemoveValue( *pvecPosition,
-                             Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oScalarFields.roGet(hThis)->RemoveValue(   *pvecPosition,
+                                                        roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void ScalarField_GetVoxelDimensions( PKSCALARFIELD hThis,
+PICOGK_API void ScalarField_GetVoxelDimensions( PKINSTANCE hLib,
+                                                PKSCALARFIELD hThis,
                                                 int32_t* pnXOrigin,
                                                 int32_t* pnYOrigin,
                                                 int32_t* pnZOrigin,
@@ -1014,196 +1081,203 @@ PICOGK_API void ScalarField_GetVoxelDimensions( PKSCALARFIELD hThis,
                                                 int32_t* pnYSize,
                                                 int32_t* pnZSize)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
-    
-    return (*proThis)->GetVoxelDimensions(  pnXOrigin,
-                                            pnYOrigin,
-                                            pnZOrigin,
-                                            pnXSize,
-                                            pnYSize,
-                                            pnZSize);
-}
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oScalarFields.roGet(hThis)
+        ->GetVoxelDimensions(   pnXOrigin,
+                                pnYOrigin,
+                                pnZOrigin,
+                                pnXSize,
+                                pnYSize,
+                                pnZSize);
+    }
 
-PICOGK_API void ScalarField_GetSlice(   PKSCALARFIELD   hThis,
+PICOGK_API void ScalarField_GetSlice(   PKINSTANCE hLib,
+                                        PKSCALARFIELD   hThis,
                                         int32_t     nZSlice,
                                         float*      pfBuffer)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
-    return (*proThis)->GetSlice(nZSlice, pfBuffer);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oScalarFields.roGet(hThis)->GetSlice(nZSlice, pfBuffer);
 }
 
-PICOGK_API void ScalarField_TraverseActive( PKSCALARFIELD hThis,
+PICOGK_API void ScalarField_TraverseActive( PKINSTANCE hLib,
+                                            PKSCALARFIELD hThis,
                                             PKFnTraverseActiveS pfnCallback)
 {
-    ScalarField::Ptr* proThis = (ScalarField::Ptr*) hThis;
-    assert(Library::oLib().bScalarFieldIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oScalarFields.roGet(hThis)
+        ->TraverseActive(   pfnCallback,
+                            roLib->fVoxelSizeMM());
+}
+
+PICOGK_API PKVECTORFIELD VectorField_hCreate(PKINSTANCE hLib)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVectorFields.hAdd(std::make_shared<VectorField>());
+}
+
+PICOGK_API PKVECTORFIELD VectorField_hCreateCopy(   PKINSTANCE hLib,
+                                                    PKVECTORFIELD hSource)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    VectorField::Ptr roSource = roLib->m_oVectorFields.roGet(hSource);
+    VectorField::Ptr roNew = std::make_shared<VectorField>(*roSource);
+    return roLib->m_oVectorFields.hAdd(roNew);
+}
+
+PICOGK_API bool VectorField_bIsValid(   PKINSTANCE hLib,
+                                        PKVECTORFIELD hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVectorFields.bIsValid(hThis);
+}
+
+PICOGK_API void VectorField_Destroy(    PKINSTANCE hLib,
+                                        PKVECTORFIELD hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVectorFields.bDestroy(hThis);
+}
+
+PICOGK_API PKVECTORFIELD VectorField_hCreateFromVoxels( PKINSTANCE hLib,
+                                                        PKVOXELS hVoxels)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    (*proThis)->TraverseActive(pfnCallback, Library::oLib().fVoxelSizeMM());
-}
-
-PICOGK_API PKVECTORFIELD VectorField_hCreate()
-{
-    return (PKVECTORFIELD) Library::oLib().proVectorFieldCreate();
-}
-
-PICOGK_API PKVECTORFIELD VectorField_hCreateCopy(PKVECTORFIELD hSource)
-{
-    VectorField::Ptr* proSource = (VectorField::Ptr*) hSource;
-    return (PKVECTORFIELD) Library::oLib().proVectorFieldCreateCopy(**proSource);
-}
-
-PICOGK_API bool VectorField_bIsValid(PKVECTORFIELD hThis)
-{
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    return Library::oLib().bVectorFieldIsValid(proThis);
-}
-
-PICOGK_API void VectorField_Destroy(PKVECTORFIELD hThis)
-{
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    Voxels::Ptr         roVoxels    = roLib->m_oVoxels.roGet(hVoxels);
+    VectorField::Ptr    roField     = std::make_shared<VectorField>();
     
-    Library::oLib().VectorFieldDestroy(proThis);
+    roField->AddGradientFieldFrom(roVoxels);
+    return roLib->m_oVectorFields.hAdd(roField);
 }
 
-PICOGK_API PKVECTORFIELD VectorField_hCreateFromVoxels(PKVOXELS hVoxels)
-{
-    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
-    assert(Library::oLib().bVoxelsIsValid(proVoxels));
-    
-    VectorField::Ptr* proField = Library::oLib().proVectorFieldCreate();
-    (*proField)->AddGradientFieldFrom(*proVoxels);
-    
-    return (PKVECTORFIELD) proField;
-}
-
-PICOGK_API PKVECTORFIELD VectorField_hBuildFromVoxels(  PKVOXELS hVoxels,
+PICOGK_API PKVECTORFIELD VectorField_hBuildFromVoxels(  PKINSTANCE hLib,
+                                                        PKVOXELS hVoxels,
                                                         const PKVector3* pvecValue,
                                                         float fSdThreshold)
 {
-    Voxels::Ptr* proVoxels = (Voxels::Ptr*) hVoxels;
-    assert(Library::oLib().bVoxelsIsValid(proVoxels));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    VectorField::Ptr* proField = Library::oLib().proVectorFieldCreate();
-    (*proField)->BuildFieldFrom(*proVoxels, *pvecValue, fSdThreshold);
+    Voxels::Ptr         roVoxels    = roLib->m_oVoxels.roGet(hVoxels);
+    VectorField::Ptr    roField     = std::make_shared<VectorField>();
     
-    return (PKVECTORFIELD) proField;
+    roField->BuildFieldFrom(roVoxels, *pvecValue, fSdThreshold);
+    return roLib->m_oVectorFields.hAdd(roField);
 }
 
-PICOGK_API int64_t VectorField_nMemUsage(PKVECTORFIELD hThis)
+PICOGK_API int64_t VectorField_nMemUsage(   PKINSTANCE hLib,
+                                            PKVECTORFIELD hThis)
 {
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    assert(Library::oLib().bVectorFieldIsValid(proThis));
-    return (*proThis)->nMemUsage();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVectorFields.roGet(hThis)->nMemUsage();
 }
 
-PICOGK_API void VectorField_SetValue(   PKVECTORFIELD       hThis,
+PICOGK_API void VectorField_SetValue(   PKINSTANCE hLib,
+                                        PKVECTORFIELD       hThis,
                                         const PKVector3*    pvecPosition,
                                         const PKVector3*    pvecValue)
 {
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    (*proThis)->SetValue(   *pvecPosition,
-                            Library::oLib().fVoxelSizeMM(),
-                            *pvecValue);
+    roLib->m_oVectorFields.roGet(hThis)
+        ->SetValue( *pvecPosition,
+                    roLib->fVoxelSizeMM(),
+                    *pvecValue);
 }
 
-PICOGK_API bool VectorField_bGetValue(  PKSCALARFIELD       hThis,
+PICOGK_API bool VectorField_bGetValue(  PKINSTANCE hLib,
+                                        PKSCALARFIELD       hThis,
                                         const PKVector3*    pvecPosition,
                                         PKVector3*          pvecValue)
 {
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    return (*proThis)->bGetValue(   *pvecPosition,
-                                    Library::oLib().fVoxelSizeMM(),
-                                    pvecValue);
+    roLib->m_oVectorFields.roGet(hThis)
+        ->bGetValue(   *pvecPosition,
+                       roLib->fVoxelSizeMM(),
+                       pvecValue);
 }
 
-PICOGK_API void VectorField_RemoveValue(    PKVECTORFIELD       hThis,
+PICOGK_API void VectorField_RemoveValue(    PKINSTANCE hLib,
+                                            PKVECTORFIELD       hThis,
                                             const PKVector3*    pvecPosition)
 {
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    assert(Library::oLib().bVectorFieldIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    (*proThis)->RemoveValue( *pvecPosition,
-                             Library::oLib().fVoxelSizeMM());
+    roLib->m_oVectorFields.roGet(hThis)
+        ->RemoveValue(  *pvecPosition,
+                        roLib->fVoxelSizeMM());
 }
 
-PICOGK_API void VectorField_TraverseActive( PKVECTORFIELD hThis,
+PICOGK_API void VectorField_TraverseActive( PKINSTANCE hLib,
+                                            PKVECTORFIELD hThis,
                                             PKFnTraverseActiveV pfnCallback)
 {
-    VectorField::Ptr* proThis = (VectorField::Ptr*) hThis;
-    assert(Library::oLib().bVectorFieldIsValid(proThis));
-    
-    (*proThis)->TraverseActive(pfnCallback, Library::oLib().fVoxelSizeMM());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVectorFields.roGet(hThis)
+        ->TraverseActive(   pfnCallback,
+                            roLib->fVoxelSizeMM());
 }
 
-PICOGK_API PKMETADATA Metadata_hFromVoxels(PKVOXELS hField)
+PICOGK_API PKMETADATA Metadata_hFromVoxels( PKINSTANCE hLib,
+                                            PKVOXELS hField)
 {
-    Voxels::Ptr* proField = (Voxels::Ptr*) hField;
-    assert(Library::oLib().bVoxelsIsValid(proField));
-    
-    return (PKMETADATA) Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    auto roField = roLib->m_oVoxels.roGet(hField);
+    return roLib->m_oVdbMetas.hAdd(std::make_shared<VdbMeta>(roField->roVdbGrid()));
 }
 
-PICOGK_API PKMETADATA Metadata_hFromScalarField(PKSCALARFIELD hField)
+PICOGK_API PKMETADATA Metadata_hFromScalarField(    PKINSTANCE hLib,
+                                                    PKSCALARFIELD hField)
 {
-    ScalarField::Ptr* proField = (ScalarField::Ptr*) hField;
-    assert(Library::oLib().bScalarFieldIsValid(proField));
-    
-    return (PKMETADATA) Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    auto roField = roLib->m_oScalarFields.roGet(hField);
+    return roLib->m_oVdbMetas.hAdd(std::make_shared<VdbMeta>(roField->roVdbGrid()));
 }
 
-PICOGK_API PKMETADATA Metadata_hFromVectorField(PKVECTORFIELD hField)
+PICOGK_API PKMETADATA Metadata_hFromVectorField(    PKINSTANCE hLib,
+                                                    PKVECTORFIELD hField)
 {
-    VectorField::Ptr* proField = (VectorField::Ptr*) hField;
-    assert(Library::oLib().bVectorFieldIsValid(proField));
-    
-    return (PKMETADATA) Library::oLib().proVdbMetaFromField((*proField)->roVdbGrid());
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    auto roField = roLib->m_oVectorFields.roGet(hField);
+    return roLib->m_oVdbMetas.hAdd(std::make_shared<VdbMeta>(roField->roVdbGrid()));
 }
 
-PICOGK_API void Metadata_Destroy(PKMETADATA hThis)
+PICOGK_API void Metadata_Destroy(   PKINSTANCE hLib,
+                                    PKMETADATA hThis)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    Library::oLib().VdbMetaDestroy(proThis);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbMetas.bDestroy(hThis);
 }
 
-PICOGK_API int32_t Metadata_nCount(PKMETADATA hThis)
+PICOGK_API int32_t Metadata_nCount( PKINSTANCE hLib,
+                                    PKMETADATA hThis)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    return (*proThis)->nCount();
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbMetas.roGet(hThis)->nCount();
 }
 
-PICOGK_API int32_t Metadata_nNameLengthAt(  PKMETADATA  hThis,
+PICOGK_API int32_t Metadata_nNameLengthAt(  PKINSTANCE hLib,
+                                            PKMETADATA  hThis,
                                             int32_t     nIndex)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    std::string strName = (*proThis)->strNameAt(nIndex);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    std::string strName = roLib->m_oVdbMetas.roGet(hThis)->strNameAt(nIndex);
     return (int32_t) strName.length();
 }
 
-PICOGK_API bool Metadata_bGetNameAt(        PKMETADATA  hThis,
-                                            int32_t     nIndex,
-                                            char*       psz,
-                                            int32_t     nMaxStringLen)
+PICOGK_API bool Metadata_bGetNameAt(    PKINSTANCE hLib,
+                                        PKMETADATA  hThis,
+                                        int32_t     nIndex,
+                                        char*       psz,
+                                        int32_t     nMaxStringLen)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    if (nIndex >= (*proThis)->nCount())
+    if (nIndex >= roLib->m_oVdbMetas.roGet(hThis)->nCount())
         return false;
     
-    std::string s = (*proThis)->strNameAt(nIndex);
+    std::string s = roLib->m_oVdbMetas.roGet(hThis)->strNameAt(nIndex);
     
 #ifdef _WINDOWS
     strncpy_s(psz, nMaxStringLen-1, s.c_str(), s.length());
@@ -1215,38 +1289,37 @@ PICOGK_API bool Metadata_bGetNameAt(        PKMETADATA  hThis,
     return true;
 }
 
-PICOGK_API int32_t Metadata_nTypeAt(    PKMETADATA  hThis,
+PICOGK_API int32_t Metadata_nTypeAt(    PKINSTANCE hLib,
+                                        PKMETADATA  hThis,
                                         const char* psz)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    return (int32_t) (*proThis)->eTypeAt(psz);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return (int32_t) roLib->m_oVdbMetas.roGet(hThis)->eTypeAt(psz);
 }
 
-PICOGK_API int32_t Metadata_nStringLengthAt(    PKMETADATA          hThis,
+PICOGK_API int32_t Metadata_nStringLengthAt(    PKINSTANCE hLib,
+                                                PKMETADATA          hThis,
                                                 const char*         psz)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    std::string str;
-    if (!(*proThis)->bGetValueAt(psz, &str))
+     std::string str;
+    if (!roLib->m_oVdbMetas.roGet(hThis)->bGetValueAt(psz, &str))
         return 0;
     
     return (int32_t) str.length();
 }
 
-PICOGK_API bool Metadata_bGetStringAt(  PKMETADATA      hThis,
+PICOGK_API bool Metadata_bGetStringAt(  PKINSTANCE hLib,
+                                        PKMETADATA      hThis,
                                         const char*     psz,
                                         char*           pszValue,
                                         int32_t         nMaxStringLen)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    std::string s;
-    if (!(*proThis)->bGetValueAt(psz, &s))
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+     std::string s;
+  
+    if (!roLib->m_oVdbMetas.roGet(hThis)->bGetValueAt(psz, &s))
         return false;
     
 #ifdef _WINDOWS
@@ -1259,62 +1332,56 @@ PICOGK_API bool Metadata_bGetStringAt(  PKMETADATA      hThis,
     return true;
 }
 
-PICOGK_API bool Metadata_bGetFloatAt(   PKMETADATA      hThis,
+PICOGK_API bool Metadata_bGetFloatAt(   PKINSTANCE hLib,
+                                        PKMETADATA      hThis,
                                         const char*     psz,
                                         float*          pfValue)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    return (*proThis)->bGetValueAt(psz, pfValue);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbMetas.roGet(hThis)->bGetValueAt(psz, pfValue);
 }
 
-PICOGK_API bool Metadata_bGetVectorAt(  PKMETADATA      hThis,
+PICOGK_API bool Metadata_bGetVectorAt(  PKINSTANCE hLib,
+                                        PKMETADATA      hThis,
                                         const char*     psz,
                                         PKVector3*      pvecValue)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    return (*proThis)->bGetValueAt(psz, pvecValue);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbMetas.roGet(hThis)->bGetValueAt(psz, pvecValue);
 }
 
-PICOGK_API void Metadata_SetStringValue(    PKMETADATA     hThis,
+PICOGK_API void Metadata_SetStringValue(    PKINSTANCE hLib,
+                                            PKMETADATA     hThis,
                                             const char*    pszFieldName,
                                             const char*    pszValue)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    return (*proThis)->SetValue(pszFieldName, pszValue);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbMetas.roGet(hThis)->SetValue(pszFieldName, pszValue);
 }
 
-PICOGK_API void Metadata_SetFloatValue( PKMETADATA      hThis,
+PICOGK_API void Metadata_SetFloatValue( PKINSTANCE hLib,
+                                        PKMETADATA      hThis,
                                         const char*     pszFieldName,
                                         float           fValue)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    return (*proThis)->SetValue(pszFieldName, fValue);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVdbMetas.roGet(hThis)->SetValue(pszFieldName, fValue);
 }
 
-PICOGK_API void Metadata_SetVectorValue(    PKMETADATA          hThis,
+PICOGK_API void Metadata_SetVectorValue(    PKINSTANCE hLib,
+                                            PKMETADATA          hThis,
                                             const char*         pszFieldName,
                                             const PKVector3*    pvecValue)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    (*proThis)->SetValue(pszFieldName, *pvecValue);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbMetas.roGet(hThis)->SetValue(pszFieldName, *pvecValue);
 }
 
-PICOGK_API void MetaData_RemoveValue(   PKMETADATA  hThis,
+PICOGK_API void MetaData_RemoveValue(   PKINSTANCE hLib,
+                                        PKMETADATA  hThis,
                                         const char* pszFieldName)
 {
-    VdbMeta::Ptr* proThis = (VdbMeta::Ptr*) hThis;
-    assert(Library::oLib().bVdbMetaIsValid(proThis));
-    
-    (*proThis)->RemoveAt(pszFieldName);
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    roLib->m_oVdbMetas.roGet(hThis)->RemoveAt(pszFieldName);
 }
 
