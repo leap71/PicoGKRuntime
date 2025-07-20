@@ -54,6 +54,10 @@ public:
     {
     }
     
+    Mesh(const Mesh&)            = default;
+    
+    Mesh& operator=(const Mesh&) = default;
+    
     inline int64_t nMemUsage() const
     {
         return sizeof(Mesh) + m_nMemUsage;
