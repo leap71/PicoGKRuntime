@@ -174,7 +174,11 @@ protected:
         int         iPosAttrib            = -1;
     } m_sConfig;
     
-    void Redraw();
+    void Redraw(bool bDraw3dScene);
+    
+    void DrawScene();
+    
+    void DrawGui();
 
     class Group
     {
