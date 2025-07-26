@@ -47,6 +47,7 @@
 #include "PicoGKVdbField.h"
 #include "PicoGKVdbMeta.h"
 #include "PicoGKHandleManager.h"
+#include "PicoGKTrace.h"
 
 namespace PicoGK
 {
@@ -82,14 +83,14 @@ namespace PicoGK
                 return nResult;
             }
             
-            HandleManager<PicoGK::Mesh>         m_oMeshes;
-            HandleManager<PicoGK::Lattice>      m_oLattices;
-            HandleManager<PicoGK::PolyLine>     m_oPolyLines;
-            HandleManager<PicoGK::Voxels>       m_oVoxels;
-            HandleManager<PicoGK::VdbFile>      m_oVdbFiles;
-            HandleManager<PicoGK::ScalarField>  m_oScalarFields;
-            HandleManager<PicoGK::VectorField>  m_oVectorFields;
-            HandleManager<PicoGK::VdbMeta>      m_oVdbMetas;
+            HandleManager<PicoGK::Mesh>         m_oMeshes       {"Meshes"};
+            HandleManager<PicoGK::Lattice>      m_oLattices     {"Lattices"};
+            HandleManager<PicoGK::PolyLine>     m_oPolyLines    {"PolyLines"};
+            HandleManager<PicoGK::Voxels>       m_oVoxels       {"Voxels"};
+            HandleManager<PicoGK::VdbFile>      m_oVdbFiles     {"VdbFiles"};
+            HandleManager<PicoGK::ScalarField>  m_oScalarFields {"ScalarFields"};
+            HandleManager<PicoGK::VectorField>  m_oVectorFields {"VectorFields"};
+            HandleManager<PicoGK::VdbMeta>      m_oVdbMetas     {"VdbMetas"};
             
         protected:
             float m_fVoxelSizeMM  = 0.0f;
@@ -107,6 +108,11 @@ namespace PicoGK
             return m_oInstances.hAdd(std::make_shared<Instance>(fVoxelSizeMM));
         }
         
+        bool bIsValid(uint64_t hInstance)
+        {
+            return m_oInstances.bIsValid(hInstance);
+        }
+        
         void DestroyInstance(uint64_t hInstance)
         {
             m_oInstances.bDestroy(hInstance);
@@ -114,6 +120,7 @@ namespace PicoGK
         
         std::shared_ptr<Instance> roGetInstance(uint64_t hInstance)
         {
+            PKTRACE(roGetInstance);
             return m_oInstances.roGet(hInstance);
         }
         
@@ -142,7 +149,7 @@ namespace PicoGK
         }
         
     protected:
-        HandleManager<Instance>  m_oInstances;
+        HandleManager<Instance>  m_oInstances   {"LibraryInstance"};
         
     public:
 
