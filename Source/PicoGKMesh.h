@@ -134,11 +134,6 @@ public:
         *pvecC = m_oVertices.at(sTri.C);
     }
     
-    inline void GetBoundingBox(BBox3* poBBox)
-    {
-        *poBBox = m_oBBox;
-    }
-    
     bool bGetSurfaceNormal( const Vector3& vecSurfacePoint,
                             Vector3* pvecNormal)
     {
@@ -155,6 +150,8 @@ public:
         
         return false;
     }
+    
+    inline BBox3 oBBox() {return m_oBBox;}
     
 public:
     
