@@ -347,7 +347,7 @@ struct BBox3
         for (int n=0;n<3;n++)
         {
             vecMin.v[n] = std::min<float>(oBB.vecMin.v[n], vecMin.v[n]);
-            vecMax.v[n] = std::min<float>(oBB.vecMax.v[n], vecMax.v[n]);
+            vecMax.v[n] = std::max<float>(oBB.vecMax.v[n], vecMax.v[n]);
         }
     }
     
