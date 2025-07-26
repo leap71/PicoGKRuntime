@@ -318,8 +318,10 @@ int main(int argc, const char * argv[])
     
     std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
 
-    PKMESH hFromVoxels = Mesh_hCreateFromVoxels(hLib, hVoxelsRead);
-    Viewer_AddMesh(hLib, g_hViewer, 0, hFromVoxels);
+    Viewer_AddVoxels(hLib, g_hViewer, 0, hVoxelsRead);
+    
+    // Try again, which should replace them
+    Viewer_AddVoxels(hLib, g_hViewer, 0, hVoxelsRead);
     
     Viewer_RequestUpdate(g_hViewer);
     
@@ -330,14 +332,13 @@ int main(int argc, const char * argv[])
     
     std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
-    Viewer_RemoveMesh(hLib, g_hViewer, hFromVoxels);
+    Viewer_RemoveVoxels(hLib, g_hViewer, hVoxelsRead);
     
     PKLATTICE hLattice = Lattice_hCreate(hLib);
     assert(Lattice_bIsValid(hLib, hLattice));
     Lattice_Destroy(hLib, hLattice);
     
     Mesh_Destroy(hLib, hMesh);
-    Mesh_Destroy(hLib, hFromVoxels);
     Voxels_Destroy(hLib, hVoxels);
     
     if (hVoxelsRead != hVoxels)
