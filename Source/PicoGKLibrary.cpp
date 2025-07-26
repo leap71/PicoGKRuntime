@@ -870,7 +870,7 @@ PICOGK_API void Viewer_AddPolyLine( PKINSTANCE hLib,
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    poThis->AddMesh(nGroupID, hLib, hPolyLine);
+    poThis->AddPolyLine(nGroupID, hLib, hPolyLine);
 }
 
 PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
