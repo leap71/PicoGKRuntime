@@ -39,6 +39,8 @@
 #include "PicoGKLibraryMgr.h"
 #include "PicoGKGLViewer.h"
 
+#include "PicoGKTrace.h"
+
 using namespace PicoGK;
 
 void SafeCopyInfoString(const std::string s, char psz[PKINFOSTRINGLEN])
@@ -73,91 +75,109 @@ PICOGK_API PKINSTANCE Library_hCreateInstance(float fVoxelSizeMM)
 
 PICOGK_API void Library_DestroyInstance(PKINSTANCE hThis)
 {
+    PKTRACE(Library_DestroyInstance);
     Library::oLib().DestroyInstance(hThis);
 }
 
 PICOGK_API int64_t Library_nTotalMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nTotalMemUsage);
     return Library::oLib().roGetInstance(hThis)->nMemUsage();
 }
 
 PICOGK_API int64_t Library_nMeshesMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nMeshesMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oMeshes.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nLatticesMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nLatticesMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oLattices.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nPolyLinesMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nPolyLinesMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oPolyLines.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nVoxelsMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVoxelsMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oVoxels.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nVdbFilesMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVdbFilesMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oVdbFiles.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nScalarFieldsMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nScalarFieldsMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oScalarFields.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nVectorFieldsMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVectorFieldsMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oVectorFields.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nVdbMetasMemUsage(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVdbMetasMemUsage);
     return Library::oLib().roGetInstance(hThis)->m_oVdbMetas.nMemUsage();
 }
 
 PICOGK_API int64_t Library_nMeshesAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nMeshesAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oMeshes.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nLatticesAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nLatticesAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oLattices.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nPolyLinesAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nPolyLinesAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oPolyLines.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nVoxelsAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVoxelsAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oVoxels.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nVdbFilesAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVdbFilesAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oVdbFiles.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nScalarFieldsAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nScalarFieldsAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oScalarFields.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nVectorFieldsAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVectorFieldsAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oVectorFields.nAllocatedCount();
 }
 
 PICOGK_API int64_t Library_nVdbMetasAllocated(PKINSTANCE hThis)
 {
+    PKTRACE(Library_nVdbMetasAllocated);
     return Library::oLib().roGetInstance(hThis)->m_oVdbMetas.nAllocatedCount();
 }
 
@@ -165,6 +185,8 @@ PICOGK_API void Library_VoxelsToMm( PKINSTANCE hLib,
                                     const PKVector3* pvecVoxelCoordinate,
                                     PKVector3* pvecMmCoordinate)
 {
+    PKTRACE(Library_VoxelsToMm);
+    
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     VoxelSize oVoxelSize(roLib->fVoxelSizeMM());
     
@@ -177,6 +199,8 @@ PICOGK_API void Library_MmToVoxels( PKINSTANCE hLib,
                                     const PKVector3* pvecMmCoordinate,
                                     PKVector3* pvecVoxelCoordinate)
 {
+    PKTRACE(Library_MmToVoxels);
+    
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     VoxelSize oVoxelSize(roLib->fVoxelSizeMM());
     
@@ -187,6 +211,8 @@ PICOGK_API void Library_MmToVoxels( PKINSTANCE hLib,
 
 PICOGK_API PKMESH Mesh_hCreate(PKINSTANCE hLib)
 {
+    PKTRACE(Mesh_hCreate);
+    
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oMeshes.hAdd(std::make_shared<Mesh>());
 }
@@ -194,6 +220,8 @@ PICOGK_API PKMESH Mesh_hCreate(PKINSTANCE hLib)
 PICOGK_API PKMESH Mesh_hCreateFromVoxels(   PKINSTANCE hLib,
                                             PKVOXELS hVoxels)
 {
+    PKTRACE(Mesh_hCreateFromVoxels);
+    
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr roVoxels = roLib->m_oVoxels.roGet(hVoxels);
@@ -203,6 +231,8 @@ PICOGK_API PKMESH Mesh_hCreateFromVoxels(   PKINSTANCE hLib,
 PICOGK_API bool Mesh_bIsValid(  PKINSTANCE hLib,
                                 PKMESH hThis)
 {
+    PKTRACE(Mesh_bIsValid);
+    
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oMeshes.bIsValid(hThis);
 }
@@ -210,13 +240,20 @@ PICOGK_API bool Mesh_bIsValid(  PKINSTANCE hLib,
 PICOGK_API void Mesh_Destroy(   PKINSTANCE hLib,
                                 PKMESH hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oMeshes.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oMeshes.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int64_t Mesh_nMemUsage(  PKINSTANCE hLib,
                                     PKMESH hThis)
 {
+    PKTRACE(Mesh_nMemUsage);
+    
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oMeshes.roGet(hThis)->nMemUsage();
 }
@@ -294,6 +331,7 @@ PICOGK_API int32_t Mesh_nTriangleCount( PKINSTANCE hLib,
 
 PICOGK_API PKLATTICE Lattice_hCreate(PKINSTANCE hLib)
 {
+    PKTRACE(Lattice_hCreate);
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oLattices.hAdd(std::make_shared<Lattice>());
 }
@@ -308,8 +346,13 @@ PICOGK_API bool Lattice_bIsValid(   PKINSTANCE hLib,
 PICOGK_API void Lattice_Destroy(    PKINSTANCE hLib,
                                     PKLATTICE hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oLattices.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oLattices.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int64_t Lattice_nMemUsage(   PKINSTANCE hLib,
@@ -372,8 +415,14 @@ PICOGK_API bool Voxels_bIsValid(    PKINSTANCE hLib,
 PICOGK_API void Voxels_Destroy( PKINSTANCE hLib,
                                 PKVOXELS hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    return roLib->m_oVoxels.bDestroy(hThis);
+    
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        return roLib->m_oVoxels.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int64_t Voxels_nMemUsage(    PKINSTANCE hLib,
@@ -607,8 +656,13 @@ PICOGK_API bool PolyLine_bIsValid(  PKINSTANCE hLib,
 PICOGK_API void PolyLine_Destroy(   PKINSTANCE hLib,
                                     PKPOLYLINE hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oPolyLines.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oPolyLines.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int64_t PolyLine_nMemUsage(  PKINSTANCE hLib,
@@ -661,6 +715,8 @@ PICOGK_API PKVIEWER Viewer_hCreate( const char*             pszWindowTitle,
                                     PKPFScrollWheel         pfnScrollWheelCallback,
                                     PKPFWindowSize          pfnWindowSize)
 {
+    PKTRACE(Viewer_hCreate);
+    
     return (PKVIEWER) ViewerManager::oMgr().poCreate(
                 pszWindowTitle,
                 *pvecSize,
@@ -675,12 +731,16 @@ PICOGK_API PKVIEWER Viewer_hCreate( const char*             pszWindowTitle,
 
 PICOGK_API bool Viewer_bIsValid(PKVIEWER hThis)
 {
+    //PKTRACE(Viewer_bIsValid);
+    
     Viewer* poThis = (Viewer*) hThis;
     return ViewerManager::oMgr().bIsValid(poThis);
 }
 
 PICOGK_API void Viewer_Destroy(PKVIEWER hThis)
 {
+    PKTRACE(Viewer_Destroy);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -706,6 +766,8 @@ PICOGK_API bool Viewer_bPoll(PKVIEWER hThis)
 PICOGK_API  void Viewer_RequestScreenShot(  PKVIEWER        hThis,
                                             const char*     pszScreenShotPath)
 {
+    PKTRACE(Viewer_RequestScreenShot);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -714,6 +776,8 @@ PICOGK_API  void Viewer_RequestScreenShot(  PKVIEWER        hThis,
 
 PICOGK_API void Viewer_RequestClose(PKVIEWER hThis)
 {
+    PKTRACE(Viewer_RequestClose);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -726,6 +790,8 @@ PICOGK_API bool Viewer_bLoadLightSetup( PKVIEWER        hThis,
                                         const char*     pSpecTextureDDS,
                                         int32_t         nSpecTextureSize)
 {
+    PKTRACE(Viewer_bLoadLightSetup);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -740,6 +806,8 @@ PICOGK_API void Viewer_AddMesh( PKINSTANCE hLib,
                                 int32_t     nGroupID,
                                 PKMESH      hMesh)
 {
+    PKTRACE(Viewer_AddMesh);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -750,6 +818,8 @@ PICOGK_API void Viewer_RemoveMesh(  PKINSTANCE hLib,
                                     PKVIEWER    hThis,
                                     PKMESH      hMesh)
 {
+    PKTRACE(Viewer_RemoveMesh);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -762,6 +832,8 @@ PICOGK_API void Viewer_AddPolyLine( PKINSTANCE hLib,
                                     int32_t     nGroupID,
                                     PKPOLYLINE  hPolyLine)
 {
+    PKTRACE(Viewer_AddPolyLine);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -772,6 +844,8 @@ PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
                                         PKVIEWER    hThis,
                                         PKPOLYLINE  hPolyLine)
 {
+    PKTRACE(Viewer_RemovePolyLine);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -783,6 +857,8 @@ PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
                                         int32_t     nGroupID,
                                         bool        bVisible)
 {
+    PKTRACE(Viewer_SetGroupVisible);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -793,6 +869,8 @@ PICOGK_API void Viewer_SetGroupStatic(  PKVIEWER    hThis,
                                         int32_t     nGroupID,
                                         bool        bStatic)
 {
+    PKTRACE(Viewer_SetGroupStatic);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -805,6 +883,8 @@ PICOGK_API void Viewer_SetGroupMaterial(    PKVIEWER            hThis,
                                             float               fMetallic,
                                             float               fRoughness)
 {
+    PKTRACE(Viewer_SetGroupMaterial);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
@@ -815,10 +895,43 @@ PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
                                         int32_t             nGroupID,
                                         const Matrix4x4*    pmat)
 {
+    PKTRACE(Viewer_SetGroupMatrix);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
     poThis->SetGroupMatrix(nGroupID, *pmat);
+}
+
+extern "C"
+{
+
+bool bShowOpenFileDialog(   GLFWwindow* window,
+                            const char* apszAllowedExtensions[],
+                            int nExtCount,
+                            char** ppszOutPath);
+}
+
+
+PICOGK_API PKFILEINFO Viewer_hOpenFileDialog(   PKVIEWER hThis,
+                                                const char* pszDirectory,
+                                                const char* apszWildcards [],
+                                                int nWildCardCount,
+                                                bool bMultipleFiles,
+                                                bool bDirectoryChooser)
+{
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    char* psz = nullptr;
+    
+    if (!bShowOpenFileDialog(   poThis->pTheWindow(),
+                                apszWildcards,
+                                nWildCardCount,
+                                &psz))
+    {
+        return 0;
+    }
 }
 
 PICOGK_API PKVDBFILE VdbFile_hCreate(PKINSTANCE hLib)
@@ -850,8 +963,13 @@ PICOGK_API bool VdbFile_bIsValid(   PKINSTANCE hLib,
 PICOGK_API void VdbFile_Destroy(    PKINSTANCE hLib,
                                     PKVDBFILE hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVdbFiles.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oVdbFiles.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int64_t VdbFile_nMemUsage(   PKINSTANCE hLib,
@@ -1003,8 +1121,13 @@ PICOGK_API bool ScalarField_bIsValid(   PKINSTANCE hLib,
 PICOGK_API void ScalarField_Destroy(    PKINSTANCE hLib,
                                         PKSCALARFIELD   hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oScalarFields.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oScalarFields.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int64_t ScalarField_nMemUsage(   PKINSTANCE hLib,
@@ -1135,8 +1258,13 @@ PICOGK_API bool VectorField_bIsValid(   PKINSTANCE hLib,
 PICOGK_API void VectorField_Destroy(    PKINSTANCE hLib,
                                         PKVECTORFIELD hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVectorFields.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oVectorFields.bDestroy(hThis);
+    }
 }
 
 PICOGK_API PKVECTORFIELD VectorField_hCreateFromVoxels( PKINSTANCE hLib,
@@ -1246,8 +1374,13 @@ PICOGK_API PKMETADATA Metadata_hFromVectorField(    PKINSTANCE hLib,
 PICOGK_API void Metadata_Destroy(   PKINSTANCE hLib,
                                     PKMETADATA hThis)
 {
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVdbMetas.bDestroy(hThis);
+    // Library may have been cleaned up already, whereas the object
+    // could still be alive due to delayed gargabe collector
+    if (Library::oLib().bIsValid(hLib))
+    {
+        Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+        roLib->m_oVdbMetas.bDestroy(hThis);
+    }
 }
 
 PICOGK_API int32_t Metadata_nCount( PKINSTANCE hLib,
