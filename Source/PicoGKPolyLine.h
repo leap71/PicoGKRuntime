@@ -68,6 +68,7 @@ public:
     
     int32_t nAddVertex(const Vector3& vec)
     {
+        m_oBBox.Include(vec);
         m_oVertices.push_back(vec);
         return int32_t(m_oVertices.size() - 1);
     }
@@ -94,9 +95,12 @@ public:
         return m_clrLines;
     }
     
+    inline BBox3 oBBox() {return m_oBBox;}
+    
 protected:
     std::vector<Vector3>    m_oVertices;
     ColorFloat              m_clrLines;
+    BBox3                   m_oBBox;
 };
 }
 
