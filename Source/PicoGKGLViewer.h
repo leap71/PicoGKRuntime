@@ -44,6 +44,7 @@
 #include <map>
 #include "gl/gl.h"
 #include "PicoGKLibraryMgr.h"
+#include "PicoGKTrace.h"
 
 struct GLFWwindow;
 
@@ -178,6 +179,8 @@ protected:
         
         void AddMesh(int64_t hLib, int64_t hMesh)
         {
+            PKTRACE(AddMesh);
+            
             auto roLib  = Library::oLib().roGetInstance(hLib);
             auto roMesh = roLib->m_oMeshes.roGet(hMesh);
             
@@ -189,6 +192,8 @@ protected:
         
         void RemoveMesh(int64_t hLib, int64_t hMesh)
         {
+            PKTRACE(RemoveMesh);
+            
             auto it = m_oViewMeshes.find(std::make_pair(hLib, hMesh));
             
             if (it == m_oViewMeshes.end())
@@ -433,6 +438,7 @@ private:
     
 protected:
     PKFInfo                         m_pfnInfoCallback;
+    mutable std::shared_mutex       m_mtx;
     std::map<GLFWwindow*, Viewer*>  m_oViewers;
 };
 
