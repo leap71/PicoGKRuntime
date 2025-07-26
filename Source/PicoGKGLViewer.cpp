@@ -207,7 +207,7 @@ bool Viewer::bLoadLightSetup(   const char* pDiffuseTextureDDS,
     glGenTextures(1, &m_sConfig.nTexDiffuse);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_sConfig.nTexDiffuse);
-
+    
     if (!bLoadDdsTexture(pDiffuseTextureDDS, nDiffuseBufferSize, GL_TEXTURE_CUBE_MAP))
     {
         ViewerManager::Info("Failed to load diffuse texture dds");
@@ -655,6 +655,8 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
                                     PKPFScrollWheel     pfnScrollWheelCallback,
                                     PKPFWindowSize      pfnWindowSizeCallback)
 {
+    std::unique_lock lk(m_mtx);
+    
     m_pfnInfoCallback = pfnInfoCallback;
     
     glfwSetErrorCallback(ErrorCallback);
@@ -702,6 +704,8 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
 
 void ViewerManager::Destroy(Viewer* poViewer)
 {
+    std::unique_lock lk(m_mtx);
+    
     for (auto Entry : m_oViewers)
     {
         if (Entry.second == poViewer)
@@ -723,6 +727,7 @@ bool ViewerManager::bIsValid(const Viewer* poViewer) const
 
 bool ViewerManager::bExists(const Viewer* poViewer) const
 {
+    std::shared_lock lk(m_mtx);
     for (auto Entry : m_oViewers)
     {
         if (Entry.second == poViewer)
@@ -734,6 +739,7 @@ bool ViewerManager::bExists(const Viewer* poViewer) const
 
 void ViewerManager::ReportInfo(const std::string strInfo, bool bFatal)
 {
+    std::shared_lock lk(m_mtx);
     if (m_pfnInfoCallback != nullptr)
         m_pfnInfoCallback(strInfo.c_str(), bFatal);
 }
@@ -745,7 +751,9 @@ void ViewerManager::KeyPressed(  GLFWwindow* pWindow,
                                  int iModifiers)
 {
     Viewer* poViewer = oMgr().m_oViewers[pWindow];
-    assert(poViewer != nullptr);
+    
+    if (poViewer == nullptr)
+        return;
     
     if (poViewer->m_pfnKeyPressedCallback != nullptr)
     {
@@ -762,7 +770,9 @@ void ViewerManager::MouseMoved(  GLFWwindow* pWindow,
                                  double dMouseY)
 {
     Viewer* poViewer = oMgr().m_oViewers[pWindow];
-    assert(poViewer != nullptr);
+    
+    if (poViewer == nullptr)
+        return;
     
     poViewer->m_vecMousePos.X = (float) dMouseX;
     poViewer->m_vecMousePos.Y = (float) dMouseY;
@@ -780,7 +790,9 @@ void ViewerManager::MouseButton( GLFWwindow* pWindow,
                                  int iModifiers)
 {
     Viewer* poViewer = oMgr().m_oViewers[pWindow];
-    assert(poViewer != nullptr);
+    
+    if (poViewer == nullptr)
+        return;
     
     if (poViewer->m_pfnMouseButtonCallback != nullptr)
     {
@@ -798,7 +810,9 @@ void ViewerManager::ScrollWheel(    GLFWwindow* pWindow,
                                     double dY)
 {
     Viewer* poViewer = oMgr().m_oViewers[pWindow];
-    assert(poViewer != nullptr);
+    
+    if (poViewer == nullptr)
+        return;
 
     if (poViewer->m_pfnScrollWheelCallback != nullptr)
     {
@@ -816,7 +830,9 @@ void ViewerManager::WindowSize(    GLFWwindow* pWindow,
                                    int nHeight)
 {
     Viewer* poViewer = oMgr().m_oViewers[pWindow];
-    assert(poViewer != nullptr);
+    
+    if (poViewer == nullptr)
+        return;
 
     if (poViewer->m_pfnWindowSizeCallback != nullptr)
     {
