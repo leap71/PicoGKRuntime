@@ -52,6 +52,10 @@ template
 class HandleManager 
 {
 public:
+    HandleManager(std::string strName)
+    {
+        m_strName = strName;
+    }
     /// Add a new object, returns a unique handle.
     inline Handle hAdd(std::shared_ptr<T> obj) 
     {
@@ -71,7 +75,9 @@ public:
         auto it = m_map.find(h);
 
         if (it == m_map.end())
-            throw std::out_of_range("invalid handle");
+        {
+            throw std::out_of_range(m_strName + ": Invalid Handle");
+        }
 
         return it->second;
     }
@@ -110,6 +116,7 @@ public:
     }
 
 private:
+    std::string                                     m_strName;
     mutable std::shared_mutex                       m_mtx;
     Handle                                          m_hCurrent = 0;
     std::unordered_map<Handle, std::shared_ptr<T>>  m_map;
