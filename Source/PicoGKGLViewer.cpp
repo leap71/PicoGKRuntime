@@ -304,6 +304,9 @@ void Viewer::AddMesh(   int32_t         nGroupID,
                         int64_t         hLib,
                         int64_t         hMesh)
 {
+    // Remove Mesh if already there
+    RemoveMesh(hLib, hMesh);
+    
     RecalcNeeded();
     roGroupAt(nGroupID)->AddMesh(hLib, hMesh);
     RequestUpdate();
@@ -319,17 +322,19 @@ void Viewer::RemoveMesh(    int64_t         hLib,
         if (poGroup->bFindMesh(hLib, hMesh))
         {
             poGroup->RemoveMesh(hLib, hMesh);
+            RequestUpdate();
             return;
         }
     }
-    
-    ViewerManager::Info("Viewer::RemoveMesh - Trying to remove a mesh that doesn't exist.");
 }
 
 void Viewer::AddVoxels(     int32_t         nGroupID,
                             int64_t         hLib,
                             int64_t         hVoxels)
 {
+    // Remove Voxels if already there
+    RemoveVoxels(hLib, hVoxels);
+    
     RecalcNeeded();
     roGroupAt(nGroupID)->AddVoxels(hLib, hVoxels);
     RequestUpdate();
@@ -345,17 +350,19 @@ void Viewer::RemoveVoxels(  int64_t hLib,
         if (poGroup->bFindVoxels(hLib, hVoxels))
         {
             poGroup->RemoveVoxels(hLib, hVoxels);
+            RequestUpdate();
             return;
         }
     }
-    
-    ViewerManager::Info("Viewer::RemoveMesh - Trying to remove Voxels that doesn't exist.");
 }
 
 void Viewer::AddPolyLine(   int32_t nGroupID,
                             int64_t hLib,
                             int64_t hPoly)
 {
+    // Remove PolyLine if already there
+    RemoveMesh(hLib, hPoly);
+    
     RecalcNeeded();
     roGroupAt(nGroupID)->AddPolyLine(hLib, hPoly);
     RequestUpdate();
@@ -371,11 +378,10 @@ void Viewer::RemovePolyLine(    int64_t hLib,
         if (poGroup->bFindPolyLine(hLib, hPoly))
         {
             poGroup->RemovePolyLine(hLib, hPoly);
+            RequestUpdate();
             return;
         }
     }
-    
-    ViewerManager::Info("Viewer::RemovePolyLine - Trying to remove a polyline that doesn't exist.");
 }
 
 void Viewer::SetGroupVisible(   int32_t     nGroupID,
