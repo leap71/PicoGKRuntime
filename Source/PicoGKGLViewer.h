@@ -97,6 +97,13 @@ public:
     void RemoveMesh(    int64_t hLib,
                         int64_t hMesh);
     
+    void AddVoxels( int32_t nGroupID,
+                    int64_t hLib,
+                    int64_t hVoxels);
+    
+    void RemoveVoxels(  int64_t hLib,
+                        int64_t hVoxels);
+    
     void AddPolyLine(   int32_t nGroupID,
                         int64_t hLib,
                         int64_t hPoly);
@@ -119,6 +126,12 @@ public:
                             const Matrix4x4&    mat);
     
     GLFWwindow* pTheWindow() const      {return m_pTheWindow;}
+    
+    BBox3 oBBox()
+    {
+        RecalculateInformationIfNeeded();
+        return m_oBBox;
+    }
     
 protected:
     GLFWwindow*                         m_pTheWindow                = nullptr;
@@ -184,7 +197,7 @@ protected:
             auto roLib  = Library::oLib().roGetInstance(hLib);
             auto roMesh = roLib->m_oMeshes.roGet(hMesh);
             
-            // Add a copy, so we dont depend on the original polyline
+            // Add a copy, so we dont depend on the original mesh
             Mesh::Ptr roNew = std::make_shared<Mesh>(*roMesh);
             
             m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_shared<ViewMesh>(roNew);
@@ -210,6 +223,42 @@ protected:
         bool bFindMesh(int64_t hLib, int64_t hMesh)
         {
             return !(m_oViewMeshes.find(std::make_pair(hLib, hMesh)) == m_oViewMeshes.end());
+        }
+        
+        void AddVoxels(int64_t hLib, int64_t hVoxels)
+        {
+            PKTRACE(AddVoxels);
+            
+            auto roLib      = Library::oLib().roGetInstance(hLib);
+            auto roVoxels   = roLib->m_oVoxels.roGet(hVoxels);
+            
+            // Transform to Mesh
+            Mesh::Ptr roNew = roVoxels->roAsMesh(roLib->fVoxelSizeMM());
+            
+            m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_shared<ViewMesh>(roNew);
+        }
+        
+        void RemoveVoxels(int64_t hLib, int64_t hVoxels)
+        {
+            PKTRACE(RemoveVoxels);
+            
+            // Find a mesh that is stored with the voxel ID
+            auto it = m_oViewMeshes.find(std::make_pair(hLib, hVoxels));
+            
+            if (it == m_oViewMeshes.end())
+            {
+                assert(false);
+                // Trying to remove a Voxels object that doesn't exist
+            }
+            else
+            {
+                m_oViewMeshes.erase(it);
+            }
+        }
+        
+        bool bFindVoxels(int64_t hLib, int64_t hVoxels)
+        {
+            return !(m_oViewMeshes.find(std::make_pair(hLib, hVoxels)) == m_oViewMeshes.end());
         }
         
         void AddPolyLine(int64_t hLib, int64_t hPoly)
@@ -280,6 +329,8 @@ protected:
         
         void Draw(  const Matrix4x4& matModelTrans,
                     const ShaderConfig& sConfig);
+        
+        BBox3 oCalculateBBox() const;
         
     protected:
         bool m_bVisible;
@@ -369,6 +420,14 @@ protected:
     }
     
     std::map<int,Group::Ptr> m_oGroups;
+    
+    void RecalculateInformationIfNeeded();
+    
+    void RecalcNeeded()     {m_bRecalcNeeded = true;}
+    
+    bool                    m_bRecalcNeeded = true;
+    
+    BBox3                   m_oBBox;
 };
 
 class ViewerManager

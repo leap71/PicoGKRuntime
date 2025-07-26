@@ -1,7 +1,7 @@
 #ifndef PICOGK_BUILD_H
 #define PICOGK_BUILD_H
 
-#define PICOGK_BUILD       "2025-07-20 15:55:01"
+#define PICOGK_BUILD       "2025-07-26 17:43:16"
 #define PICOGK_LIB_VERSION "25.2.0"
 #define PICOGK_LIB_NAME    "picogk"
 

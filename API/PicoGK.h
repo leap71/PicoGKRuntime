@@ -70,6 +70,7 @@ PICOGK_API void         Library_GetVersion(                 char psz[PKINFOSTRIN
 
 PICOGK_API void         Library_GetBuildInfo(               char psz[PKINFOSTRINGLEN]);
 
+
 #define PKHANDLE        uint64_t
 #define PKINSTANCE      PKHANDLE
 #define PKMESH          PKHANDLE
@@ -81,6 +82,7 @@ PICOGK_API void         Library_GetBuildInfo(               char psz[PKINFOSTRIN
 #define PKSCALARFIELD   PKHANDLE
 #define PKVECTORFIELD   PKHANDLE
 #define PKMETADATA      PKHANDLE
+#define PKFILEINFO      PKHANDLE
 
 // LIBRARY INSTANCE
 
@@ -334,6 +336,10 @@ PICOGK_API void             PolyLine_GetColor(              PKINSTANCE          
                                                             PKPOLYLINE          hThis,
                                                             PKColorFloat*       pclr);
 
+PICOGK_API void             PolyLine_GetBoundingBox(        PKINSTANCE          hLib,
+                                                            PKPOLYLINE          hThis,
+                                                            PKBBox3*            poBox);
+
 // VIEWER
 
 PICOGK_API PKVIEWER         Viewer_hCreate(                 const char*         pszWindowTitle,
@@ -374,6 +380,15 @@ PICOGK_API  void            Viewer_RemoveMesh(              PKINSTANCE          
                                                             PKVIEWER            hThis,
                                                             PKMESH              hMesh);
 
+PICOGK_API  void            Viewer_AddVoxels(               PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            PKVOXELS            hVoxels);
+
+PICOGK_API  void            Viewer_RemoveVoxels(            PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKVOXELS            hVoxels);
+
 PICOGK_API  void            Viewer_AddPolyLine(             PKINSTANCE          hLib,
                                                             PKVIEWER            hThis,
                                                             int32_t             nGroupID,
@@ -400,6 +415,10 @@ PICOGK_API  void            Viewer_SetGroupMaterial(        PKVIEWER            
 PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            hThis,
                                                             int32_t             nGroupID,
                                                             const PKMatrix4x4*  pmat);
+
+PICOGK_API void             Viewer_GetBoundingBox(          PKVIEWER            hThis,
+                                                            PKBBox3*            poBox);
+
 
 PICOGK_API PKVDBFILE        VdbFile_hCreate(                PKINSTANCE          hInstance);
 

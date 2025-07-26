@@ -319,7 +319,7 @@ PICOGK_API void Mesh_GetBoundingBox(    PKINSTANCE hLib,
                                         BBox3* poBox)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oMeshes.roGet(hThis)->GetBoundingBox(poBox);
+    *poBox = roLib->m_oMeshes.roGet(hThis)->oBBox();
 }
 
 PICOGK_API int32_t Mesh_nTriangleCount( PKINSTANCE hLib,
@@ -689,6 +689,14 @@ PICOGK_API void PolyLine_GetVertex( PKINSTANCE hLib,
     roLib->m_oPolyLines.roGet(hThis)->GetVertex(nIndex, pvec);
 }
 
+PICOGK_API void PolyLine_GetBoundingBox(    PKINSTANCE hLib,
+                                            PKPOLYLINE hThis,
+                                            BBox3* poBox)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    *poBox = roLib->m_oPolyLines.roGet(hThis)->oBBox();
+}
+
 PICOGK_API int32_t PolyLine_nVertexCount(   PKINSTANCE hLib,
                                             PKPOLYLINE hThis)
 {
@@ -826,6 +834,31 @@ PICOGK_API void Viewer_RemoveMesh(  PKINSTANCE hLib,
     poThis->RemoveMesh(hLib, hMesh);
 }
 
+PICOGK_API void Viewer_AddVoxels(   PKINSTANCE hLib,
+                                    PKVIEWER    hThis,
+                                    int32_t     nGroupID,
+                                    PKVOXELS    hVoxels)
+{
+    PKTRACE(Viewer_AddVoxels);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->AddVoxels(nGroupID, hLib, hVoxels);
+}
+
+PICOGK_API void Viewer_RemoveVoxels(    PKINSTANCE  hLib,
+                                        PKVIEWER    hThis,
+                                        PKVOXELS    hVoxels)
+{
+    PKTRACE(Viewer_RemoveVoxels);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RemoveVoxels(hLib, hVoxels);
+}
+
 
 PICOGK_API void Viewer_AddPolyLine( PKINSTANCE hLib,
                                     PKVIEWER    hThis,
@@ -903,35 +936,15 @@ PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
     poThis->SetGroupMatrix(nGroupID, *pmat);
 }
 
-extern "C"
+PICOGK_API void Viewer_GetBoundingBox(  PKVIEWER hThis,
+                                        PKBBox3* poBox)
 {
-
-bool bShowOpenFileDialog(   GLFWwindow* window,
-                            const char* apszAllowedExtensions[],
-                            int nExtCount,
-                            char** ppszOutPath);
-}
-
-
-PICOGK_API PKFILEINFO Viewer_hOpenFileDialog(   PKVIEWER hThis,
-                                                const char* pszDirectory,
-                                                const char* apszWildcards [],
-                                                int nWildCardCount,
-                                                bool bMultipleFiles,
-                                                bool bDirectoryChooser)
-{
+    PKTRACE(Viewer_GetBoundingBox);
+    
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    char* psz = nullptr;
-    
-    if (!bShowOpenFileDialog(   poThis->pTheWindow(),
-                                apszWildcards,
-                                nWildCardCount,
-                                &psz))
-    {
-        return 0;
-    }
+    *poBox = poThis->oBBox();
 }
 
 PICOGK_API PKVDBFILE VdbFile_hCreate(PKINSTANCE hLib)

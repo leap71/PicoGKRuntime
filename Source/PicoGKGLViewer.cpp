@@ -304,6 +304,7 @@ void Viewer::AddMesh(   int32_t         nGroupID,
                         int64_t         hLib,
                         int64_t         hMesh)
 {
+    RecalcNeeded();
     roGroupAt(nGroupID)->AddMesh(hLib, hMesh);
     RequestUpdate();
 }
@@ -311,6 +312,7 @@ void Viewer::AddMesh(   int32_t         nGroupID,
 void Viewer::RemoveMesh(    int64_t         hLib,
                             int64_t         hMesh)
 {
+    RecalcNeeded();
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
@@ -324,10 +326,37 @@ void Viewer::RemoveMesh(    int64_t         hLib,
     ViewerManager::Info("Viewer::RemoveMesh - Trying to remove a mesh that doesn't exist.");
 }
 
+void Viewer::AddVoxels(     int32_t         nGroupID,
+                            int64_t         hLib,
+                            int64_t         hVoxels)
+{
+    RecalcNeeded();
+    roGroupAt(nGroupID)->AddVoxels(hLib, hVoxels);
+    RequestUpdate();
+}
+
+void Viewer::RemoveVoxels(  int64_t hLib,
+                            int64_t hVoxels)
+{
+    RecalcNeeded();
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        if (poGroup->bFindVoxels(hLib, hVoxels))
+        {
+            poGroup->RemoveVoxels(hLib, hVoxels);
+            return;
+        }
+    }
+    
+    ViewerManager::Info("Viewer::RemoveMesh - Trying to remove Voxels that doesn't exist.");
+}
+
 void Viewer::AddPolyLine(   int32_t nGroupID,
                             int64_t hLib,
                             int64_t hPoly)
 {
+    RecalcNeeded();
     roGroupAt(nGroupID)->AddPolyLine(hLib, hPoly);
     RequestUpdate();
 }
@@ -335,6 +364,7 @@ void Viewer::AddPolyLine(   int32_t nGroupID,
 void Viewer::RemovePolyLine(    int64_t hLib,
                                 int64_t hPoly)
 {
+    RecalcNeeded();
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
@@ -564,6 +594,25 @@ void Viewer::Group::Draw(   const Matrix4x4& matModelTrans,
     }
 }
 
+BBox3 Viewer::Group::oCalculateBBox() const
+{
+    BBox3 oBBox;
+    
+    for (auto o : m_oViewPolyLines)
+    {
+        ViewPolyLine::Ptr roLine = o.second;
+        oBBox.Include(roLine->m_roPolyLine->oBBox());
+    }
+    
+    for (auto o : m_oViewMeshes)
+    {
+        ViewMesh::Ptr roMesh = o.second;
+        oBBox.Include(roMesh->m_roMesh->oBBox());
+    }
+    
+    return oBBox;
+}
+
 Viewer::Group::ViewMesh::ViewMesh(const Mesh::Ptr& roMesh)
 {
     m_roMesh = roMesh;
@@ -627,6 +676,21 @@ void Viewer::Group::ViewMesh::Draw( const ShaderConfig& sConfig,
     glDrawElements(GL_TRIANGLES, m_roMesh->nTriangleCount() * 3, GL_UNSIGNED_INT, nullptr);
 
     CHECKGLERRORS;
+}
+
+void Viewer::RecalculateInformationIfNeeded()
+{
+    if (!m_bRecalcNeeded)
+        return;
+    
+    // initialize empty
+    m_oBBox = BBox3();
+    
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        m_oBBox.Include(poGroup->oCalculateBBox());
+    }
 }
 
 ViewerManager::ViewerManager()
