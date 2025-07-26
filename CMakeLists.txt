@@ -143,6 +143,30 @@ target_sources(${LIB_NAME} PRIVATE ${API_HEADERS})
 file(GLOB CPP_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h")
 target_sources(${LIB_NAME} PRIVATE ${CPP_HEADERS})
 
+# Specify ImGui source files
+set(IMGUI_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_glfw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+# Add ImGui files to the main library
+target_sources(${LIB_NAME}
+    PRIVATE
+    ${IMGUI_SOURCES}
+)
+
+# Include ImGui headers for the library
+target_include_directories(${LIB_NAME}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+)
+
 # Organize files into virtual folders using the source_group command
 source_group("PicoGK API" FILES ${API_HEADERS})
 
