@@ -384,6 +384,17 @@ void Viewer::RemovePolyLine(    int64_t hLib,
     }
 }
 
+void Viewer::RemoveAllObjects()
+{
+    for (auto Pair : m_oGroups)
+    {
+        Pair.second->RemoveAllObjects();
+    }
+    
+    RecalcNeeded();
+    RequestUpdate();
+}
+
 void Viewer::SetGroupVisible(   int32_t     nGroupID,
                                 bool        bVisible)
 {

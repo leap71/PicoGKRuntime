@@ -885,6 +885,16 @@ PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
     poThis->RemovePolyLine(hLib, hPolyLine);
 }
 
+PICOGK_API void Viewer_RemoveAllObjects(PKVIEWER hThis)
+{
+    PKTRACE(Viewer_RemoveAllObjects);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RemoveAllObjects();
+}
+
 
 PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
                                         int32_t     nGroupID,

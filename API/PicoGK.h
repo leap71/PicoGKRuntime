@@ -398,6 +398,8 @@ PICOGK_API  void            Viewer_RemovePolyLine(          PKINSTANCE          
                                                             PKVIEWER            hThis,
                                                             PKPOLYLINE          hPolyLine);
 
+PICOGK_API  void            Viewer_RemoveAllObjects(        PKVIEWER            hThis);
+
 PICOGK_API  void            Viewer_SetGroupVisible(         PKVIEWER            hThis,
                                                             int32_t             nGroupID,
                                                             bool                bVisible);

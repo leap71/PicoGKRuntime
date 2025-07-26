@@ -110,6 +110,8 @@ public:
         
     void RemovePolyLine(    int64_t hLib,
                             int64_t hPoly);
+    
+    void RemoveAllObjects();
 
     void SetGroupVisible(   int32_t     nGroupID,
                             bool        bVisible);
@@ -290,6 +292,12 @@ protected:
         inline bool bFindPolyLine(int64_t hLib, int64_t hPoly)
         {
             return !(m_oViewPolyLines.find(std::make_pair(hLib, hPoly)) == m_oViewPolyLines.end());
+        }
+        
+        inline void RemoveAllObjects()
+        {
+            m_oViewMeshes.clear();
+            m_oViewPolyLines.clear();
         }
         
         inline void SetVisible(bool bVisible)
