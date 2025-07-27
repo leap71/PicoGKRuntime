@@ -47,6 +47,7 @@
 #include "PicoGKTrace.h"
 
 struct GLFWwindow;
+struct ImGuiContext;
 
 namespace PicoGK
 {
@@ -64,7 +65,8 @@ public:
     // Plus viewers are never shared, so shared pointers are
     // just overkill
 
-    Viewer( GLFWwindow*,
+    Viewer( GLFWwindow*             pTheWindow,
+            ImGuiContext*           psSharedImGuiContext,
             PKPFUpdateRequested     pfnUpdateCallback,
             PKPFKeyPressed          pfnKeyPressedCallback,
             PKPFMouseMoved          pfnMouseMoveCallback,
@@ -179,7 +181,17 @@ protected:
     void DrawScene();
     
     void DrawGui();
-
+    
+    void EnsureFrameBuffer(int nX, int nY);
+    
+GLuint              m_nSceneFBO         = 0;
+    GLuint          m_nSceneTex         = 0;
+    GLuint          m_nSceneDepth       = 0;
+    int             m_nSceneWidth       = 0;
+    int             m_nSceneHeight      = 0;
+    ImGuiContext*   m_psImGuiContext    = nullptr;
+    
+    
     class Group
     {
     public:
@@ -508,7 +520,8 @@ private:
     ~ViewerManager();
     
 protected:
-    PKFInfo                         m_pfnInfoCallback;
+    ImGuiContext*                   m_psSharedImGuiContext  = nullptr;
+    PKFInfo                         m_pfnInfoCallback       = nullptr;
     mutable std::shared_mutex       m_mtx;
     std::map<GLFWwindow*, Viewer*>  m_oViewers;
 };

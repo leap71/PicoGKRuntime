@@ -133,6 +133,7 @@ static void ErrorCallback(int iError, const char* pszDescription)
 
 
 Viewer::Viewer( GLFWwindow*             pTheWindow,
+                ImGuiContext*           psSharedImGuiContext,
                 PKPFUpdateRequested     pfnUpdateCallback,
                 PKPFKeyPressed          pfnKeyPressedCallback,
                 PKPFMouseMoved          pfnMouseMoveCallback,
@@ -196,15 +197,14 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     glfwMakeContextCurrent(m_pTheWindow);
     gladLoadGL(glfwGetProcAddress);
     
-    // Initialize ImGui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    m_psImGuiContext = psSharedImGuiContext;
+    ImGui::SetCurrentContext(m_psImGuiContext);
+    
+    // Then: backend init
+    ImGui_ImplGlfw_InitForOpenGL(pTheWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+    
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark(); // Optional: Use ImGui's default dark theme
-
-    // Initialize platform/renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(m_pTheWindow, true);
-    ImGui_ImplOpenGL3_Init("#version 330"); // Use the appropriate GLSL version
 
     CHECKGLERRORS;
 }
@@ -264,7 +264,38 @@ bool Viewer::bLoadLightSetup(   const char* pDiffuseTextureDDS,
 
 Viewer::~Viewer()
 {
-    glfwDestroyWindow(m_pTheWindow);
+    glfwMakeContextCurrent(m_pTheWindow);
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+
+    if (m_psImGuiContext != nullptr)
+    {
+        //ImGui::SetCurrentContext(m_psImGuiContext);
+        //ImGui::DestroyContext(m_psImGuiContext);
+    }
+
+    if (m_sConfig.nProgram != 0)
+        glDeleteProgram(m_sConfig.nProgram);
+    
+    if (m_sConfig.nVertexShader != 0)
+        glDeleteShader(m_sConfig.nVertexShader);
+    
+    if (m_sConfig.nFragmentShader != 0)
+        glDeleteShader(m_sConfig.nFragmentShader);
+
+    if (m_nSceneTex != 0)
+        glDeleteTextures(1, &m_nSceneTex);
+    
+    if (m_nSceneFBO != 0)
+        glDeleteFramebuffers(1, &m_nSceneFBO);
+
+    // Destroy GLFW window
+    if (m_pTheWindow != nullptr)
+    {
+        glfwDestroyWindow(m_pTheWindow);
+        m_pTheWindow = nullptr;
+    }
 }
 
 namespace
@@ -446,19 +477,78 @@ void Viewer::SetGroupMatrix(    int32_t             nGroupID,
     roGroupAt(nGroupID)->SetMatrix(mat);
 }
 
+void Viewer::EnsureFrameBuffer(int nX, int nY)
+{
+    if (m_nSceneFBO != 0 && nX == m_nSceneWidth && nY == m_nSceneHeight)
+        return; // no change
+
+    if (m_nSceneFBO != 0)
+    {
+        // clean up existing framebuffer
+        glDeleteFramebuffers(1, &m_nSceneFBO);
+        glDeleteTextures(1, &m_nSceneTex);
+        glDeleteRenderbuffers(1, &m_nSceneDepth);
+    }
+
+    m_nSceneWidth = nX;
+    m_nSceneHeight = nY;
+
+    glGenFramebuffers(1, &m_nSceneFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+
+    // Color texture
+    glGenTextures(1, &m_nSceneTex);
+    glBindTexture(GL_TEXTURE_2D, m_nSceneTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, nX, nY, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_nSceneTex, 0);
+
+    // Depth renderbuffer
+    glGenRenderbuffers(1, &m_nSceneDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_nSceneDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, nX, nY);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_nSceneDepth);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    assert(status == GL_FRAMEBUFFER_COMPLETE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void Viewer::Redraw(bool bRedraw3dScane)
 {
     try
     {
         glfwMakeContextCurrent(m_pTheWindow);
+        int iWidth, iHeight;
+        glfwGetFramebufferSize(m_pTheWindow, &iWidth, &iHeight);
+        
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
-        DrawGui();
+        EnsureFrameBuffer(iWidth, iHeight);
         
         if (bRedraw3dScane)
             DrawScene();
+        
+        ImVec2 vScale   = ImGui::GetIO().DisplayFramebufferScale;
+        ImVec2 vSize    = ImVec2(iWidth / vScale.x, iHeight / vScale.y);
+        
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(vSize);
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+        ImGui::Begin("Scene View", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs);
+        ImTextureID texID = (ImTextureID)(intptr_t)m_nSceneTex;
+        ImGui::Image(texID, vSize, ImVec2(0, 1), ImVec2(1, 0)); // Flip Y
+
+        ImGui::End();
+        ImGui::PopStyleVar(2);
+        
+        DrawGui();
         
         // Render ImGui
         ImGui::Render();
@@ -474,10 +564,15 @@ void Viewer::Redraw(bool bRedraw3dScane)
 
 void Viewer::DrawScene()
 {
-    //get framebuffer size in device pixels
-    int iWidth, iHeight;
-    glfwGetFramebufferSize(m_pTheWindow, &iWidth, &iHeight);
-    glViewport(0, 0, iWidth, iHeight);
+    if (m_nSceneFBO == 0)
+    {
+        ViewerManager::Info("No scene FBO available - not drawing scene");
+        return;
+    }
+    
+    // Bind FBO instead of default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+    glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
     
     ColorFloat clrBackground;
     clrBackground.R = 1.0f;
@@ -494,8 +589,8 @@ void Viewer::DrawScene()
     if (m_pfnUpdateCallback != nullptr)
     {
         Vector2 vecViewSize;
-        vecViewSize.X = (float) iWidth;
-        vecViewSize.Y = (float) iHeight;
+        vecViewSize.X = (float) m_nSceneWidth;
+        vecViewSize.Y = (float) m_nSceneHeight;
         
         m_pfnUpdateCallback(    this,
                                 &vecViewSize,
@@ -559,13 +654,15 @@ void Viewer::DrawScene()
     
     if (m_strScreenShotPath != "")
     {
-        std::vector<unsigned char> image(iWidth * iHeight * 3); // 3 bytes per pixel (RGB)
-        glReadPixels(0, 0, iWidth, iHeight, GL_BGR, GL_UNSIGNED_BYTE, image.data());
+        std::vector<unsigned char> image(m_nSceneWidth * m_nSceneHeight * 3); // 3 bytes per pixel (RGB)
+        glReadPixels(0, 0, m_nSceneWidth, m_nSceneHeight, GL_BGR, GL_UNSIGNED_BYTE, image.data());
         
         // Save the image as a TGA file
-        SaveTGA(m_strScreenShotPath, image, iWidth, iHeight);
+        SaveTGA(m_strScreenShotPath, image, m_nSceneWidth, m_nSceneHeight);
         m_strScreenShotPath = "";
     }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Viewer::DrawGui()
@@ -765,10 +862,26 @@ ViewerManager::ViewerManager()
         fprintf(stderr, "GLFW initialization failed\n");
         return;
     }
+    
+    IMGUI_CHECKVERSION();
+    m_psSharedImGuiContext = ImGui::CreateContext(); // optional, shared fonts
+    ImGui::StyleColorsDark();
 }
 
 ViewerManager::~ViewerManager()
 {
+    for (auto& it : m_oViewers)
+    {
+        delete it.second;
+    }
+        
+    m_oViewers.clear();
+
+    if (m_psSharedImGuiContext)
+    {
+        ImGui::DestroyContext(m_psSharedImGuiContext);
+    }
+
     glfwTerminate();
 }
 
@@ -816,6 +929,7 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
     glfwSetWindowSizeCallback(  pWindow, WindowSize);
     
     Viewer* poViewer = new Viewer(  pWindow,
+                                    m_psSharedImGuiContext,
                                     pfnUpdateCallback,
                                     pfnKeyPressedCallback,
                                     pfnMouseMoveCallback,
