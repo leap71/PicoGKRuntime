@@ -482,6 +482,10 @@ void Viewer::OnKeyPressed(  int iKey,
                             int iAction,
                             int iModifiers)
 {
+    ImGui::SetCurrentContext(m_psImGuiContext);
+    if (ImGui::GetIO().WantCaptureKeyboard)
+        return;
+    
     if (m_pfnKeyPressedCallback != nullptr)
     {
         m_pfnKeyPressedCallback(    this,
@@ -495,6 +499,10 @@ void Viewer::OnKeyPressed(  int iKey,
 void Viewer::OnMouseMoved(  double dMouseX,
                             double dMouseY)
 {
+    ImGui::SetCurrentContext(m_psImGuiContext);
+    if (ImGui::GetIO().WantCaptureMouse)
+        return;
+    
     m_vecMousePos.X = (float) dMouseX;
     m_vecMousePos.Y = (float) dMouseY;
 
@@ -508,6 +516,10 @@ void Viewer::OnMouseButton( int iButton,
                             int iAction,
                             int iModifiers)
 {
+    ImGui::SetCurrentContext(m_psImGuiContext);
+    if (ImGui::GetIO().WantCaptureMouse)
+        return;
+            
     if (m_pfnMouseButtonCallback != nullptr)
     {
         m_pfnMouseButtonCallback(   this,
@@ -521,6 +533,10 @@ void Viewer::OnMouseButton( int iButton,
 void Viewer::OnScrollWheel( double dX,
                             double dY)
 {
+    ImGui::SetCurrentContext(m_psImGuiContext);
+    if (ImGui::GetIO().WantCaptureMouse)
+        return;
+            
     if (m_pfnScrollWheelCallback != nullptr)
     {
         Vector2 vec;
@@ -555,8 +571,8 @@ void Viewer::EnsureFrameBuffer(int nX, int nY)
         glDeleteRenderbuffers(1, &m_nSceneDepth);
     }
 
-    m_nSceneWidth = nX;
-    m_nSceneHeight = nY;
+    m_nSceneWidth   = nX;
+    m_nSceneHeight  = nY;
 
     glGenFramebuffers(1, &m_nSceneFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
@@ -732,12 +748,30 @@ void Viewer::DrawScene()
 
 void Viewer::DrawGui()
 {
-    /*ImGui::ShowDemoWindow();
+   
+    /*SideBar::Ptr    roSBL   = std::make_shared<SideBar>     (0, this, ColorFloat(1,1,1,0.5f), 100, 400, 200, true);
+    TextLabel::Ptr  roLabel = std::make_shared<TextLabel>   (1, this, ColorFloat(0,0,1,0.9f), "Hello World");
+    Slider::Ptr     roSlider = std::make_shared<Slider>  (      3,
+                                                                this,
+                                                                ColorFloat(1,1,1,.7f),
+                                                                ColorFloat(1,1,1,.9f),
+                                                                ColorFloat(1,1,1,1),
+                                                                ColorFloat(1,0,0,.7f),
+                                                                ColorFloat(1,0,0,1),
+                                                                ColorFloat(.5f,.5f,.5f,.9f),
+                                                                "Value",
+                                                                -1.0f,2.0f,
+                                                                0.0f);
     
-    // Add ImGui elements here
-    ImGui::Begin("Viewer Controls");
-    ImGui::Text("Hello, ImGui!");
-    ImGui::End();*/
+    
+                                                                           
+    roSBL->AddChild(roLabel);
+    roSBL->AddChild(roSlider);
+    
+    roSBL->Draw();
+    
+    SideBar oSBR(2, this, ColorFloat(1,1,1,0.5f), 100, 400, 200, false);
+    oSBR.Draw();*/
 }
 
 Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine::Ptr& roPoly)
@@ -916,6 +950,81 @@ void Viewer::RecalculateInformationIfNeeded()
         Group::Ptr poGroup = Pair.second;
         m_oBBox.Include(poGroup->oCalculateBBox());
     }
+}
+
+void Viewer::SideBar::Setup()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    
+    ImVec2 vecWindowSize = ImVec2(m_nDef, io.DisplaySize.y);
+
+    // Set position to top-right, with pivot (1.0f, 0.0f)
+    ImGui::SetNextWindowPos(    ImVec2(m_bLeft ? 0 : io.DisplaySize.x, 0),
+                                ImGuiCond_Always,
+                                ImVec2(m_bLeft ? 0.0f : 1.0f, 0.0f));
+    
+    ImGui::SetNextWindowSize(vecWindowSize, ImGuiCond_Once);
+    
+    ImGui::SetNextWindowSizeConstraints(    ImVec2(m_nMin, vecWindowSize.y),
+                                            ImVec2(m_nMax, vecWindowSize.y));
+
+    ImGui::PushStyleColor(  ImGuiCol_WindowBg,
+                            m_clrBackground.sToImVec4());
+
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoMove;
+
+    ImGui::Begin(m_strName.c_str(), nullptr, flags);
+}
+
+void Viewer::SideBar::DrawMe()
+{
+    // Nothing to do (only children will be drawn)
+}
+
+void Viewer::SideBar::Close()
+{
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
+
+void Viewer::TextLabel::Setup()
+{
+    ImGui::PushStyleColor(  ImGuiCol_Text,
+                            m_clrText.sToImVec4());
+}
+
+void Viewer::TextLabel::DrawMe()
+{
+    ImGui::Text("%s", m_strName.c_str());
+}
+
+void Viewer::TextLabel::Close()
+{
+    ImGui::PopStyleColor();
+}
+
+void Viewer::Slider::Setup()
+{
+    ImGui::PushStyleColor(ImGuiCol_FrameBg,             m_clrFrameBg.sToImVec4());
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,      m_clrFrameBgHv.sToImVec4());
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive,       m_clrFrameBgActive.sToImVec4());
+    ImGui::PushStyleColor(ImGuiCol_SliderGrab,          m_clrGrab.sToImVec4());
+    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive,    m_clrGrabActive.sToImVec4());
+    ImGui::PushStyleColor(ImGuiCol_Text,                m_clrText.sToImVec4());
+}
+
+void Viewer::Slider::DrawMe()
+{
+    ImGui::SliderFloat(m_strName.c_str(), &m_fValue, m_fMin, m_fMax);
+}
+
+void Viewer::Slider::Close()
+{
+    ImGui::PopStyleColor(6);
 }
 
 ViewerManager::ViewerManager()

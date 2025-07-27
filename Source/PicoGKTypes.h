@@ -42,6 +42,7 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include "imgui.h"
 
 #define PKINIT(var)                 m_##var(var)
 #define PKSHAREDPTR(class)          typedef std::shared_ptr<class> Ptr;
@@ -62,6 +63,11 @@ struct ColorFloat
     float G;
     float B;
     float A;
+    
+    ImVec4 sToImVec4()
+    {
+        return ImVec4(R,G,B,A);
+    }
 };
 
 struct Coord

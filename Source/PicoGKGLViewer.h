@@ -470,6 +470,197 @@ GLuint              m_nSceneFBO         = 0;
     bool                    m_bRecalcNeeded = true;
     
     BBox3                   m_oBBox;
+    
+    // Viewer GUI elements
+  
+    class GuiElement
+    {
+   
+    public:
+        PKSHAREDPTR(GuiElement);
+        
+        GuiElement( uint64_t        hHandle,
+                    Viewer*         poViewer,
+                    std::string     strName,
+                    bool            bVisible = true)
+        
+            :   PKINIT(hHandle),
+                PKINIT(poViewer),
+                m_strName(strName + "##" + std::to_string(hHandle)),
+                PKINIT(bVisible)
+        {
+           
+        }
+        
+        void AddChild(GuiElement::Ptr roChild)
+        {
+            m_oChildren.push_back(roChild);
+        }
+        
+        void RemoveChild(GuiElement::Ptr roChild)
+        {
+            auto it = std::find(m_oChildren.begin(), m_oChildren.end(), roChild);
+            if (it != m_oChildren.end())
+            {
+                m_oChildren.erase(it);
+            }
+        }
+        
+        virtual void Draw()
+        {
+            if (!m_bVisible)
+                return;
+            
+            Setup();
+            
+            DrawMe();
+            
+            for (auto roElement : m_oChildren)
+            {
+                roElement->Draw();
+            }
+            
+            Close();
+        }
+        
+        void SetVisible(bool bVisible) {m_bVisible = bVisible;}
+        
+    protected:
+        
+        virtual void Setup() = 0;
+        
+        virtual void DrawMe() = 0;
+        
+        virtual void Close() = 0;
+        
+        uint64_t                        m_hHandle;
+        Viewer*                         m_poViewer;
+        std::string                     m_strName;
+        GuiElement::Ptr                 m_roParent;
+        bool                            m_bVisible;
+        std::deque<GuiElement::Ptr>     m_oChildren;
+    };
+    
+    class SideBar : public GuiElement
+    {
+    public:
+        SideBar(    uint64_t    hHandle,
+                    Viewer*     poViewer,
+                    ColorFloat  clrBackground,
+                    int         nMin,
+                    int         nMax,
+                    int         nDef,
+                    bool        bLeft,
+                    bool        bVisible = true)
+        
+        :   GuiElement(     hHandle,
+                            poViewer,
+                            bLeft ? "Sidebar_Left" : "Sidebar_Right",
+                            bVisible),
+            PKINIT(clrBackground),
+            PKINIT(nMin),
+            PKINIT(nMax),
+            PKINIT(nDef),
+            PKINIT(bLeft)
+        {
+            
+        }
+        
+    protected:
+        virtual void Setup();
+        
+        virtual void DrawMe();
+        
+        virtual void Close();
+        
+        ColorFloat  m_clrBackground;
+        int         m_nMin;
+        int         m_nMax;
+        int         m_nDef;
+        bool        m_bLeft;
+    };
+    
+    class TextLabel : public GuiElement
+    {
+    public:
+        TextLabel(  uint64_t        hHandle,
+                    Viewer*         poViewer,
+                    ColorFloat      clrText,
+                    std::string     strText,
+                    bool            bVisible = true)
+        
+        :   GuiElement( hHandle,
+                        poViewer,
+                        strText,
+                        bVisible),
+            PKINIT(strText),
+            PKINIT(clrText)
+        {
+            
+        }
+        
+    protected:
+        virtual void Setup();
+        
+        virtual void DrawMe();
+        
+        virtual void Close();
+        
+        std::string m_strText;
+        ColorFloat  m_clrText;
+    };
+    
+    class Slider : public GuiElement
+    {
+    public:
+        Slider(     uint64_t        hHandle,
+                    Viewer*         poViewer,
+                    ColorFloat      clrFrameBg,
+                    ColorFloat      clrFrameBgHv,
+                    ColorFloat      clrFrameBgActive,
+                    ColorFloat      clrGrab,
+                    ColorFloat      clrGrabActive,
+                    ColorFloat      clrText,
+                    std::string     strText,
+                    float           fMin,
+                    float           fMax,
+                    float           fValue,
+                    bool            bVisible = true)
+        
+        :   GuiElement( hHandle,
+                        poViewer,
+                        strText,
+                        bVisible),
+            PKINIT(clrFrameBg),
+            PKINIT(clrFrameBgHv),
+            PKINIT(clrFrameBgActive),
+            PKINIT(clrGrab),
+            PKINIT(clrGrabActive),
+            PKINIT(clrText),
+            PKINIT(fMin),
+            PKINIT(fMax),
+            PKINIT(fValue)
+        {
+            
+        }
+        
+    protected:
+        virtual void Setup();
+        
+        virtual void DrawMe();
+        
+        virtual void Close();
+        
+        ColorFloat      m_clrFrameBg;
+        ColorFloat      m_clrFrameBgHv;
+        ColorFloat      m_clrFrameBgActive;
+        ColorFloat      m_clrGrab;
+        ColorFloat      m_clrGrabActive;
+        ColorFloat      m_clrText;
+        float           m_fMin;
+        float           m_fMax;
+        float           m_fValue;
+    };
 };
 
 class ViewerManager
