@@ -477,6 +477,71 @@ void Viewer::SetGroupMatrix(    int32_t             nGroupID,
     roGroupAt(nGroupID)->SetMatrix(mat);
 }
 
+void Viewer::OnKeyPressed(  int iKey,
+                            int iScanCode,
+                            int iAction,
+                            int iModifiers)
+{
+    if (m_pfnKeyPressedCallback != nullptr)
+    {
+        m_pfnKeyPressedCallback(    this,
+                                    iKey,
+                                    iScanCode,
+                                    iAction,
+                                    iModifiers);
+    }
+}
+
+void Viewer::OnMouseMoved(  double dMouseX,
+                            double dMouseY)
+{
+    m_vecMousePos.X = (float) dMouseX;
+    m_vecMousePos.Y = (float) dMouseY;
+
+    if (m_pfnMouseMoveCallback != nullptr)
+    {
+        m_pfnMouseMoveCallback(this, &m_vecMousePos);
+    }
+}
+
+void Viewer::OnMouseButton( int iButton,
+                            int iAction,
+                            int iModifiers)
+{
+    if (m_pfnMouseButtonCallback != nullptr)
+    {
+        m_pfnMouseButtonCallback(   this,
+                                    iButton,
+                                    iAction,
+                                    iModifiers,
+                                    &m_vecMousePos);
+    }
+}
+
+void Viewer::OnScrollWheel( double dX,
+                            double dY)
+{
+    if (m_pfnScrollWheelCallback != nullptr)
+    {
+        Vector2 vec;
+        vec.X = dX;
+        vec.Y = dY;
+        m_pfnScrollWheelCallback(this, &vec, &m_vecMousePos);
+    }
+}
+
+void Viewer::OnWindowSize(  int nWidth,
+                            int nHeight)
+{
+    if (m_pfnWindowSizeCallback != nullptr)
+    {
+        Vector2 vec;
+        vec.X = nWidth;
+        vec.Y = nHeight;
+        m_pfnWindowSizeCallback(this, &vec);
+    }
+}
+
 void Viewer::EnsureFrameBuffer(int nX, int nY)
 {
     if (m_nSceneFBO != 0 && nX == m_nSceneWidth && nY == m_nSceneHeight)
@@ -996,14 +1061,7 @@ void ViewerManager::KeyPressed(  GLFWwindow* pWindow,
     if (poViewer == nullptr)
         return;
     
-    if (poViewer->m_pfnKeyPressedCallback != nullptr)
-    {
-        poViewer->m_pfnKeyPressedCallback(  poViewer,
-                                            iKey,
-                                            iScanCode,
-                                            iAction,
-                                            iModifiers);
-    }
+    poViewer->OnKeyPressed(iKey, iScanCode, iAction, iModifiers);
 }
 
 void ViewerManager::MouseMoved(  GLFWwindow* pWindow,
@@ -1015,14 +1073,7 @@ void ViewerManager::MouseMoved(  GLFWwindow* pWindow,
     if (poViewer == nullptr)
         return;
     
-    poViewer->m_vecMousePos.X = (float) dMouseX;
-    poViewer->m_vecMousePos.Y = (float) dMouseY;
-    
-    if (poViewer->m_pfnMouseMoveCallback != nullptr)
-    {
-        poViewer->m_pfnMouseMoveCallback(   poViewer,
-                                            &poViewer->m_vecMousePos);
-    }
+    poViewer->OnMouseMoved(dMouseX, dMouseY);
 }
 
 void ViewerManager::MouseButton( GLFWwindow* pWindow,
@@ -1035,15 +1086,7 @@ void ViewerManager::MouseButton( GLFWwindow* pWindow,
     if (poViewer == nullptr)
         return;
     
-    if (poViewer->m_pfnMouseButtonCallback != nullptr)
-    {
-        poViewer->m_pfnMouseButtonCallback(    poViewer,
-                                               iButton,
-                                               iAction,
-                                               iModifiers,
-                                               &poViewer->m_vecMousePos);
-        
-    }
+    poViewer->OnMouseButton(iButton, iAction, iModifiers);
 }
 
 void ViewerManager::ScrollWheel(    GLFWwindow* pWindow,
@@ -1055,15 +1098,7 @@ void ViewerManager::ScrollWheel(    GLFWwindow* pWindow,
     if (poViewer == nullptr)
         return;
 
-    if (poViewer->m_pfnScrollWheelCallback != nullptr)
-    {
-        Vector2 vec;
-        vec.X = dX;
-        vec.Y = dY;
-        poViewer->m_pfnScrollWheelCallback( poViewer,
-                                            &vec,
-                                            &poViewer->m_vecMousePos);
-    }
+    poViewer->OnScrollWheel(dX, dY);
 }
 
 void ViewerManager::WindowSize(    GLFWwindow* pWindow,
@@ -1074,15 +1109,8 @@ void ViewerManager::WindowSize(    GLFWwindow* pWindow,
     
     if (poViewer == nullptr)
         return;
-
-    if (poViewer->m_pfnWindowSizeCallback != nullptr)
-    {
-        Vector2 vec;
-        vec.X = nWidth;
-        vec.Y = nHeight;
-        poViewer->m_pfnWindowSizeCallback(  poViewer,
-                                            &vec);
-    }
+    
+    poViewer->OnWindowSize(nWidth, nHeight);
 }
 
 const std::string Viewer::m_strVertexShader =

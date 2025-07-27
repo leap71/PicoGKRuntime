@@ -152,6 +152,24 @@ protected:
     PKPFScrollWheel                     m_pfnScrollWheelCallback    = nullptr;
     PKPFWindowSize                      m_pfnWindowSizeCallback     = nullptr;
     
+    void OnKeyPressed(  int iKey,
+                        int iScanCode,
+                        int iAction,
+                        int iModifiers);
+    
+    void OnMouseMoved(  double dMouseX,
+                        double dMouseY);
+    
+    void OnMouseButton( int iButton,
+                        int iAction,
+                        int iModifiers);
+    
+    void OnScrollWheel( double dX,
+                        double dY);
+    
+    void OnWindowSize(  int nWidth,
+                        int nHeight);
+    
     static const std::string            m_strVertexShader;
     static const std::string            m_strFragmentShader;
     
