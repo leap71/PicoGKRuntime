@@ -271,9 +271,12 @@ Viewer::~Viewer()
 
     if (m_psImGuiContext != nullptr)
     {
+        /// TODO
         //ImGui::SetCurrentContext(m_psImGuiContext);
         //ImGui::DestroyContext(m_psImGuiContext);
     }
+    
+    m_oTextures.CleanupAllTextures();
 
     if (m_sConfig.nProgram != 0)
         glDeleteProgram(m_sConfig.nProgram);
@@ -602,6 +605,9 @@ void Viewer::Redraw(bool bRedraw3dScane)
     try
     {
         glfwMakeContextCurrent(m_pTheWindow);
+        
+        m_oTextures.ManageTextureState();
+        
         int iWidth, iHeight;
         glfwGetFramebufferSize(m_pTheWindow, &iWidth, &iHeight);
         

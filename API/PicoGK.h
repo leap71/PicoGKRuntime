@@ -78,6 +78,7 @@ PICOGK_API void         Library_GetBuildInfo(               char psz[PKINFOSTRIN
 #define PKPOLYLINE      PKHANDLE
 #define PKVOXELS        PKHANDLE
 #define PKVIEWER        void*
+#define PKVIEWERTEX     PKHANDLE
 #define PKVDBFILE       PKHANDLE
 #define PKSCALARFIELD   PKHANDLE
 #define PKVECTORFIELD   PKHANDLE
@@ -421,6 +422,13 @@ PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            
 PICOGK_API void             Viewer_GetBoundingBox(          PKVIEWER            hThis,
                                                             PKBBox3*            poBox);
 
+PICOGK_API PKVIEWERTEX      Viewer_hCreateGpuTex(           PKVIEWER            hThis,
+                                                            int                 nWidth,
+                                                            int                 nHeight,
+                                                            const char*         pRgba8);
+
+PICOGK_API void             Viewer_DeleteGpuTex(            PKVIEWER            hThis,
+                                                            PKVIEWERTEX);
 
 PICOGK_API PKVDBFILE        VdbFile_hCreate(                PKINSTANCE          hInstance);
 

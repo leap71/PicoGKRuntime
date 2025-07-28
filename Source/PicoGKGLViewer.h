@@ -45,6 +45,7 @@
 #include "gl/gl.h"
 #include "PicoGKLibraryMgr.h"
 #include "PicoGKTrace.h"
+#include "PicoGKGLTexture.h"
 
 struct GLFWwindow;
 struct ImGuiContext;
@@ -661,6 +662,22 @@ GLuint              m_nSceneFBO         = 0;
         float           m_fMax;
         float           m_fValue;
     };
+
+public:
+    uint64_t hCreateGpuTexture( int nWidth,
+                                int nHeight,
+                                const char* pBuffer)
+    {
+        return m_oTextures.hAdd(nWidth, nHeight, pBuffer);
+    }
+    
+    void MarkGpuTextureForCleanup(uint64_t hTexture)
+    {
+        m_oTextures.MarkForDestruction(hTexture);
+    }
+    
+protected:
+    GpuTextureList  m_oTextures;
 };
 
 class ViewerManager

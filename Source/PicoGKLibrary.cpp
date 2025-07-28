@@ -957,6 +957,30 @@ PICOGK_API void Viewer_GetBoundingBox(  PKVIEWER hThis,
     *poBox = poThis->oBBox();
 }
 
+PICOGK_API PKVIEWERTEX Viewer_hCreateGpuTex(    PKVIEWER    hThis,
+                                                int         nWidth,
+                                                int         nHeight,
+                                                const char* pRgba8)
+{
+    PKTRACE(Viewer_hCreateGpuTex);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->hCreateGpuTexture(nWidth, nHeight, pRgba8);
+}
+
+PICOGK_API void Viewer_DeleteGpuTex(    PKVIEWER hThis,
+                                        PKVIEWERTEX hTex)
+{
+    PKTRACE(Viewer_DeleteGpuTex);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->MarkGpuTextureForCleanup(hTex);
+}
+
 PICOGK_API PKVDBFILE VdbFile_hCreate(PKINSTANCE hLib)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
