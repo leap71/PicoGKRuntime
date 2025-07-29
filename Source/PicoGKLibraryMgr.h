@@ -120,7 +120,7 @@ namespace PicoGK
         
         std::shared_ptr<Instance> roGetInstance(uint64_t hInstance)
         {
-            PKTRACE(roGetInstance);
+            //PKTRACE(roGetInstance);
             return m_oInstances.roGet(hInstance);
         }
         
