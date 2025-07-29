@@ -678,6 +678,12 @@ public:
     
 protected:
     GpuTextureList  m_oTextures;
+    
+public:
+    void ShowAllTextures() const
+    {
+        m_oTextures.ShowAllTextures();
+    }
 };
 
 class ViewerManager
