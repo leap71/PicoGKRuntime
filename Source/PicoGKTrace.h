@@ -36,6 +36,8 @@
 #ifndef PICOGKTRACE_H_
 #define PICOGKTRACE_H_
 
+#include <iostream>
+
 //#define PKTRACE(func) PkTrace __##func(#func)
 #define PKTRACE(func)
 
