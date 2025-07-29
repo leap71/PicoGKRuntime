@@ -42,6 +42,8 @@
 #include <mutex>
 #include <map>
 
+#include "PicoGKTrace.h"
+
 namespace PicoGK
 {
 
@@ -61,17 +63,16 @@ public:
     {
         int nSize = nWidth * nHeight * 4;
         
-        m_pBuffer = new char[nSize];
+        m_pBuffer = std::make_unique<char[]>(nSize);
         
-        memcpy( m_pBuffer,
+        memcpy( m_pBuffer.get(),
                 pSource,
                 nSize);
     }
     
     virtual ~GpuTextureRgba()
     {
-        if (m_pBuffer)
-            delete [] m_pBuffer;
+        PKTRACE(GpuTextureRgba_Destructor);
         
         if (m_nGlHandle != INVALID_GL_ID)
         {
@@ -87,6 +88,16 @@ public:
         return m_nGlHandle;
     }
     
+    int nWidth() const
+    {
+        return m_nWidth;
+    }
+    
+    int nHeight() const
+    {
+        return m_nHeight;
+    }
+    
     bool bNeedsUpload() const
     {
         return m_pBuffer != nullptr;
@@ -94,32 +105,39 @@ public:
     
     void TransferToGpu()
     {
+        PKTRACE(GpuTextureRgba_TransferToGpu);
         assert(bNeedsUpload());
         
         glGenTextures(1, &m_nGlHandle);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glBindTexture(GL_TEXTURE_2D, m_nGlHandle);
         
-        glTexImage2D(   GL_TEXTURE_2D,
-                        0,
-                        GL_SRGB8_ALPHA8,
-                        m_nWidth, m_nHeight,
-                        0,
-                        GL_RGBA,
-                        GL_UNSIGNED_BYTE,
-                        m_pBuffer);
+        {
+            PKTRACE(GpuTextureRgba_TransferToGpu_glTexImage2D);
+            
+            glTexImage2D(   GL_TEXTURE_2D,
+                            0,
+                            GL_SRGB8_ALPHA8,
+                            m_nWidth, m_nHeight,
+                            0,
+                            GL_RGBA,
+                            GL_UNSIGNED_BYTE,
+                            m_pBuffer.get());
+            
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
         
-        glGenerateMipmap(GL_TEXTURE_2D);
-        
-        delete [] m_pBuffer;
-        m_pBuffer = nullptr;
+        {
+            PKTRACE(GpuTextureRgba_TransferToGpu_DeleteBuffer);
+            m_pBuffer.reset();
+        }
     }
         
 protected:
-    int     m_nWidth;
-    int     m_nHeight;
-    char*   m_pBuffer;
-    GLuint  m_nGlHandle = INVALID_GL_ID;
+    int                         m_nWidth    = 0;
+    int                         m_nHeight   = 0;
+    std::unique_ptr<char[]>     m_pBuffer   = nullptr;
+    GLuint                      m_nGlHandle = INVALID_GL_ID;
     
     static constexpr GLuint INVALID_GL_ID = 0;
 };
@@ -127,20 +145,21 @@ protected:
 class GpuTextureList
 {
 public:
-    
     uint64_t hAdd(  int nWidth,
                     int nHeight,
                     const char* pData)
     {
+        PKTRACE(GpuTextureList_hAdd);
         std::lock_guard lk(m_mtx);
         m_hCurrent++;
         
-        m_oNew.emplace(m_hCurrent, GpuTextureRgba(nWidth, nHeight, pData));
+        m_oNew.emplace(m_hCurrent, std::make_unique<GpuTextureRgba>(nWidth, nHeight, pData));
         return m_hCurrent;
     }
     
     void MarkForDestruction(uint64_t hObject)
     {
+        PKTRACE(GpuTextureList_MarkForDestruction);
         std::lock_guard lk(m_mtx);
         
         // First check if this is still in the "new" pipeline
@@ -163,12 +182,14 @@ public:
     /// Called with the current GL context active to activate and cleanup all textures
     void ManageTextureState()
     {
+        PKTRACE(GpuTextureList_ManageTextureState);
         std::lock_guard lk(m_mtx);
         
-        for (auto it = m_oNew.begin(); it != m_oNew.end();)
+        while (!m_oNew.empty())
         {
-            auto node = m_oNew.extract(it++);
-            node.mapped().TransferToGpu();
+            PKTRACE(GpuTextureList_ManageTextureState_Loop);
+            auto node = m_oNew.extract(m_oNew.begin());
+            node.mapped()->TransferToGpu();
             m_oActive.insert(std::move(node));
         }
         
@@ -177,17 +198,53 @@ public:
     
     void CleanupAllTextures()
     {
+        PKTRACE(GpuTextureList_CleanupAllTextures);
         std::lock_guard lk(m_mtx);
         m_oNew.clear();
         m_oActive.clear();
         m_oCleanUp.clear();
     }
     
+    void ShowAllTextures() const
+    {
+        PKTRACE(GpuTextureList_ShowAllTextures);
+        std::lock_guard lk(m_mtx);
+        
+        for (const auto& node : m_oActive)
+        {
+            PKTRACE(GpuTextureList_ShowAllTextures_Loop);
+
+            if (node.second->nHeight() == 0)
+                continue;
+
+            float fAspect = (float)node.second->nWidth() / (float)node.second->nHeight();
+            ImVec2 vecAvailable = ImGui::GetContentRegionAvail();
+            float fAvailableAspect = vecAvailable.x / vecAvailable.y;
+
+            ImVec2 vecSize;
+            if (fAspect > fAvailableAspect)
+            {
+                vecSize.x = vecAvailable.x;
+                vecSize.y = vecAvailable.x / fAspect;
+            }
+            else
+            {
+                vecSize.y = vecAvailable.y;
+                vecSize.x = vecAvailable.y * fAspect;
+            }
+
+            ImTextureID texID = (ImTextureID)(intptr_t)node.second->nGlHandle();
+            ImGui::Image(texID, vecSize);
+
+            ImGui::Dummy(ImVec2(0, 10)); // spacing
+        }
+    }
+    
     mutable std::mutex m_mtx;
-    uint64_t                                        m_hCurrent = 0;
-    std::unordered_map<uint64_t, GpuTextureRgba>    m_oNew;
-    std::unordered_map<uint64_t, GpuTextureRgba>    m_oActive;
-    std::unordered_map<uint64_t, GpuTextureRgba>    m_oCleanUp;
+    uint64_t                                                        m_hCurrent = 0;
+    std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oNew;
+    std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oActive;
+    std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oCleanUp;
 };
 
 }
