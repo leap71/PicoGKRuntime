@@ -34,7 +34,7 @@
 //
 
 
-#include "gl/gl.h2"
+#include "gl/gl.h"
 #include "PicoGKGLViewerManager.h"
 #include <GLFW/glfw3.h>
 #include "PicoGKGLViewer.h"

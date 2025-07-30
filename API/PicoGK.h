@@ -341,94 +341,7 @@ PICOGK_API void             PolyLine_GetBoundingBox(        PKINSTANCE          
                                                             PKPOLYLINE          hThis,
                                                             PKBBox3*            poBox);
 
-// VIEWER
-
-PICOGK_API PKVIEWER         Viewer_hCreate(                 const char*         pszWindowTitle,
-                                                            const PKVector2*    pvecSize,
-                                                            PKFInfo             pfnInfoCallback,
-                                                            PKPFUpdateRequested pfnUpdateCallback,
-                                                            PKPFKeyPressed      pfnKeyPressedCallback,
-                                                            PKPFMouseMoved      pfnMouseMoveCallback,
-                                                            PKPFMouseButton     pfnMouseButtonCallback,
-                                                            PKPFScrollWheel     pfnScrollWheelCallback,
-                                                            PKPFWindowSize      pfnWindowSize);
-
-PICOGK_API  bool            Viewer_bIsValid(                PKVIEWER            hThis);
-
-PICOGK_API  void            Viewer_Destroy(                 PKVIEWER            hThis);
-
-PICOGK_API  void            Viewer_RequestUpdate(           PKVIEWER            hThis);
-
-PICOGK_API  bool            Viewer_bPoll(                   PKVIEWER            hThis);
-
-PICOGK_API  void            Viewer_RequestScreenShot(       PKVIEWER            hThis,
-                                                            const char*         pszScreenShotPath);
-
-PICOGK_API  void            Viewer_RequestClose(            PKVIEWER            hThis);
-
-PICOGK_API bool             Viewer_bLoadLightSetup(         PKVIEWER            hThis,
-                                                            const char*         pDiffTextureDDS,
-                                                            int32_t             nDiffTextureSize,
-                                                            const char*         pSpecTextureDDS,
-                                                            int32_t             nSpecTextureSize);
-
-PICOGK_API  void            Viewer_AddMesh(                 PKINSTANCE          hLib,
-                                                            PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            PKMESH              hMesh);
-
-PICOGK_API  void            Viewer_RemoveMesh(              PKINSTANCE          hLib,
-                                                            PKVIEWER            hThis,
-                                                            PKMESH              hMesh);
-
-PICOGK_API  void            Viewer_AddVoxels(               PKINSTANCE          hLib,
-                                                            PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            PKVOXELS            hVoxels);
-
-PICOGK_API  void            Viewer_RemoveVoxels(            PKINSTANCE          hLib,
-                                                            PKVIEWER            hThis,
-                                                            PKVOXELS            hVoxels);
-
-PICOGK_API  void            Viewer_AddPolyLine(             PKINSTANCE          hLib,
-                                                            PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            PKPOLYLINE          hPolyLine);
-
-PICOGK_API  void            Viewer_RemovePolyLine(          PKINSTANCE          hLib,
-                                                            PKVIEWER            hThis,
-                                                            PKPOLYLINE          hPolyLine);
-
-PICOGK_API  void            Viewer_RemoveAllObjects(        PKVIEWER            hThis);
-
-PICOGK_API  void            Viewer_SetGroupVisible(         PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            bool                bVisible);
-
-PICOGK_API  void            Viewer_SetGroupStatic(          PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            bool                bStatic);
-
-PICOGK_API  void            Viewer_SetGroupMaterial(        PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            const PKColorFloat* pclr,
-                                                            float               fMetallic,
-                                                            float               fRoughness);
-
-PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            const PKMatrix4x4*  pmat);
-
-PICOGK_API void             Viewer_GetBoundingBox(          PKVIEWER            hThis,
-                                                            PKBBox3*            poBox);
-
-PICOGK_API PKVIEWERTEX      Viewer_hCreateGpuTex(           PKVIEWER            hThis,
-                                                            int                 nWidth,
-                                                            int                 nHeight,
-                                                            const char*         pRgba8);
-
-PICOGK_API void             Viewer_DeleteGpuTex(            PKVIEWER            hThis,
-                                                            PKVIEWERTEX);
+// VDB FILE
 
 PICOGK_API PKVDBFILE        VdbFile_hCreate(                PKINSTANCE          hInstance);
 
@@ -648,6 +561,95 @@ PICOGK_API void             Metadata_SetVectorValue(        PKINSTANCE          
 PICOGK_API void             MetaData_RemoveValue(           PKINSTANCE          hInstance,
                                                             PKMETADATA          hThis,
                                                             const char*         pszFieldName);
+
+// VIEWER
+
+PICOGK_API PKVIEWER         Viewer_hCreate(                 const char*         pszWindowTitle,
+                                                            const PKVector2*    pvecSize,
+                                                            PKFInfo             pfnInfoCallback,
+                                                            PKPFUpdateRequested pfnUpdateCallback,
+                                                            PKPFKeyPressed      pfnKeyPressedCallback,
+                                                            PKPFMouseMoved      pfnMouseMoveCallback,
+                                                            PKPFMouseButton     pfnMouseButtonCallback,
+                                                            PKPFScrollWheel     pfnScrollWheelCallback,
+                                                            PKPFWindowSize      pfnWindowSize);
+
+PICOGK_API  bool            Viewer_bIsValid(                PKVIEWER            hThis);
+
+PICOGK_API  void            Viewer_Destroy(                 PKVIEWER            hThis);
+
+PICOGK_API  void            Viewer_RequestUpdate(           PKVIEWER            hThis);
+
+PICOGK_API  bool            Viewer_bPoll(                   PKVIEWER            hThis);
+
+PICOGK_API  void            Viewer_RequestScreenShot(       PKVIEWER            hThis,
+                                                            const char*         pszScreenShotPath);
+
+PICOGK_API  void            Viewer_RequestClose(            PKVIEWER            hThis);
+
+PICOGK_API bool             Viewer_bLoadLightSetup(         PKVIEWER            hThis,
+                                                            const char*         pDiffTextureDDS,
+                                                            int32_t             nDiffTextureSize,
+                                                            const char*         pSpecTextureDDS,
+                                                            int32_t             nSpecTextureSize);
+
+PICOGK_API  void            Viewer_AddMesh(                 PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            PKMESH              hMesh);
+
+PICOGK_API  void            Viewer_RemoveMesh(              PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKMESH              hMesh);
+
+PICOGK_API  void            Viewer_AddVoxels(               PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            PKVOXELS            hVoxels);
+
+PICOGK_API  void            Viewer_RemoveVoxels(            PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKVOXELS            hVoxels);
+
+PICOGK_API  void            Viewer_AddPolyLine(             PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            PKPOLYLINE          hPolyLine);
+
+PICOGK_API  void            Viewer_RemovePolyLine(          PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKPOLYLINE          hPolyLine);
+
+PICOGK_API  void            Viewer_RemoveAllObjects(        PKVIEWER            hThis);
+
+PICOGK_API  void            Viewer_SetGroupVisible(         PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            bool                bVisible);
+
+PICOGK_API  void            Viewer_SetGroupStatic(          PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            bool                bStatic);
+
+PICOGK_API  void            Viewer_SetGroupMaterial(        PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            const PKColorFloat* pclr,
+                                                            float               fMetallic,
+                                                            float               fRoughness);
+
+PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            hThis,
+                                                            int32_t             nGroupID,
+                                                            const PKMatrix4x4*  pmat);
+
+PICOGK_API void             Viewer_GetBoundingBox(          PKVIEWER            hThis,
+                                                            PKBBox3*            poBox);
+
+PICOGK_API PKVIEWERTEX      Viewer_hCreateGpuTex(           PKVIEWER            hThis,
+                                                            int                 nWidth,
+                                                            int                 nHeight,
+                                                            const char*         pRgba8);
+
+PICOGK_API void             Viewer_DeleteGpuTex(            PKVIEWER            hThis,
+                                                            PKVIEWERTEX);
 
 #endif
  
