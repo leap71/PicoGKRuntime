@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2025 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -34,7 +34,7 @@
 //
 
 
-#include "gl/gl.h"
+#include "gl/gl.h2"
 #include "PicoGKGLViewerManager.h"
 #include <GLFW/glfw3.h>
 #include "PicoGKGLViewer.h"
