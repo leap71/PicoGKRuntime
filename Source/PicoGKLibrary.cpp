@@ -715,273 +715,7 @@ PICOGK_API void PolyLine_GetColor(  PKINSTANCE hLib,
 }
 
 
-PICOGK_API PKVIEWER Viewer_hCreate( const char*             pszWindowTitle,
-                                    const Vector2*          pvecSize,
-                                    PKFInfo                 pfnInfoCallback,
-                                    PKPFUpdateRequested     pfnUpdateCallback,
-                                    PKPFKeyPressed          pfnKeyPressedCallback,
-                                    PKPFMouseMoved          pfnMouseMoveCallback,
-                                    PKPFMouseButton         pfnMouseButtonCallback,
-                                    PKPFScrollWheel         pfnScrollWheelCallback,
-                                    PKPFWindowSize          pfnWindowSize)
-{
-    PKTRACE(Viewer_hCreate);
-    
-    return (PKVIEWER) ViewerManager::oMgr().poCreate(
-                pszWindowTitle,
-                *pvecSize,
-                pfnInfoCallback,
-                pfnUpdateCallback,
-                pfnKeyPressedCallback,
-                pfnMouseMoveCallback,
-                pfnMouseButtonCallback,
-                pfnScrollWheelCallback,
-                pfnWindowSize);
-}
 
-PICOGK_API bool Viewer_bIsValid(PKVIEWER hThis)
-{
-    //PKTRACE(Viewer_bIsValid);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    return ViewerManager::oMgr().bIsValid(poThis);
-}
-
-PICOGK_API void Viewer_Destroy(PKVIEWER hThis)
-{
-    PKTRACE(Viewer_Destroy);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    PicoGK::ViewerManager::oMgr().Destroy(poThis);
-}
-
-PICOGK_API void Viewer_RequestUpdate(PKVIEWER hThis)
-{
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RequestUpdate();
-}
-
-PICOGK_API bool Viewer_bPoll(PKVIEWER hThis)
-{
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    return poThis->bPoll();
-}
-
-PICOGK_API  void Viewer_RequestScreenShot(  PKVIEWER        hThis,
-                                            const char*     pszScreenShotPath)
-{
-    PKTRACE(Viewer_RequestScreenShot);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RequestScreenShot(pszScreenShotPath);
-}
-
-PICOGK_API void Viewer_RequestClose(PKVIEWER hThis)
-{
-    PKTRACE(Viewer_RequestClose);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RequestClose();
-}
-
-PICOGK_API bool Viewer_bLoadLightSetup( PKVIEWER        hThis,
-                                        const char*     pDiffTextureDDS,
-                                        int32_t         nDiffTextureSize,
-                                        const char*     pSpecTextureDDS,
-                                        int32_t         nSpecTextureSize)
-{
-    PKTRACE(Viewer_bLoadLightSetup);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    return poThis->bLoadLightSetup( pDiffTextureDDS,
-                                    nDiffTextureSize,
-                                    pSpecTextureDDS,
-                                    nSpecTextureSize);
-}
-
-PICOGK_API void Viewer_AddMesh( PKINSTANCE hLib,
-                                PKVIEWER    hThis,
-                                int32_t     nGroupID,
-                                PKMESH      hMesh)
-{
-    PKTRACE(Viewer_AddMesh);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->AddMesh(nGroupID, hLib, hMesh);
-}
-
-PICOGK_API void Viewer_RemoveMesh(  PKINSTANCE hLib,
-                                    PKVIEWER    hThis,
-                                    PKMESH      hMesh)
-{
-    PKTRACE(Viewer_RemoveMesh);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RemoveMesh(hLib, hMesh);
-}
-
-PICOGK_API void Viewer_AddVoxels(   PKINSTANCE hLib,
-                                    PKVIEWER    hThis,
-                                    int32_t     nGroupID,
-                                    PKVOXELS    hVoxels)
-{
-    PKTRACE(Viewer_AddVoxels);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->AddVoxels(nGroupID, hLib, hVoxels);
-}
-
-PICOGK_API void Viewer_RemoveVoxels(    PKINSTANCE  hLib,
-                                        PKVIEWER    hThis,
-                                        PKVOXELS    hVoxels)
-{
-    PKTRACE(Viewer_RemoveVoxels);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RemoveVoxels(hLib, hVoxels);
-}
-
-
-PICOGK_API void Viewer_AddPolyLine( PKINSTANCE hLib,
-                                    PKVIEWER    hThis,
-                                    int32_t     nGroupID,
-                                    PKPOLYLINE  hPolyLine)
-{
-    PKTRACE(Viewer_AddPolyLine);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->AddPolyLine(nGroupID, hLib, hPolyLine);
-}
-
-PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
-                                        PKVIEWER    hThis,
-                                        PKPOLYLINE  hPolyLine)
-{
-    PKTRACE(Viewer_RemovePolyLine);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RemovePolyLine(hLib, hPolyLine);
-}
-
-PICOGK_API void Viewer_RemoveAllObjects(PKVIEWER hThis)
-{
-    PKTRACE(Viewer_RemoveAllObjects);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->RemoveAllObjects();
-}
-
-
-PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
-                                        int32_t     nGroupID,
-                                        bool        bVisible)
-{
-    PKTRACE(Viewer_SetGroupVisible);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->SetGroupVisible(nGroupID, bVisible);
-}
-
-PICOGK_API void Viewer_SetGroupStatic(  PKVIEWER    hThis,
-                                        int32_t     nGroupID,
-                                        bool        bStatic)
-{
-    PKTRACE(Viewer_SetGroupStatic);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->SetGroupStatic(nGroupID, bStatic);
-}
-
-PICOGK_API void Viewer_SetGroupMaterial(    PKVIEWER            hThis,
-                                            int32_t             nGroupID,
-                                            const ColorFloat*   pclr,
-                                            float               fMetallic,
-                                            float               fRoughness)
-{
-    PKTRACE(Viewer_SetGroupMaterial);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->SetGroupMaterial(nGroupID, *pclr, fMetallic, fRoughness);
-}
-
-PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
-                                        int32_t             nGroupID,
-                                        const Matrix4x4*    pmat)
-{
-    PKTRACE(Viewer_SetGroupMatrix);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->SetGroupMatrix(nGroupID, *pmat);
-}
-
-PICOGK_API void Viewer_GetBoundingBox(  PKVIEWER hThis,
-                                        PKBBox3* poBox)
-{
-    PKTRACE(Viewer_GetBoundingBox);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    *poBox = poThis->oBBox();
-}
-
-PICOGK_API PKVIEWERTEX Viewer_hCreateGpuTex(    PKVIEWER    hThis,
-                                                int         nWidth,
-                                                int         nHeight,
-                                                const char* pRgba8)
-{
-    PKTRACE(Viewer_hCreateGpuTex);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    return poThis->hCreateGpuTexture(nWidth, nHeight, pRgba8);
-}
-
-PICOGK_API void Viewer_DeleteGpuTex(    PKVIEWER hThis,
-                                        PKVIEWERTEX hTex)
-{
-    PKTRACE(Viewer_DeleteGpuTex);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->MarkGpuTextureForCleanup(hTex);
-}
 
 PICOGK_API PKVDBFILE VdbFile_hCreate(PKINSTANCE hLib)
 {
@@ -1567,3 +1301,270 @@ PICOGK_API void MetaData_RemoveValue(   PKINSTANCE hLib,
     roLib->m_oVdbMetas.roGet(hThis)->RemoveAt(pszFieldName);
 }
 
+PICOGK_API PKVIEWER Viewer_hCreate( const char*             pszWindowTitle,
+                                    const Vector2*          pvecSize,
+                                    PKFInfo                 pfnInfoCallback,
+                                    PKPFUpdateRequested     pfnUpdateCallback,
+                                    PKPFKeyPressed          pfnKeyPressedCallback,
+                                    PKPFMouseMoved          pfnMouseMoveCallback,
+                                    PKPFMouseButton         pfnMouseButtonCallback,
+                                    PKPFScrollWheel         pfnScrollWheelCallback,
+                                    PKPFWindowSize          pfnWindowSize)
+{
+    PKTRACE(Viewer_hCreate);
+    
+    return (PKVIEWER) ViewerManager::oMgr().poCreate(
+                pszWindowTitle,
+                *pvecSize,
+                pfnInfoCallback,
+                pfnUpdateCallback,
+                pfnKeyPressedCallback,
+                pfnMouseMoveCallback,
+                pfnMouseButtonCallback,
+                pfnScrollWheelCallback,
+                pfnWindowSize);
+}
+
+PICOGK_API bool Viewer_bIsValid(PKVIEWER hThis)
+{
+    //PKTRACE(Viewer_bIsValid);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    return ViewerManager::oMgr().bIsValid(poThis);
+}
+
+PICOGK_API void Viewer_Destroy(PKVIEWER hThis)
+{
+    PKTRACE(Viewer_Destroy);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    PicoGK::ViewerManager::oMgr().Destroy(poThis);
+}
+
+PICOGK_API void Viewer_RequestUpdate(PKVIEWER hThis)
+{
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RequestUpdate();
+}
+
+PICOGK_API bool Viewer_bPoll(PKVIEWER hThis)
+{
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->bPoll();
+}
+
+PICOGK_API  void Viewer_RequestScreenShot(  PKVIEWER        hThis,
+                                            const char*     pszScreenShotPath)
+{
+    PKTRACE(Viewer_RequestScreenShot);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RequestScreenShot(pszScreenShotPath);
+}
+
+PICOGK_API void Viewer_RequestClose(PKVIEWER hThis)
+{
+    PKTRACE(Viewer_RequestClose);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RequestClose();
+}
+
+PICOGK_API bool Viewer_bLoadLightSetup( PKVIEWER        hThis,
+                                        const char*     pDiffTextureDDS,
+                                        int32_t         nDiffTextureSize,
+                                        const char*     pSpecTextureDDS,
+                                        int32_t         nSpecTextureSize)
+{
+    PKTRACE(Viewer_bLoadLightSetup);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->bLoadLightSetup( pDiffTextureDDS,
+                                    nDiffTextureSize,
+                                    pSpecTextureDDS,
+                                    nSpecTextureSize);
+}
+
+PICOGK_API void Viewer_AddMesh( PKINSTANCE hLib,
+                                PKVIEWER    hThis,
+                                int32_t     nGroupID,
+                                PKMESH      hMesh)
+{
+    PKTRACE(Viewer_AddMesh);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->AddMesh(nGroupID, hLib, hMesh);
+}
+
+PICOGK_API void Viewer_RemoveMesh(  PKINSTANCE hLib,
+                                    PKVIEWER    hThis,
+                                    PKMESH      hMesh)
+{
+    PKTRACE(Viewer_RemoveMesh);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RemoveMesh(hLib, hMesh);
+}
+
+PICOGK_API void Viewer_AddVoxels(   PKINSTANCE hLib,
+                                    PKVIEWER    hThis,
+                                    int32_t     nGroupID,
+                                    PKVOXELS    hVoxels)
+{
+    PKTRACE(Viewer_AddVoxels);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->AddVoxels(nGroupID, hLib, hVoxels);
+}
+
+PICOGK_API void Viewer_RemoveVoxels(    PKINSTANCE  hLib,
+                                        PKVIEWER    hThis,
+                                        PKVOXELS    hVoxels)
+{
+    PKTRACE(Viewer_RemoveVoxels);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RemoveVoxels(hLib, hVoxels);
+}
+
+
+PICOGK_API void Viewer_AddPolyLine( PKINSTANCE hLib,
+                                    PKVIEWER    hThis,
+                                    int32_t     nGroupID,
+                                    PKPOLYLINE  hPolyLine)
+{
+    PKTRACE(Viewer_AddPolyLine);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->AddPolyLine(nGroupID, hLib, hPolyLine);
+}
+
+PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
+                                        PKVIEWER    hThis,
+                                        PKPOLYLINE  hPolyLine)
+{
+    PKTRACE(Viewer_RemovePolyLine);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RemovePolyLine(hLib, hPolyLine);
+}
+
+PICOGK_API void Viewer_RemoveAllObjects(PKVIEWER hThis)
+{
+    PKTRACE(Viewer_RemoveAllObjects);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->RemoveAllObjects();
+}
+
+
+PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
+                                        int32_t     nGroupID,
+                                        bool        bVisible)
+{
+    PKTRACE(Viewer_SetGroupVisible);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetGroupVisible(nGroupID, bVisible);
+}
+
+PICOGK_API void Viewer_SetGroupStatic(  PKVIEWER    hThis,
+                                        int32_t     nGroupID,
+                                        bool        bStatic)
+{
+    PKTRACE(Viewer_SetGroupStatic);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetGroupStatic(nGroupID, bStatic);
+}
+
+PICOGK_API void Viewer_SetGroupMaterial(    PKVIEWER            hThis,
+                                            int32_t             nGroupID,
+                                            const ColorFloat*   pclr,
+                                            float               fMetallic,
+                                            float               fRoughness)
+{
+    PKTRACE(Viewer_SetGroupMaterial);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetGroupMaterial(nGroupID, *pclr, fMetallic, fRoughness);
+}
+
+PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
+                                        int32_t             nGroupID,
+                                        const Matrix4x4*    pmat)
+{
+    PKTRACE(Viewer_SetGroupMatrix);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetGroupMatrix(nGroupID, *pmat);
+}
+
+PICOGK_API void Viewer_GetBoundingBox(  PKVIEWER hThis,
+                                        PKBBox3* poBox)
+{
+    PKTRACE(Viewer_GetBoundingBox);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    *poBox = poThis->oBBox();
+}
+
+PICOGK_API PKVIEWERTEX Viewer_hCreateGpuTex(    PKVIEWER    hThis,
+                                                int         nWidth,
+                                                int         nHeight,
+                                                const char* pRgba8)
+{
+    PKTRACE(Viewer_hCreateGpuTex);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->hCreateGpuTexture(nWidth, nHeight, pRgba8);
+}
+
+PICOGK_API void Viewer_DeleteGpuTex(    PKVIEWER hThis,
+                                        PKVIEWERTEX hTex)
+{
+    PKTRACE(Viewer_DeleteGpuTex);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->MarkGpuTextureForCleanup(hTex);
+}
