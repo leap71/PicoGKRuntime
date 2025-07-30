@@ -33,11 +33,13 @@
 // limitations under the License.
 //
 
+#include "gl/gl.h"
 #include "PicoGKTypes.h"
 #include "PicoGK.h"
 
 #include "PicoGKLibraryMgr.h"
 #include "PicoGKGLViewer.h"
+#include "PicoGKGLViewerManager.h"
 
 #include "PicoGKTrace.h"
 
