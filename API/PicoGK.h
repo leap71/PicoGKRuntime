@@ -77,13 +77,15 @@ PICOGK_API void         Library_GetBuildInfo(               char psz[PKINFOSTRIN
 #define PKLATTICE       PKHANDLE
 #define PKPOLYLINE      PKHANDLE
 #define PKVOXELS        PKHANDLE
-#define PKVIEWER        void*
-#define PKVIEWERTEX     PKHANDLE
 #define PKVDBFILE       PKHANDLE
 #define PKSCALARFIELD   PKHANDLE
 #define PKVECTORFIELD   PKHANDLE
 #define PKMETADATA      PKHANDLE
 #define PKFILEINFO      PKHANDLE
+
+#define PKVIEWER        void*
+#define PKGPUTEX        PKHANDLE
+#define PKGUI           PKHANDLE
 
 // LIBRARY INSTANCE
 
@@ -643,13 +645,24 @@ PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            
 PICOGK_API void             Viewer_GetBoundingBox(          PKVIEWER            hThis,
                                                             PKBBox3*            poBox);
 
-PICOGK_API PKVIEWERTEX      Viewer_hCreateGpuTex(           PKVIEWER            hThis,
+PICOGK_API PKGPUTEX         Viewer_GpuTex_hCreate(          PKVIEWER            hThis,
                                                             int                 nWidth,
                                                             int                 nHeight,
                                                             const char*         pRgba8);
 
-PICOGK_API void             Viewer_DeleteGpuTex(            PKVIEWER            hThis,
-                                                            PKVIEWERTEX);
+PICOGK_API void             Viewer_GpuTex_MarkForCleanup(   PKVIEWER            hThis,
+                                                            PKGPUTEX);
+
+PICOGK_API PKGUI            Viewer_SideBar_hCreate(         PKVIEWER            hThis,
+                                                            bool                bLeft,
+                                                            int                 nMin,
+                                                            int                 nMax,
+                                                            int                 nDef,
+                                                            PKColorFloat       clrBackground,
+                                                            PKColorFloat       clrBackgroundHv);
+
+PICOGK_API PKGUI            Viewer_SideBar_Destroy(         PKVIEWER            hThis,
+                                                            PKGUI               hSideBar);
 
 #endif
  
