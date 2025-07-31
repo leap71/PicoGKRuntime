@@ -1545,7 +1545,7 @@ PICOGK_API void Viewer_GetBoundingBox(  PKVIEWER hThis,
     *poBox = poThis->oBBox();
 }
 
-PICOGK_API PKVIEWERTEX Viewer_hCreateGpuTex(    PKVIEWER    hThis,
+PICOGK_API PKGPUTEX Viewer_GpuTex_hCreate(      PKVIEWER    hThis,
                                                 int         nWidth,
                                                 int         nHeight,
                                                 const char* pRgba8)
@@ -1558,8 +1558,8 @@ PICOGK_API PKVIEWERTEX Viewer_hCreateGpuTex(    PKVIEWER    hThis,
     return poThis->hCreateGpuTexture(nWidth, nHeight, pRgba8);
 }
 
-PICOGK_API void Viewer_DeleteGpuTex(    PKVIEWER hThis,
-                                        PKVIEWERTEX hTex)
+PICOGK_API void Viewer_GpuTex_MarkForCleanup(   PKVIEWER hThis,
+                                                PKGPUTEX hTex)
 {
     PKTRACE(Viewer_DeleteGpuTex);
     
@@ -1567,4 +1567,36 @@ PICOGK_API void Viewer_DeleteGpuTex(    PKVIEWER hThis,
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
     poThis->MarkGpuTextureForCleanup(hTex);
+}
+
+PICOGK_API PKGUI Viewer_SideBar_hCreate(    PKVIEWER        hThis,
+                                            bool            bLeft,
+                                            int             nMin,
+                                            int             nMax,
+                                            int             nDef,
+                                            PKColorFloat    clrBackground,
+                                            PKColorFloat    clrBackgroundHv)
+{
+    PKTRACE(Viewer_SideBar_hCreate);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->hCreateSideBar(  bLeft,
+                                    nMin,
+                                    nMax,
+                                    nDef,
+                                    clrBackground,
+                                    clrBackgroundHv);
+}
+
+PICOGK_API PKGUI Viewer_SideBar_Destroy(    PKVIEWER hThis,
+                                            PKGUI hSideBar)
+{
+    PKTRACE(Viewer_SideBar_Destroy);
+
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->DestroySideBar(hSideBar);
 }

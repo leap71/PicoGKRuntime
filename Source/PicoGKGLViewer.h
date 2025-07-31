@@ -475,21 +475,18 @@ GLuint              m_nSceneFBO         = 0;
   
     class GuiElement
     {
-   
     public:
         PKSHAREDPTR(GuiElement);
         
-        GuiElement( uint64_t        hHandle,
-                    Viewer*         poViewer,
+        GuiElement( Viewer*         poViewer,
                     std::string     strName,
                     bool            bVisible = true)
         
-            :   PKINIT(hHandle),
-                PKINIT(poViewer),
-                m_strName(strName + "##" + std::to_string(hHandle)),
+            :   PKINIT(poViewer),
+                m_strName(strName),
                 PKINIT(bVisible)
         {
-           
+           /// TODO, find out if we need to make handle available
         }
         
         void AddChild(GuiElement::Ptr roChild)
@@ -518,8 +515,10 @@ GLuint              m_nSceneFBO         = 0;
             for (auto roElement : m_oChildren)
             {
                 roElement->Draw();
+                roElement->m_bIsItemHovered = ImGui::IsItemHovered();
             }
             
+            m_bIsWindowHovered = ImGui::IsWindowHovered();
             Close();
         }
         
@@ -533,35 +532,39 @@ GLuint              m_nSceneFBO         = 0;
         
         virtual void Close() = 0;
         
-        uint64_t                        m_hHandle;
         Viewer*                         m_poViewer;
         std::string                     m_strName;
         GuiElement::Ptr                 m_roParent;
         bool                            m_bVisible;
         std::deque<GuiElement::Ptr>     m_oChildren;
+        
+        bool                            m_bIsItemHovered      = false;
+        bool                            m_bIsWindowHovered    = false;
     };
     
     class SideBar : public GuiElement
     {
     public:
-        SideBar(    uint64_t    hHandle,
-                    Viewer*     poViewer,
-                    ColorFloat  clrBackground,
+        PKSHAREDPTR(SideBar);
+        
+        SideBar(    Viewer*     poViewer,
+                    bool        bLeft,
                     int         nMin,
                     int         nMax,
                     int         nDef,
-                    bool        bLeft,
+                    ColorFloat  clrBackground,
+                    ColorFloat  clrBackgroundHv,
                     bool        bVisible = true)
         
-        :   GuiElement(     hHandle,
-                            poViewer,
+        :   GuiElement(     poViewer,
                             bLeft ? "Sidebar_Left" : "Sidebar_Right",
                             bVisible),
-            PKINIT(clrBackground),
+            PKINIT(bLeft),
             PKINIT(nMin),
             PKINIT(nMax),
             PKINIT(nDef),
-            PKINIT(bLeft)
+            PKINIT(clrBackground),
+            PKINIT(clrBackgroundHv)
         {
             
         }
@@ -573,24 +576,25 @@ GLuint              m_nSceneFBO         = 0;
         
         virtual void Close();
         
-        ColorFloat  m_clrBackground;
+        bool        m_bLeft;
         int         m_nMin;
         int         m_nMax;
         int         m_nDef;
-        bool        m_bLeft;
+        ColorFloat  m_clrBackground;
+        ColorFloat  m_clrBackgroundHv;
     };
     
     class TextLabel : public GuiElement
     {
     public:
-        TextLabel(  uint64_t        hHandle,
-                    Viewer*         poViewer,
+        PKSHAREDPTR(TextLabel);
+        
+        TextLabel(  Viewer*         poViewer,
                     ColorFloat      clrText,
                     std::string     strText,
                     bool            bVisible = true)
         
-        :   GuiElement( hHandle,
-                        poViewer,
+        :   GuiElement( poViewer,
                         strText,
                         bVisible),
             PKINIT(strText),
@@ -613,8 +617,9 @@ GLuint              m_nSceneFBO         = 0;
     class Slider : public GuiElement
     {
     public:
-        Slider(     uint64_t        hHandle,
-                    Viewer*         poViewer,
+        PKSHAREDPTR(GuiElement);
+        
+        Slider(     Viewer*         poViewer,
                     ColorFloat      clrFrameBg,
                     ColorFloat      clrFrameBgHv,
                     ColorFloat      clrFrameBgActive,
@@ -627,8 +632,7 @@ GLuint              m_nSceneFBO         = 0;
                     float           fValue,
                     bool            bVisible = true)
         
-        :   GuiElement( hHandle,
-                        poViewer,
+        :   GuiElement( poViewer,
                         strText,
                         bVisible),
             PKINIT(clrFrameBg),
@@ -679,10 +683,36 @@ protected:
     GpuTextureList  m_oTextures;
     
 public:
+    bool bGetTexture(   uint64_t nTextureId,
+                        GLuint* pnGlTexture,
+                        int*    pnWidth,
+                        int*    pnHeight) const
+    {
+        return m_oTextures.bGetGlHandle(    nTextureId,
+                                            pnGlTexture,
+                                            pnWidth,
+                                            pnHeight);
+    }
+    
     void ShowAllTextures() const
     {
         m_oTextures.ShowAllTextures();
     }
+    
+public:
+    uint64_t hCreateSideBar(    bool                bLeft,
+                                int                 nMin,
+                                int                 nMax,
+                                int                 nDef,
+                                ColorFloat          clrBackground,
+                                ColorFloat          clrBackgroundHv);
+    
+    void DestroySideBar(uint64_t hSideBar);
+    
+protected:
+    HandleManager<GuiElement>   m_oGuiElements;
+    uint64_t                    m_hSideBarLeft     = 0;
+    uint64_t                    m_hSideBarRight    = 0;
 };
 
 } // namespace PicoGK

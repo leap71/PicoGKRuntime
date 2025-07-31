@@ -66,7 +66,8 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     PKINIT(pfnMouseMoveCallback),
     PKINIT(pfnMouseButtonCallback),
     PKINIT(pfnScrollWheelCallback),
-    PKINIT(pfnWindowSizeCallback)
+    PKINIT(pfnWindowSizeCallback),
+    m_oGuiElements("GuiElements")
 {
     m_vecMousePos.X = 0.0f;
     m_vecMousePos.Y = 0.0f;
@@ -673,6 +674,17 @@ void Viewer::DrawScene()
 
 void Viewer::DrawGui()
 {
+    if (m_hSideBarLeft != 0)
+    {
+        GuiElement::Ptr roSB = m_oGuiElements.roGet(m_hSideBarLeft);
+        roSB->Draw();
+    }
+    
+    if (m_hSideBarRight != 0)
+    {
+        GuiElement::Ptr roSB = m_oGuiElements.roGet(m_hSideBarRight);
+        roSB->Draw();
+    }
    
     /*SideBar::Ptr    roSBL   = std::make_shared<SideBar>     (0, this, ColorFloat(1,1,1,0.5f), 100, 400, 200, true);
     TextLabel::Ptr  roLabel = std::make_shared<TextLabel>   (1, this, ColorFloat(0,0,1,0.9f), "Hello World");
@@ -713,6 +725,61 @@ void Viewer::RecalculateInformationIfNeeded()
         m_oBBox.Include(poGroup->oCalculateBBox());
     }
 }
+
+uint64_t Viewer::hCreateSideBar(    bool                bLeft,
+                                    int                 nMin,
+                                    int                 nMax,
+                                    int                 nDef,
+                                    ColorFloat          clrBackground,
+                                    ColorFloat          clrBackgroundHv)
+{
+    if (bLeft && m_hSideBarLeft == 0)
+    {
+        m_hSideBarLeft = m_oGuiElements.hAdd(std::make_shared<SideBar>( this,
+                                                                        true,
+                                                                        nMin,
+                                                                        nMax,
+                                                                        nDef,
+                                                                        clrBackground,
+                                                                        clrBackgroundHv));
+        
+        return m_hSideBarLeft;
+    }
+     
+    if (!bLeft && m_hSideBarRight == 0)
+    {
+        m_hSideBarRight = m_oGuiElements.hAdd(std::make_shared<SideBar>(    this,
+                                                                            false,
+                                                                            nMin,
+                                                                            nMax,
+                                                                            nDef,
+                                                                            clrBackground,
+                                                                            clrBackgroundHv));
+        
+        return m_hSideBarRight;
+    }
+    
+    throw std::invalid_argument("Can only create one sidebar per side");
+}
+
+void Viewer::DestroySideBar(uint64_t hSideBar)
+{
+    if (m_hSideBarLeft == hSideBar)
+    {
+        m_hSideBarLeft = 0;
+    }
+    else if (m_hSideBarRight == hSideBar)
+    {
+        m_hSideBarRight = 0;
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid GUI element handle passed to DestroySideBar");
+    }
+    
+    m_oGuiElements.bDestroy(hSideBar);
+}
+
 
 const std::string Viewer::m_strVertexShader =
 R"VS(

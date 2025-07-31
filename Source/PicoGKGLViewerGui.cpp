@@ -59,20 +59,23 @@ void Viewer::SideBar::Setup()
     
     ImGui::SetNextWindowSizeConstraints(    ImVec2(m_nMin, vecWindowSize.y),
                                             ImVec2(m_nMax, vecWindowSize.y));
-
-    ImGui::PushStyleColor(  ImGuiCol_WindowBg,
-                            m_clrBackground.sToImVec4());
-
+    
     ImGuiWindowFlags flags =
         ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoMove;
+    
+    ImVec4 clr = m_bIsWindowHovered ? m_clrBackgroundHv.sToImVec4() : m_clrBackground.sToImVec4();
 
+    ImGui::PushStyleColor(  ImGuiCol_WindowBg,
+                            clr);
+    
     ImGui::Begin(m_strName.c_str(), nullptr, flags);
 }
 
 void Viewer::SideBar::DrawMe()
 {
+    
     // Nothing to do (only children will be drawn)
 }
 
