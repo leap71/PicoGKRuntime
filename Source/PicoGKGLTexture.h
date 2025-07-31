@@ -157,6 +157,24 @@ public:
         return m_hCurrent;
     }
     
+    bool bGetGlHandle(  uint64_t hObject,
+                        GLuint* pnGlTextureHandle,
+                        int* pnWidth,
+                        int* pnHeight ) const
+    {
+        PKTRACE(GpuTextureList_bGetGlHandle);
+        std::lock_guard lk(m_mtx);
+        
+        auto it = m_oActive.find(hObject);
+        if (it == m_oActive.end())
+            return false;
+        
+        *pnGlTextureHandle  = it->second.get()->nGlHandle();
+        *pnWidth            = it->second.get()->nWidth();
+        *pnHeight           = it->second.get()->nHeight();
+        return true;
+    }
+    
     void MarkForDestruction(uint64_t hObject)
     {
         PKTRACE(GpuTextureList_MarkForDestruction);
