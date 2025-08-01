@@ -76,46 +76,13 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     gladLoadGL(glfwGetProcAddress);
     
     CHECKGLERRORS;
+    
+    m_roShaderProgMeshPoly = std::make_unique<ShaderProgMeshPoly>();
 
     const char* pszVS = m_strVertexShader.c_str();
 
-    m_sConfig.nVertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(     m_sConfig.nVertexShader, 1, &pszVS, NULL);
-    glCompileShader(    m_sConfig.nVertexShader);
- 
-    CHECKSHADERERRORS(m_sConfig.nVertexShader)
-    
-    const char* pszFS = m_strFragmentShader.c_str();
-        
-    m_sConfig.nFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(     m_sConfig.nFragmentShader, 1, &pszFS, NULL);
-    glCompileShader(    m_sConfig.nFragmentShader);
-
-    CHECKSHADERERRORS(m_sConfig.nFragmentShader)
-
-    m_sConfig.nProgram = glCreateProgram();
-    glAttachShader( m_sConfig.nProgram, m_sConfig.nVertexShader);
-    glAttachShader( m_sConfig.nProgram, m_sConfig.nFragmentShader);
-    glLinkProgram(  m_sConfig.nProgram);
-    
-    CHECKGLERRORS;
-     
-    m_sConfig.iOtoWUniform          = glGetUniformLocation(m_sConfig.nProgram, "mat4OtoW");
-    m_sConfig.iMVPUniform           = glGetUniformLocation(m_sConfig.nProgram, "mat4MVP");
-    m_sConfig.iEyeUniform           = glGetUniformLocation(m_sConfig.nProgram, "vec3Eye");
-    m_sConfig.iColorUniform         = glGetUniformLocation(m_sConfig.nProgram, "vec4Color");
-    m_sConfig.iMetallicUniform      = glGetUniformLocation(m_sConfig.nProgram, "fMetallic");
-    m_sConfig.iRoughnessUniform     = glGetUniformLocation(m_sConfig.nProgram, "fRoughness");
-    m_sConfig.iDiffuseUniform       = glGetUniformLocation(m_sConfig.nProgram, "texDiff");
-    m_sConfig.iSpecularUniform      = glGetUniformLocation(m_sConfig.nProgram, "texSpec");
-
-    m_sConfig.iPosAttrib            = glGetAttribLocation(m_sConfig.nProgram, "vec3Pos");
-    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glfwMakeContextCurrent(m_pTheWindow);
-    gladLoadGL(glfwGetProcAddress);
     
     m_psImGuiContext = psSharedImGuiContext;
     ImGui::SetCurrentContext(m_psImGuiContext);
@@ -139,41 +106,12 @@ bool Viewer::bLoadLightSetup(   const char* pDiffuseTextureDDS,
     
     glfwMakeContextCurrent(m_pTheWindow);
     
-    // Texture 0 is the diffuse cube map for lighting
+    m_roShaderProgMeshPoly->SetLightingTextures(    pDiffuseTextureDDS,
+                                                    nDiffuseBufferSize,
+                                                    pSpecularTextureDDS,
+                                                    nSpecularBufferSize);
     
-    glGenTextures(1, &m_sConfig.nTexDiffuse);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_sConfig.nTexDiffuse);
     
-    if (!bLoadDdsTexture(pDiffuseTextureDDS, nDiffuseBufferSize, GL_TEXTURE_CUBE_MAP))
-    {
-        ViewerManager::Info("Failed to load diffuse texture dds");
-        return false;
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    
-    // Texture 1 is the specular cube map for lighting
-
-    glGenTextures(1, &m_sConfig.nTexSpecular);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_sConfig.nTexSpecular);
-
-    if (!bLoadDdsTexture(pSpecularTextureDDS, nSpecularBufferSize, GL_TEXTURE_CUBE_MAP))
-    {
-        ViewerManager::Info("Failed to load specular texture dds");
-        return false;
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     
     CHECKGLERRORS;
     
@@ -198,14 +136,7 @@ Viewer::~Viewer()
     
     m_oTextures.CleanupAllTextures();
 
-    if (m_sConfig.nProgram != 0)
-        glDeleteProgram(m_sConfig.nProgram);
-    
-    if (m_sConfig.nVertexShader != 0)
-        glDeleteShader(m_sConfig.nVertexShader);
-    
-    if (m_sConfig.nFragmentShader != 0)
-        glDeleteShader(m_sConfig.nFragmentShader);
+    m_roShaderProgMeshPoly.reset();
 
     if (m_nSceneTex != 0)
         glDeleteTextures(1, &m_nSceneTex);
@@ -620,17 +551,7 @@ void Viewer::DrawScene()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    glUseProgram(m_sConfig.nProgram);
-    
-    glUniformMatrix4fv( m_sConfig.iMVPUniform,  1,  GL_FALSE, (GLfloat*) &matMVP);
-    glUniform3fv(       m_sConfig.iEyeUniform,  1,  (GLfloat*) &vecEye);
-    
-    if (m_sConfig.nTexDiffuse != 0)
-    {
-        // We have a light setup
-        glUniform1i(m_sConfig.iDiffuseUniform,  0);
-        glUniform1i(m_sConfig.iSpecularUniform, 1);
-    }
+    m_roShaderProgMeshPoly->Use(matMVP, vecEye);
     
     CHECKGLERRORS;
     
@@ -641,21 +562,20 @@ void Viewer::DrawScene()
         Group::Ptr poGroup = Pair.second;
         if (!poGroup->bStatic())
         {
-            poGroup->Draw(matModelTrans, m_sConfig);
+            poGroup->Draw(matModelTrans, *m_roShaderProgMeshPoly);
         }
     }
     
-    // Now draw the static stuff
+    m_roShaderProgMeshPoly->Use(matStatic, vecEyeStatic);
     
-    glUniformMatrix4fv( m_sConfig.iMVPUniform,  1,  GL_FALSE, (GLfloat*) &matStatic);
-    glUniform3fv(       m_sConfig.iEyeUniform,  1,  (GLfloat*) &vecEyeStatic);
+    // Now draw the static stuff
     
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
         if (poGroup->bStatic())
         {
-            poGroup->Draw(matModelTrans, m_sConfig);
+            poGroup->Draw(matModelTrans, *m_roShaderProgMeshPoly);
         }
     }
     
@@ -685,30 +605,6 @@ void Viewer::DrawGui()
         GuiElement::Ptr roSB = m_oGuiElements.roGet(m_hSideBarRight);
         roSB->Draw();
     }
-   
-    /*SideBar::Ptr    roSBL   = std::make_shared<SideBar>     (0, this, ColorFloat(1,1,1,0.5f), 100, 400, 200, true);
-    TextLabel::Ptr  roLabel = std::make_shared<TextLabel>   (1, this, ColorFloat(0,0,1,0.9f), "Hello World");
-    Slider::Ptr     roSlider = std::make_shared<Slider>  (      3,
-                                                                this,
-                                                                ColorFloat(1,1,1,.7f),
-                                                                ColorFloat(1,1,1,.9f),
-                                                                ColorFloat(1,1,1,1),
-                                                                ColorFloat(1,0,0,.7f),
-                                                                ColorFloat(1,0,0,1),
-                                                                ColorFloat(.5f,.5f,.5f,.9f),
-                                                                "Value",
-                                                                -1.0f,2.0f,
-                                                                0.0f);
-    
-    
-                                                                           
-    roSBL->AddChild(roLabel);
-    roSBL->AddChild(roSlider);
-    
-    roSBL->Draw();
-    
-    SideBar oSBR(2, this, ColorFloat(1,1,1,0.5f), 100, 400, 200, false);
-    oSBR.Draw();*/
 }
 
 void Viewer::RecalculateInformationIfNeeded()
@@ -779,60 +675,6 @@ void Viewer::DestroySideBar(uint64_t hSideBar)
     
     m_oGuiElements.bDestroy(hSideBar);
 }
-
-
-const std::string Viewer::m_strVertexShader =
-R"VS(
-#version 330 core
-in  vec3 vec3Pos;
-out vec3 vec3World;
-uniform mat4 mat4OtoW;
-uniform mat4 mat4MVP;
-void main()
-{
-    vec3World   = (mat4OtoW * vec4(vec3Pos, 1)).xyz;
-    gl_Position = mat4MVP * vec4(vec3World, 1);
-}
-)VS";
-
-const std::string Viewer::m_strFragmentShader = R"FS(
-#version 330 core
-#extension GL_ARB_shader_texture_lod : enable
-
-#define GAMMA   vec3(0.45, 0.45, 0.45)
-
-in highp vec3   vec3World;
-
-uniform vec3    vec3Eye;
-
-uniform vec4    vec4Color;
-uniform float   fMetallic;
-uniform float   fRoughness;
-
-uniform samplerCube texDiff;
-uniform samplerCube texSpec;
-
-layout(location = 0) out vec4 vec4Fragment;
-
-void main()
-{
-    vec3 vec3Color = vec3(vec4Color.r, vec4Color.g, vec4Color.b);
-    vec3 vec3N     = normalize(cross(dFdx(vec3World), dFdy(vec3World)));
-    vec3 vec3View  = normalize(vec3World - vec3Eye);
-    vec3 vec3Ref   = normalize(reflect(vec3View, vec3N));
-    
-    float fVdotN   = clamp(dot(-vec3View, vec3N), 0, 1.0);
-    float fFresnel = fMetallic + (1.0 - fMetallic) * pow(1.0 - fVdotN, 5.0) * (1.0 - fRoughness * 0.9);
-    
-    vec3 vec3Diff  = textureLod(texDiff, vec3N, 0).xyz * vec3Color;
-    vec3 vec3Spec  = textureLod(texSpec, vec3Ref, fRoughness * 6.0).xyz;
-    
-    vec3 vec3NonM  = vec3Diff + vec3Spec * fFresnel;
-    vec3 vec3Metal = vec3Color * vec3Spec;
-    float fMix     = smoothstep(0.25, 0.45, fMetallic);
-    vec4Fragment   = vec4(pow(mix(vec3NonM, vec3Metal, fMix), GAMMA), vec4Color.a);
-}
-)FS";
 
 } // namespace PicoGK
 

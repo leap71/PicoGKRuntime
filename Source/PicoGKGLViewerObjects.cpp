@@ -63,24 +63,16 @@ Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine::Ptr& roPoly)
     CHECKGLERRORS;
 }
 
-void Viewer::Group::ViewPolyLine::Draw( const ShaderConfig& sConfig,
+void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
                                         const Material& oMaterial,
                                         const Matrix4x4& mat)
 {
     if (m_roPolyLine->nVertexCount() == 0)
         return;
+    
+    oShader.SetValues(  mat,
+                        m_roPolyLine->clrLines());
         
-    glUniformMatrix4fv( sConfig.iOtoWUniform, 1, GL_FALSE,
-                        (GLfloat*) &mat);
-    
-    ColorFloat clr = m_roPolyLine->clrLines();
-    
-    glUniform4f(    sConfig.iColorUniform,
-                    clr.R,
-                    clr.G,
-                    clr.B,
-                    clr.A);
-    
     // Draw the polyline
     glBindVertexArray(sGLParams.nVertexArray);
             
@@ -88,8 +80,8 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderConfig& sConfig,
                     sGLParams.nArrayBuffer);
     
     // Specify the attribute location and format
-    glEnableVertexAttribArray(sConfig.iPosAttrib);
-    glVertexAttribPointer(sConfig.iPosAttrib, 3, GL_FLOAT, GL_FALSE, sizeof(Vector3), nullptr);
+    glEnableVertexAttribArray(oShader.nAttribPosition());
+    glVertexAttribPointer(oShader.nAttribPosition(), 3, GL_FLOAT, GL_FALSE, sizeof(Vector3), nullptr);
     
     glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_roPolyLine->nVertexCount()));
     glBindVertexArray(0);
@@ -98,7 +90,7 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderConfig& sConfig,
 }
 
 void Viewer::Group::Draw(   const Matrix4x4& matModelTrans,
-                            const ShaderConfig& sConfig)
+                            const ShaderProgMeshPoly& oShader)
 {
     if (!m_bVisible)
         return;
@@ -109,13 +101,13 @@ void Viewer::Group::Draw(   const Matrix4x4& matModelTrans,
     for (auto o : m_oViewPolyLines)
     {
         ViewPolyLine::Ptr roLine = o.second;
-        roLine->Draw(sConfig, m_sMaterial, matMult);
+        roLine->Draw(oShader, m_sMaterial, matMult);
     }
     
     for (auto o : m_oViewMeshes)
     {
         ViewMesh::Ptr roMesh = o.second;
-        roMesh->Draw(sConfig, m_sMaterial, matMult);
+        roMesh->Draw(oShader, m_sMaterial, matMult);
     }
 }
 
@@ -167,32 +159,23 @@ Viewer::Group::ViewMesh::ViewMesh(const Mesh::Ptr& roMesh)
     CHECKGLERRORS;
 }
 
-void Viewer::Group::ViewMesh::Draw( const ShaderConfig& sConfig,
+void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     const Material& sMaterial,
                                     const Matrix4x4& mat)
 {
-    glUniformMatrix4fv( sConfig.iOtoWUniform, 1, GL_FALSE,
-                        (GLfloat*) &mat);
-    
-    glUniform4f(    sConfig.iColorUniform,
-                    sMaterial.clr.R,
-                    sMaterial.clr.G,
-                    sMaterial.clr.B,
-                    sMaterial.clr.A);
-    
-    glUniform1f(sConfig.iMetallicUniform,   sMaterial.fMetallic);
-    glUniform1f(sConfig.iRoughnessUniform,  sMaterial.fRoughness);
-
-    CHECKGLERRORS;
+    oShader.SetValues(  mat,
+                        sMaterial.clr,
+                        sMaterial.fMetallic,
+                        sMaterial.fRoughness);
                 
     glBindVertexArray(sGLParams.nVertexArray);
             
     glBindBuffer(   GL_ARRAY_BUFFER,
                     sGLParams.nArrayBuffer);
     
-    glEnableVertexAttribArray( sConfig.iPosAttrib);
+    glEnableVertexAttribArray(oShader.nAttribPosition());
     
-    glVertexAttribPointer(  sConfig.iPosAttrib,
+    glVertexAttribPointer(  oShader.nAttribPosition(),
                             3, GL_FLOAT, GL_FALSE,
                             sizeof(Vector3),
                             nullptr);

@@ -45,6 +45,7 @@
 #include "PicoGKLibraryMgr.h"
 #include "PicoGKTrace.h"
 #include "PicoGKGLTexture.h"
+#include "PicoGKGLViewerShaders.h"
 
 struct GLFWwindow;
 struct ImGuiContext;
@@ -170,29 +171,10 @@ protected:
     void OnWindowSize(  int nWidth,
                         int nHeight);
     
-    static const std::string            m_strVertexShader;
-    static const std::string            m_strFragmentShader;
+    static const std::string                    m_strVertexShader;
+    static const std::string                    m_strFragmentShader;
     
-    struct ShaderConfig
-    {
-        uint32_t    nVertexShader         = 0;
-        uint32_t    nFragmentShader       = 0;
-        uint32_t    nProgram              = 0;
-
-        GLuint      nTexDiffuse           = 0;
-        GLuint      nTexSpecular          = 0;
-
-        int         iOtoWUniform          = -1;
-        int         iMVPUniform           = -1;
-        int         iEyeUniform           = -1;
-        int         iColorUniform         = -1;
-        int         iMetallicUniform      = -1;
-        int         iRoughnessUniform     = -1;
-        int         iDiffuseUniform       = -1;
-        int         iSpecularUniform      = -1;
-
-        int         iPosAttrib            = -1;
-    } m_sConfig;
+    std::unique_ptr<ShaderProgMeshPoly>         m_roShaderProgMeshPoly;
     
     void Redraw(bool bDraw3dScene);
     
@@ -370,7 +352,7 @@ GLuint              m_nSceneFBO         = 0;
         }
         
         void Draw(  const Matrix4x4& matModelTrans,
-                    const ShaderConfig& sConfig);
+                    const ShaderProgMeshPoly& oShaderProg);
         
         BBox3 oCalculateBBox() const;
         
@@ -405,7 +387,7 @@ GLuint              m_nSceneFBO         = 0;
             
             ViewMesh(const Mesh::Ptr& roMesh);
             
-            void Draw(  const ShaderConfig& sConfig,
+            void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
                         const Matrix4x4& mat);
             
@@ -425,7 +407,7 @@ GLuint              m_nSceneFBO         = 0;
             
             ViewPolyLine(const PolyLine::Ptr& roPoly);
             
-            void Draw(  const ShaderConfig& sConfig,
+            void Draw(  const ShaderProgMeshPoly& oShaderProg,
                         const Material& sMaterial,
                         const Matrix4x4& mat);
             
