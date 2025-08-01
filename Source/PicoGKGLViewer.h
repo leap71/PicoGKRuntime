@@ -171,10 +171,7 @@ protected:
     void OnWindowSize(  int nWidth,
                         int nHeight);
     
-    static const std::string                    m_strVertexShader;
-    static const std::string                    m_strFragmentShader;
-    
-    std::unique_ptr<ShaderProgMeshPoly>         m_roShaderProgMeshPoly;
+    std::unique_ptr<ShaderProgMeshPoly>  m_roShaderProgMeshPoly;
     
     void Redraw(bool bDraw3dScene);
     
