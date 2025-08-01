@@ -54,8 +54,8 @@ GlShaderProgram::GlShaderProgram(   const std::string& strVertShader,
         throw ShaderProgramException("Unable to create OpenGL program");
     }
     
-    GLuint hVertShader = hCompileShader(SHADERTYPE_VERTEX,      strVertShader);
-    GLuint hFragShader = hCompileShader(SHADERTYPE_FRAGMENT,    strFragShader);
+    GLuint hVertShader = hCompileShader(EShaderType::Vertex,    strVertShader);
+    GLuint hFragShader = hCompileShader(EShaderType::Fragment,  strFragShader);
     
     // CompileShader throws exception if it didn't work, so we have valid shaders now
     
@@ -98,22 +98,12 @@ GlShaderProgram::~GlShaderProgram()
 }
         
     
-void GlShaderProgram::Use()
+void GlShaderProgram::Use() const
 {
     glUseProgram(m_hProgram);
 }
 
-GLint GlShaderProgram::nGetParamLocation(const std::string& strName) const
-{
-    GLint nLoc = glGetUniformLocation(m_hProgram, strName.c_str());
-    
-    if (nLoc == -1)
-        throw ShaderProgramException("Unknown parameter (uniform) " + strName);
-    
-    return nLoc;
-}
-
-std::string GlShaderProgram::strListParams() const
+std::string GlShaderProgram::strListUniforms() const
 {
     if (m_hProgram == 0)
         return "";
@@ -123,7 +113,7 @@ std::string GlShaderProgram::strListParams() const
     
     if (nUniformCount < 1)
     {
-        return "Shader program has no parameters";
+        return "Shader program has no uniforms";
     }
 
     GLint nMaxNameLength = 0;
@@ -131,7 +121,7 @@ std::string GlShaderProgram::strListParams() const
                     GL_ACTIVE_UNIFORM_MAX_LENGTH,
                     &nMaxNameLength);
     
-    std::string str = "Shader Parameters:\n";
+    std::string str = "Shader Uniforms:\n";
     
     std::vector<GLchar> astrNameBuf(nMaxNameLength);
     for (GLint i = 0; i < nUniformCount; ++i)
@@ -162,6 +152,55 @@ std::string GlShaderProgram::strListParams() const
     return str;
 }
 
+std::string GlShaderProgram::strListAttributes() const
+{
+    if (m_hProgram == 0)
+        return "";
+    
+    GLint nAttribCount = 0;
+    glGetProgramiv(m_hProgram, GL_ACTIVE_ATTRIBUTES, &nAttribCount);
+    
+    if (nAttribCount < 1)
+    {
+        return "Shader program has no attributes";
+    }
+
+    GLint nMaxNameLength = 0;
+    glGetProgramiv( m_hProgram,
+                    GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
+                    &nMaxNameLength);
+    
+    std::string str = "Shader Attributes:\n";
+    
+    std::vector<GLchar> astrNameBuf(nMaxNameLength);
+    for (GLint i = 0; i < nAttribCount; ++i)
+    {
+        GLenum  eType   = 0;
+        GLint   nSize   = 0;
+        GLsizei nLength = 0;
+
+        glGetActiveAttrib(  m_hProgram,
+                            i,
+                            (GLsizei) astrNameBuf.size(),
+                            &nLength,
+                            &nSize,
+                            &eType,
+                            astrNameBuf.data());
+        
+        GLint nLocation = glGetAttribLocation(  m_hProgram,
+                                                astrNameBuf.data());
+        
+        str += "[" + std::to_string(i) + "] - ";
+        str += std::string(astrNameBuf.data());
+        str += " " + strGlTypeToString(eType);
+        str += " Size(" + std::to_string(nSize) + ")";
+        str += " Location(" + std::to_string(nLocation) + ")";
+        str += "\n";
+    }
+    
+    return str;
+}
+
 /*static*/ std::string GlShaderProgram::strGlTypeToString(GLenum eType)
 {
 switch (eType)
@@ -170,7 +209,9 @@ switch (eType)
         case GL_FLOAT_VEC2:                     return "vec2";
         case GL_FLOAT_VEC3:                     return "vec3";
         case GL_FLOAT_VEC4:                     return "vec4";
-
+            
+        case GL_DOUBLE:                         return "double";
+        
         case GL_INT:                            return "int";
         case GL_INT_VEC2:                       return "ivec2";
         case GL_INT_VEC3:                       return "ivec3";
@@ -230,7 +271,7 @@ switch (eType)
 GLuint GlShaderProgram::hCompileShader( EShaderType eType,
                                         const std::string& strSource) const
 {
-    GLuint hShader = glCreateShader(eType == SHADERTYPE_VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
+    GLuint hShader = glCreateShader(eType == EShaderType::Vertex ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
     
     const char* psz = strSource.c_str();
             
@@ -246,7 +287,7 @@ GLuint GlShaderProgram::hCompileShader( EShaderType eType,
         glGetShaderInfoLog(hShader, sizeof(pszLog), nullptr, pszLog);
         
         std::string strMessage = "Error compiling ";
-        strMessage += (eType == SHADERTYPE_VERTEX) ? "Vertex" : "Fragment";
+        strMessage += (eType == EShaderType::Vertex) ? "Vertex" : "Fragment";
         strMessage += " shader ";
         strMessage += pszLog;
     
@@ -256,6 +297,26 @@ GLuint GlShaderProgram::hCompileShader( EShaderType eType,
     }
     
     return hShader;
+}
+
+GLint GlShaderProgram::nUniformLoc(const std::string& strName) const
+{
+    GLint nLoc = glGetUniformLocation(m_hProgram, strName.c_str());
+    
+    if (nLoc == -1)
+        throw ShaderProgramException("Unknown parameter (uniform) " + strName);
+    
+    return nLoc;
+}
+
+GLint GlShaderProgram::nAttribLoc(const std::string& strName) const
+{
+    GLint nLoc = glGetAttribLocation(m_hProgram, strName.c_str());
+    
+    if (nLoc == -1)
+        throw ShaderProgramException("Unknown parameter (attribute) " + strName);
+    
+    return nLoc;
 }
     
 } // namespace PicoGK

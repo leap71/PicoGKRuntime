@@ -49,26 +49,25 @@ public:
     
     virtual ~GlShaderProgram();
     
-    virtual void Use();
+    virtual void Use() const;
     
-    GLint operator[](const std::string& strParam) const
-    {
-        return nGetParamLocation(strParam);
-    }
+    std::string strListUniforms() const;
     
-    GLint nGetParamLocation(const std::string& strName) const;
-    
-    std::string strListParams() const;
+    std::string strListAttributes() const;
     
     static std::string strGlTypeToString(GLenum eType);
     
 protected:
     GLuint m_hProgram = 0;
     
-    enum class EShaderType {SHADERTYPE_VERTEX, SHADERTYPE_FRAGMENT};
+    enum class EShaderType {Vertex, Fragment};
     
     GLuint hCompileShader(  EShaderType eType,
                             const std::string& strSource) const;
+    
+    GLint nUniformLoc(const std::string& strName) const;
+    
+    GLint nAttribLoc(const std::string& strName) const;
     
 public:
     class ShaderProgramException : public std::runtime_error
