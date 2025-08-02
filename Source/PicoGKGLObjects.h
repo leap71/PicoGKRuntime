@@ -77,8 +77,6 @@ template<typename T>
 class GlVertexBuffer
 {
 public:
-    using Traits = GlVertexAttribTraits<T>;
-    
     class Bind
     {
     public:
@@ -107,13 +105,10 @@ public:
         m_nVertexCount = static_cast<int32_t>(vVertices.size());
         
         glGenVertexArrays(1, &m_nVAO);
-        glBindVertexArray(m_nVAO);
         
         glGenBuffers(1, &m_nVBO);
         glBindBuffer(GL_ARRAY_BUFFER, m_nVBO);
-        glBufferData(GL_ARRAY_BUFFER, nStride() * vVertices.size(), vVertices.data(), eUsage);
-        
-        glBindVertexArray(0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(T) * vVertices.size(), vVertices.data(), eUsage);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
@@ -135,24 +130,16 @@ public:
         return m_nVertexCount;
     }
     
-    int32_t nStride() const
+    void BindToShaderAttrib(GLuint nAttribLocation) const
     {
-        return sizeof(T);
-    }
-    
-    GLint nComponents() const
-    {
-        return Traits::nComponents;
-    }
-    
-    GLenum eType() const
-    {
-        return Traits::eType;
-    }
-    
-    bool bNormalized() const
-    {
-        return Traits::bNormalized;
+       glEnableVertexAttribArray(nAttribLocation);
+        
+        glVertexAttribPointer(  nAttribLocation,
+                                GlVertexAttribTraits<T>::nComponents,
+                                GlVertexAttribTraits<T>::eType,
+                                GlVertexAttribTraits<T>::bNormalized,
+                                static_cast<GLsizei>(sizeof(T)),
+                                nullptr );
     }
     
     GlVertexBuffer(const GlVertexBuffer&)               = delete;

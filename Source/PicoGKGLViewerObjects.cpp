@@ -59,15 +59,7 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
     
     class GlVertexBuffer<Vector3>::Bind oBind(m_oVertexBuffer);
     
-    // Specify the attribute location and format
-    glEnableVertexAttribArray(oShader.nAttribPosition());
-    glVertexAttribPointer(  oShader.nAttribPosition(),
-                            m_oVertexBuffer.nComponents(),
-                            m_oVertexBuffer.eType(),
-                            m_oVertexBuffer.bNormalized(),
-                            m_oVertexBuffer.nStride(),
-                            nullptr);
-    
+    m_oVertexBuffer.BindToShaderAttrib(oShader.nAttribPosition());
     glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_oVertexBuffer.nVertexCount()));
     
     CHECKGLERRORS;
