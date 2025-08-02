@@ -79,8 +79,6 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     
     m_roShaderProgMeshPoly = std::make_unique<ShaderProgMeshPoly>();
 
-    const char* pszVS = m_strVertexShader.c_str();
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
