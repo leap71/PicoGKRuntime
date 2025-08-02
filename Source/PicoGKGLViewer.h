@@ -212,10 +212,7 @@ GLuint              m_nSceneFBO         = 0;
             auto roLib  = Library::oLib().roGetInstance(hLib);
             auto roMesh = roLib->m_oMeshes.roGet(hMesh);
             
-            // Add a copy, so we dont depend on the original mesh
-            Mesh::Ptr roNew = std::make_shared<Mesh>(*roMesh);
-            
-            m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_shared<ViewMesh>(roNew);
+            m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_unique<ViewMesh>(*roMesh);
         }
         
         void RemoveMesh(int64_t hLib, int64_t hMesh)
@@ -249,8 +246,7 @@ GLuint              m_nSceneFBO         = 0;
             
             // Transform to Mesh
             Mesh::Ptr roNew = roVoxels->roAsMesh(roLib->fVoxelSizeMM());
-            
-            m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_shared<ViewMesh>(roNew);
+            m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_unique<ViewMesh>(*roNew);
         }
         
         void RemoveVoxels(int64_t hLib, int64_t hVoxels)
@@ -281,10 +277,7 @@ GLuint              m_nSceneFBO         = 0;
             auto roLib  = Library::oLib().roGetInstance(hLib);
             auto roPoly = roLib->m_oPolyLines.roGet(hPoly);
             
-            // Add a copy, so we dont depend on the original polyline
-            PolyLine::Ptr roNew = std::make_shared<PolyLine>(*roPoly);
-            
-            m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_shared<ViewPolyLine>(roNew);
+            m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_unique<ViewPolyLine>(*roPoly);
         }
         
         void RemovePolyLine(int64_t hLib, int64_t hPoly)
@@ -382,7 +375,7 @@ GLuint              m_nSceneFBO         = 0;
         {
             PKSHAREDPTR(ViewMesh);
             
-            ViewMesh(const Mesh::Ptr& roMesh);
+            ViewMesh(const Mesh& oMesh);
             
             void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
@@ -395,14 +388,15 @@ GLuint              m_nSceneFBO         = 0;
                 GLuint  nElementArrayBuffer;
             } sGLParams;
             
-            Mesh::Ptr m_roMesh;
+            int32_t     m_nTriangleCount    = 0;
+            BBox3       m_oBBox;
         };
         
         struct ViewPolyLine
         {
             PKSHAREDPTR(ViewPolyLine);
             
-            ViewPolyLine(const PolyLine::Ptr& roPoly);
+            ViewPolyLine(const PolyLine& oPoly);
             
             void Draw(  const ShaderProgMeshPoly& oShaderProg,
                         const Material& sMaterial,
@@ -414,11 +408,13 @@ GLuint              m_nSceneFBO         = 0;
                 GLuint  nArrayBuffer;
             } sGLParams;
             
-            PolyLine::Ptr m_roPolyLine;
+            int32_t     m_nVertexCount  = 0;
+            ColorFloat  m_clrLine;
+            BBox3       m_oBBox;
         };
         
-        std::map<std::pair<int64_t, int64_t>, ViewMesh::Ptr>        m_oViewMeshes;
-        std::map<std::pair<int64_t, int64_t>, ViewPolyLine::Ptr>    m_oViewPolyLines;
+        std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewMesh>>        m_oViewMeshes;
+        std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewPolyLine>>    m_oViewPolyLines;
     };
     
     Group::Ptr roGroupAt(int nGroupID)

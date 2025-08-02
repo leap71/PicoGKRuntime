@@ -40,12 +40,14 @@
 namespace PicoGK
 {
 
-Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine::Ptr& roPoly)
+Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine& oPoly)
 {
-    m_roPolyLine = roPoly;
+    m_nVertexCount  = oPoly.nVertexCount();
+    m_clrLine       = oPoly.clrLines();
+    m_oBBox         = oPoly.oBBox();
     
-    if (m_roPolyLine->nVertexCount() == 0)
-        return;
+    if (m_nVertexCount)
+       return;
     
     glGenVertexArrays(1, &sGLParams.nVertexArray);
     glBindVertexArray(sGLParams.nVertexArray);
@@ -56,8 +58,8 @@ Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine::Ptr& roPoly)
                     sGLParams.nArrayBuffer);
         
     glBufferData(   GL_ARRAY_BUFFER,
-                    m_roPolyLine->nVertexCount() * sizeof(Vector3),
-                    m_roPolyLine->pVertexData(),
+                    oPoly.nVertexCount() * sizeof(Vector3),
+                    oPoly.pVertexData(),
                     GL_STATIC_DRAW);
     
     CHECKGLERRORS;
@@ -67,11 +69,11 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
                                         const Material& oMaterial,
                                         const Matrix4x4& mat)
 {
-    if (m_roPolyLine->nVertexCount() == 0)
+    if (m_nVertexCount == 0)
         return;
     
     oShader.SetValues(  mat,
-                        m_roPolyLine->clrLines());
+                        m_clrLine);
         
     // Draw the polyline
     glBindVertexArray(sGLParams.nVertexArray);
@@ -83,7 +85,7 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
     glEnableVertexAttribArray(oShader.nAttribPosition());
     glVertexAttribPointer(oShader.nAttribPosition(), 3, GL_FLOAT, GL_FALSE, sizeof(Vector3), nullptr);
     
-    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_roPolyLine->nVertexCount()));
+    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_nVertexCount));
     glBindVertexArray(0);
     
     CHECKGLERRORS;
@@ -98,16 +100,14 @@ void Viewer::Group::Draw(   const Matrix4x4& matModelTrans,
     Matrix4x4 matMult = matModelTrans;
     matMult *= m_mat;
     
-    for (auto o : m_oViewPolyLines)
+    for (auto& oMapEntry : m_oViewPolyLines)
     {
-        ViewPolyLine::Ptr roLine = o.second;
-        roLine->Draw(oShader, m_sMaterial, matMult);
+        oMapEntry.second->Draw(oShader, m_sMaterial, matMult);
     }
     
-    for (auto o : m_oViewMeshes)
+    for (auto& oMapEntry : m_oViewMeshes)
     {
-        ViewMesh::Ptr roMesh = o.second;
-        roMesh->Draw(oShader, m_sMaterial, matMult);
+        oMapEntry.second->Draw(oShader, m_sMaterial, matMult);
     }
 }
 
@@ -115,24 +115,31 @@ BBox3 Viewer::Group::oCalculateBBox() const
 {
     BBox3 oBBox;
     
-    for (auto o : m_oViewPolyLines)
+    for (auto& oMapEntry : m_oViewPolyLines)
     {
-        ViewPolyLine::Ptr roLine = o.second;
-        oBBox.Include(roLine->m_roPolyLine->oBBox());
+        oBBox.Include(oMapEntry.second->m_oBBox);
     }
     
-    for (auto o : m_oViewMeshes)
+    for (auto& oMapEntry : m_oViewMeshes)
     {
-        ViewMesh::Ptr roMesh = o.second;
-        oBBox.Include(roMesh->m_roMesh->oBBox());
+        oBBox.Include(oMapEntry.second->m_oBBox);
     }
     
     return oBBox;
 }
 
-Viewer::Group::ViewMesh::ViewMesh(const Mesh::Ptr& roMesh)
+Viewer::Group::ViewMesh::ViewMesh(const Mesh& oMesh)
 {
-    m_roMesh = roMesh;
+    ;
+    
+    if (oMesh.nVertexCount() == 0)
+        return;
+    
+    m_nTriangleCount = oMesh.nTriangleCount();
+    
+    if (m_nTriangleCount == 0)
+        return;
+    
     glGenVertexArrays(1, &sGLParams.nVertexArray);
     glBindVertexArray(sGLParams.nVertexArray);
 
@@ -142,8 +149,8 @@ Viewer::Group::ViewMesh::ViewMesh(const Mesh::Ptr& roMesh)
                     sGLParams.nArrayBuffer);
         
     glBufferData(   GL_ARRAY_BUFFER,
-                    m_roMesh->nVertexCount() * sizeof(Vector3),
-                    m_roMesh->pVertexData(),
+                    oMesh.nVertexCount() * sizeof(Vector3),
+                    oMesh.pVertexData(),
                     GL_STATIC_DRAW);
     
     glGenBuffers(1, &sGLParams.nElementArrayBuffer);
@@ -152,8 +159,8 @@ Viewer::Group::ViewMesh::ViewMesh(const Mesh::Ptr& roMesh)
                     sGLParams.nElementArrayBuffer);
         
     glBufferData(   GL_ELEMENT_ARRAY_BUFFER,
-                    m_roMesh->nTriangleCount() * sizeof(Triangle),
-                    m_roMesh->pTriangleData(),
+                    m_nTriangleCount * sizeof(Triangle),
+                    oMesh.pTriangleData(),
                     GL_STATIC_DRAW);
     
     CHECKGLERRORS;
@@ -163,6 +170,9 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     const Material& sMaterial,
                                     const Matrix4x4& mat)
 {
+    if (m_nTriangleCount == 0)
+        return;
+    
     oShader.SetValues(  mat,
                         sMaterial.clr,
                         sMaterial.fMetallic,
@@ -181,7 +191,7 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                             nullptr);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sGLParams.nElementArrayBuffer);
-    glDrawElements(GL_TRIANGLES, m_roMesh->nTriangleCount() * 3, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, m_nTriangleCount * 3, GL_UNSIGNED_INT, nullptr);
 
     CHECKGLERRORS;
 }
