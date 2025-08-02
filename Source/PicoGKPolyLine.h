@@ -95,7 +95,10 @@ public:
         return m_clrLines;
     }
     
-    inline BBox3 oBBox() {return m_oBBox;}
+    inline BBox3 oBBox() const
+    {
+        return m_oBBox;
+    }
     
 protected:
     std::vector<Vector3>    m_oVertices;
