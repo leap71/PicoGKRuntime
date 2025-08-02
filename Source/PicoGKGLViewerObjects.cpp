@@ -41,52 +41,34 @@ namespace PicoGK
 {
 
 Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine& oPoly)
+: m_oVertexBuffer(oPoly.vVertices())
 {
-    m_nVertexCount  = oPoly.nVertexCount();
     m_clrLine       = oPoly.clrLines();
     m_oBBox         = oPoly.oBBox();
-    
-    if (m_nVertexCount)
-       return;
-    
-    glGenVertexArrays(1, &sGLParams.nVertexArray);
-    glBindVertexArray(sGLParams.nVertexArray);
-
-    glGenBuffers(1, &sGLParams.nArrayBuffer);
-
-    glBindBuffer(   GL_ARRAY_BUFFER,
-                    sGLParams.nArrayBuffer);
-        
-    glBufferData(   GL_ARRAY_BUFFER,
-                    oPoly.nVertexCount() * sizeof(Vector3),
-                    oPoly.pVertexData(),
-                    GL_STATIC_DRAW);
-    
-    CHECKGLERRORS;
 }
 
 void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
                                         const Material& oMaterial,
                                         const Matrix4x4& mat)
 {
-    if (m_nVertexCount == 0)
+    if (m_oVertexBuffer.bIsEmpty())
         return;
     
     oShader.SetValues(  mat,
                         m_clrLine);
-        
-    // Draw the polyline
-    glBindVertexArray(sGLParams.nVertexArray);
-            
-    glBindBuffer(   GL_ARRAY_BUFFER,
-                    sGLParams.nArrayBuffer);
+    
+    class GlVertexBuffer<Vector3>::Bind oBind(m_oVertexBuffer);
     
     // Specify the attribute location and format
     glEnableVertexAttribArray(oShader.nAttribPosition());
-    glVertexAttribPointer(oShader.nAttribPosition(), 3, GL_FLOAT, GL_FALSE, sizeof(Vector3), nullptr);
+    glVertexAttribPointer(  oShader.nAttribPosition(),
+                            m_oVertexBuffer.nComponents(),
+                            m_oVertexBuffer.eType(),
+                            m_oVertexBuffer.bNormalized(),
+                            m_oVertexBuffer.nStride(),
+                            nullptr);
     
-    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_nVertexCount));
-    glBindVertexArray(0);
+    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_oVertexBuffer.nVertexCount()));
     
     CHECKGLERRORS;
 }
@@ -130,8 +112,6 @@ BBox3 Viewer::Group::oCalculateBBox() const
 
 Viewer::Group::ViewMesh::ViewMesh(const Mesh& oMesh)
 {
-    ;
-    
     if (oMesh.nVertexCount() == 0)
         return;
     

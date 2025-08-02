@@ -46,6 +46,7 @@
 #include "PicoGKTrace.h"
 #include "PicoGKGLTexture.h"
 #include "PicoGKGLViewerShaders.h"
+#include "PicoGKGLObjects.h"
 
 struct GLFWwindow;
 struct ImGuiContext;
@@ -402,15 +403,9 @@ GLuint              m_nSceneFBO         = 0;
                         const Material& sMaterial,
                         const Matrix4x4& mat);
             
-            struct GLParams
-            {
-                GLuint  nVertexArray;
-                GLuint  nArrayBuffer;
-            } sGLParams;
-            
-            int32_t     m_nVertexCount  = 0;
-            ColorFloat  m_clrLine;
-            BBox3       m_oBBox;
+            GlVertexBuffer<Vector3> m_oVertexBuffer;
+            ColorFloat              m_clrLine;
+            BBox3                   m_oBBox;
         };
         
         std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewMesh>>        m_oViewMeshes;
