@@ -59,29 +59,29 @@ ShaderProgMeshPoly::ShaderProgMeshPoly()
     m_nAvec3Pos       = nAttribLoc("vec3Pos");
 }
 
-void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3> vVertices,
+void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3>& vVertices,
                                                 std::unique_ptr<GlVertexBuffer<Vector3>>* prResult) const
 {
     *prResult = std::make_unique<GlVertexBuffer<Vector3>>(m_nAvec3Pos, vVertices);
 }
 
-void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3> vVertices,
-                                                const std::vector<Triangle> vTriangles,
+void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3>& vVertices,
+                                                const std::vector<Triangle>& vTriangles,
                                                 std::unique_ptr<GlElementBuffer<Vector3>>* prResult) const
 {
     *prResult = std::make_unique<GlElementBuffer<Vector3>>(m_nAvec3Pos, vVertices, vTriangles);
 }
 
-void ShaderProgMeshPoly::Use(   const Matrix4x4& matMVP,
-                                const Vector3& vecEye) const
+void ShaderProgMeshPoly::Use(   const Matrix4x4&    matMVP,
+                                const Vector3&      vecEye) const
 {
     GlShaderProgram::Use();
     
+    glUniform1i(m_nUtexDiff, 0);
+    glUniform1i(m_nUtexSpec, 1);
+    
     glUniformMatrix4fv( m_nUmat4MVP,  1,  GL_FALSE, (GLfloat*) &matMVP);
     glUniform3fv(       m_nUvec3Eye,  1,  (GLfloat*) &vecEye);
-    
-    glUniform1i(m_nUtexSpec,    m_hTexSpecular);
-    glUniform1i(m_nUtexDiff,    m_hTexDiffuse);
 }
 
 void ShaderProgMeshPoly::SetValues( const Matrix4x4& mat,
@@ -89,6 +89,7 @@ void ShaderProgMeshPoly::SetValues( const Matrix4x4& mat,
                                     float fMetallic,
                                     float fRoughness) const
 {
+    
     glUniformMatrix4fv( m_nUmat4OtoW,
                         1,
                         GL_FALSE,
@@ -100,11 +101,8 @@ void ShaderProgMeshPoly::SetValues( const Matrix4x4& mat,
                     clr.B,
                     clr.A);
     
-    glUniform1f(m_nUfMetallic, fMetallic);
-    glUniform1f(m_nUfMetallic, fRoughness);
-    
-    glUniform1i(m_nUtexDiff, 0);  // GL_TEXTURE0
-    glUniform1i(m_nUtexSpec, 1);  // GL_TEXTURE1
+    glUniform1f(m_nUfMetallic,  fMetallic);
+    glUniform1f(m_nUfRoughness, fRoughness);
 }
 
 void ShaderProgMeshPoly::SetLightingTextures(   const char* pDiffuseTextureDDS,
