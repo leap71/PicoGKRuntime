@@ -102,6 +102,9 @@ void ShaderProgMeshPoly::SetValues( const Matrix4x4& mat,
     
     glUniform1f(m_nUfMetallic, fMetallic);
     glUniform1f(m_nUfMetallic, fRoughness);
+    
+    glUniform1i(m_nUtexDiff, 0);  // GL_TEXTURE0
+    glUniform1i(m_nUtexSpec, 1);  // GL_TEXTURE1
 }
 
 void ShaderProgMeshPoly::SetLightingTextures(   const char* pDiffuseTextureDDS,
