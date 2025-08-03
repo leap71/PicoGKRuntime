@@ -101,9 +101,9 @@ public:
                     GLenum eUsage = GL_STATIC_DRAW)
     {
         if (vVertices.size() == 0)
-            throw new std::invalid_argument("Cannot build a vertex buffer for an empty vertex array");
+            throw std::invalid_argument("Cannot build a vertex buffer for an empty vertex array");
         
-        m_nVertexCount = static_cast<int32_t>(vVertices.size());
+        m_nVertexCount = static_cast<GLsizei>(vVertices.size());
         
         glGenVertexArrays(1, &m_nVAO);
         glBindVertexArray(m_nVAO);
@@ -132,7 +132,7 @@ public:
             glDeleteVertexArrays(1, &m_nVAO);
     }
     
-    int32_t nVertexCount() const
+    GLsizei nVertexCount() const
     {
         return m_nVertexCount;
     }
@@ -160,6 +160,69 @@ protected:
         if (m_nVertexCount == 0)
             return;
         
+        glBindVertexArray(0);
+    }
+};
+
+template<typename VertexT>
+class GlElementBuffer
+{
+public:
+    GlElementBuffer(    GLuint nAttribLocation,
+                        const std::vector<VertexT>& vVertices,
+                        const std::vector<uint32_t>& vIndices,
+                        GLenum eUsage = GL_STATIC_DRAW)
+    : m_oVertexBuffer(nAttribLocation, vVertices)
+    {
+        if (vIndices.size() == 0)
+            throw std::invalid_argument("Cannot build a vertex buffer for an empty vertex array");
+        
+        m_nIndexCount = static_cast<GLsizei>(vIndices.size());
+        
+        GlBind oBind(m_oVertexBuffer);
+        
+        glGenBuffers(1, &m_nEBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_nEBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, vIndices.size() * sizeof(uint32_t), vIndices.data(), eUsage);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+    
+    ~GlElementBuffer()
+    {
+        if (m_nEBO)
+            glDeleteBuffers(1, &m_nEBO);
+    }
+    
+    GLsizei nVertexCount() const
+    {
+        return m_oVertexBuffer.nVertexCount();
+    }
+    
+    GLsizei nIndexCount() const
+    {
+        return m_nIndexCount;
+    }
+    
+    GlElementBuffer(const GlElementBuffer&)               = delete;
+    GlElementBuffer& operator=(const GlElementBuffer&)    = delete;
+    
+protected:
+    GlVertexBuffer<VertexT> m_oVertexBuffer;
+    GLint                   m_nIndexCount  = 0;
+    GLuint                  m_nEBO         = 0;
+    
+    template<typename> friend class GlBind;
+    
+    void Bind() const
+    {
+        m_oVertexBuffer.Bind();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_nEBO);
+    }
+    
+    void UnBind() const
+    {
+        m_oVertexBuffer.UnBind();
         glBindVertexArray(0);
     }
 };
