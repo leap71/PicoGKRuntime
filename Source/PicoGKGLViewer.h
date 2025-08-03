@@ -215,7 +215,7 @@ GLuint              m_nSceneFBO         = 0;
             auto roLib  = Library::oLib().roGetInstance(hLib);
             auto roMesh = roLib->m_oMeshes.roGet(hMesh);
             
-            m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_unique<ViewMesh>(*roMesh);
+            m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_unique<ViewMesh>(oShader, *roMesh);
         }
         
         void RemoveMesh(int64_t hLib, int64_t hMesh)
@@ -240,7 +240,8 @@ GLuint              m_nSceneFBO         = 0;
             return !(m_oViewMeshes.find(std::make_pair(hLib, hMesh)) == m_oViewMeshes.end());
         }
         
-        void AddVoxels(int64_t hLib, int64_t hVoxels)
+        void AddVoxels( int64_t hLib, int64_t hVoxels,
+                       const ShaderProgMeshPoly& oShader)
         {
             PKTRACE(AddVoxels);
             
@@ -249,7 +250,7 @@ GLuint              m_nSceneFBO         = 0;
             
             // Transform to Mesh
             Mesh::Ptr roNew = roVoxels->roAsMesh(roLib->fVoxelSizeMM());
-            m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_unique<ViewMesh>(*roNew);
+            m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_unique<ViewMesh>(oShader, *roNew);
         }
         
         void RemoveVoxels(int64_t hLib, int64_t hVoxels)
@@ -383,21 +384,15 @@ GLuint              m_nSceneFBO         = 0;
         {
             PKSHAREDPTR(ViewMesh);
             
-            ViewMesh(const Mesh& oMesh);
+            ViewMesh(   const ShaderProgMeshPoly& oShader,
+                        const Mesh& oMesh);
             
             void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
                         const Matrix4x4& mat);
             
-            struct GLParams
-            {
-                GLuint  nVertexArray;
-                GLuint  nArrayBuffer;
-                GLuint  nElementArrayBuffer;
-            } sGLParams;
-            
-            int32_t     m_nTriangleCount    = 0;
-            BBox3       m_oBBox;
+            std::unique_ptr<GlElementBuffer<Vector3>>   m_roElementBuffer;
+            BBox3                                       m_oBBox;
         };
         
         struct ViewPolyLine

@@ -155,14 +155,14 @@ public:
     
 public:
     
-    void* pVertexData() const
+    const std::vector<Vector3>& vVertices() const
     {
-        return (void*) m_oVertices.data();
+        return m_oVertices;
     }
     
-    void* pTriangleData() const
+    const std::vector<Triangle>& vTriangles() const
     {
-        return (void*) m_oTriangles.data();
+        return m_oTriangles;
     }
     
 protected:

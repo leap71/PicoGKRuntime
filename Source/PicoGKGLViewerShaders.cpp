@@ -65,6 +65,13 @@ void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3> vVert
     *prResult = std::make_unique<GlVertexBuffer<Vector3>>(m_nAvec3Pos, vVertices);
 }
 
+void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3> vVertices,
+                                                const std::vector<Triangle> vTriangles,
+                                                std::unique_ptr<GlElementBuffer<Vector3>>* prResult) const
+{
+    *prResult = std::make_unique<GlElementBuffer<Vector3>>(m_nAvec3Pos, vVertices, vTriangles);
+}
+
 void ShaderProgMeshPoly::Use(   const Matrix4x4& matMVP,
                                 const Vector3& vecEye) const
 {

@@ -118,7 +118,7 @@ public:
                                 GlVertexAttribTraits<T>::eType,
                                 GlVertexAttribTraits<T>::bNormalized,
                                 static_cast<GLsizei>(sizeof(T)),
-                                nullptr);
+                                reinterpret_cast<void*>(GlVertexAttribTraits<T>::nOffset));
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -146,7 +146,9 @@ protected:
     GLuint m_nVBO           = 0;
     
     template<typename> friend class GlBind;
-    
+    template<typename> friend class GlVertexBuffer;
+   
+public:
     void Bind() const
     {
         if (m_nVertexCount == 0)
@@ -170,20 +172,21 @@ class GlElementBuffer
 public:
     GlElementBuffer(    GLuint nAttribLocation,
                         const std::vector<VertexT>& vVertices,
-                        const std::vector<uint32_t>& vIndices,
+                        const std::vector<Triangle>& vIndices,
                         GLenum eUsage = GL_STATIC_DRAW)
     : m_oVertexBuffer(nAttribLocation, vVertices)
     {
         if (vIndices.size() == 0)
             throw std::invalid_argument("Cannot build an element buffer for an empty element array");
         
-        m_nIndexCount = static_cast<GLsizei>(vIndices.size());
+        static_assert(sizeof(Triangle) == 3 * sizeof(uint32_t), "Triangle size mismatch");
+        m_nIndexCount = static_cast<GLsizei>(vIndices.size() * 3); // three int32 values in a triangle
         
         GlBind oBind(m_oVertexBuffer);
         
         glGenBuffers(1, &m_nEBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_nEBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, vIndices.size() * sizeof(uint32_t), vIndices.data(), eUsage);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_nIndexCount * sizeof(uint32_t), vIndices.data(), eUsage);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }

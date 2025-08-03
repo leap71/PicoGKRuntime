@@ -56,6 +56,10 @@ public:
     void CreateBufferInstance(  const std::vector<Vector3> vVertices,
                                 std::unique_ptr<GlVertexBuffer<Vector3>>* prResult) const;
     
+    void CreateBufferInstance(  const std::vector<Vector3> vVertices,
+                                const std::vector<Triangle> vTriangles,
+                                std::unique_ptr<GlElementBuffer<Vector3>>* prResult) const;
+    
     void Use(   const Matrix4x4&    matMVP,
                 const Vector3&      vecEye) const;
     

@@ -98,39 +98,12 @@ BBox3 Viewer::Group::oCalculateBBox() const
     return oBBox;
 }
 
-Viewer::Group::ViewMesh::ViewMesh(const Mesh& oMesh)
+Viewer::Group::ViewMesh::ViewMesh(  const ShaderProgMeshPoly& oShader,
+                                    const Mesh& oMesh)
 {
-    if (oMesh.nVertexCount() == 0)
-        return;
-    
-    m_nTriangleCount = oMesh.nTriangleCount();
-    
-    if (m_nTriangleCount == 0)
-        return;
-    
-    glGenVertexArrays(1, &sGLParams.nVertexArray);
-    glBindVertexArray(sGLParams.nVertexArray);
-
-    glGenBuffers(1, &sGLParams.nArrayBuffer);
-
-    glBindBuffer(   GL_ARRAY_BUFFER,
-                    sGLParams.nArrayBuffer);
-        
-    glBufferData(   GL_ARRAY_BUFFER,
-                    oMesh.nVertexCount() * sizeof(Vector3),
-                    oMesh.pVertexData(),
-                    GL_STATIC_DRAW);
-    
-    glGenBuffers(1, &sGLParams.nElementArrayBuffer);
-    
-    glBindBuffer(   GL_ELEMENT_ARRAY_BUFFER,
-                    sGLParams.nElementArrayBuffer);
-        
-    glBufferData(   GL_ELEMENT_ARRAY_BUFFER,
-                    m_nTriangleCount * sizeof(Triangle),
-                    oMesh.pTriangleData(),
-                    GL_STATIC_DRAW);
-    
+    oShader.CreateBufferInstance(   oMesh.vVertices(),
+                                    oMesh.vTriangles(),
+                                    &m_roElementBuffer);
     CHECKGLERRORS;
 }
 
@@ -138,28 +111,13 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     const Material& sMaterial,
                                     const Matrix4x4& mat)
 {
-    if (m_nTriangleCount == 0)
-        return;
-    
     oShader.SetValues(  mat,
                         sMaterial.clr,
                         sMaterial.fMetallic,
                         sMaterial.fRoughness);
-                
-    glBindVertexArray(sGLParams.nVertexArray);
-            
-    glBindBuffer(   GL_ARRAY_BUFFER,
-                    sGLParams.nArrayBuffer);
     
-    glEnableVertexAttribArray(oShader.nAttribPosition());
-    
-    glVertexAttribPointer(  oShader.nAttribPosition(),
-                            3, GL_FLOAT, GL_FALSE,
-                            sizeof(Vector3),
-                            nullptr);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sGLParams.nElementArrayBuffer);
-    glDrawElements(GL_TRIANGLES, m_nTriangleCount * 3, GL_UNSIGNED_INT, nullptr);
+    GlBind oBind(*m_roElementBuffer);
+    glDrawElements(GL_TRIANGLES, m_roElementBuffer->nIndexCount(), GL_UNSIGNED_INT, nullptr);
 
     CHECKGLERRORS;
 }

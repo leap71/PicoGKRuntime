@@ -240,7 +240,7 @@ void Viewer::AddVoxels(     int32_t         nGroupID,
     RemoveVoxels(hLib, hVoxels);
     
     RecalcNeeded();
-    roGroupAt(nGroupID)->AddVoxels(hLib, hVoxels);
+    roGroupAt(nGroupID)->AddVoxels(hLib, hVoxels, *m_roShaderProgMeshPoly);
     RequestUpdate();
 }
 
