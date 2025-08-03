@@ -57,9 +57,9 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
     oShader.SetValues(  mat,
                         m_clrLine);
     
-    class GlVertexBuffer<Vector3>::Bind oBind(m_oVertexBuffer);
-    
+    GlBind oBind(m_oVertexBuffer);
     m_oVertexBuffer.BindToShaderAttrib(oShader.nAttribPosition());
+    
     glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_oVertexBuffer.nVertexCount()));
     
     CHECKGLERRORS;

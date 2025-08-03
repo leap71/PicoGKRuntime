@@ -74,27 +74,27 @@ struct GlVertexAttribTraits<Vector2>
 };
 
 template<typename T>
-class GlVertexBuffer
+class GlBind
 {
 public:
-    class Bind
+    explicit GlBind(const T& oToBind)
+    : m_oToBind(oToBind)
     {
-    public:
-        explicit Bind(const GlVertexBuffer& oToBind)
-        : m_oToBind(oToBind)
-        {
-            m_oToBind.Bind();
-        }
-        
-        ~Bind()
-        {
-            m_oToBind.UnBind();
-        }
-        
-    protected:
-        const GlVertexBuffer& m_oToBind;
-    };
+        m_oToBind.Bind();
+    }
     
+    ~GlBind()
+    {
+        m_oToBind.UnBind();
+    }
+    
+protected:
+    const T& m_oToBind;
+};
+
+template<typename T>
+class GlVertexBuffer
+{
 public:
     GlVertexBuffer(     const std::vector<T>& vVertices,
                         GLenum eUsage = GL_STATIC_DRAW)
@@ -150,6 +150,8 @@ protected:
     GLuint m_nVAO           = 0;
     GLuint m_nVBO           = 0;
     
+    template<typename> friend class GlBind;
+    
     void Bind() const
     {
         if (m_nVertexCount == 0)
@@ -166,8 +168,6 @@ protected:
         glBindVertexArray(0);
     }
 };
-
-
     
 } // namespace PicoGK
 
