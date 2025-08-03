@@ -175,7 +175,7 @@ public:
     : m_oVertexBuffer(nAttribLocation, vVertices)
     {
         if (vIndices.size() == 0)
-            throw std::invalid_argument("Cannot build a vertex buffer for an empty vertex array");
+            throw std::invalid_argument("Cannot build an element buffer for an empty element array");
         
         m_nIndexCount = static_cast<GLsizei>(vIndices.size());
         
@@ -222,8 +222,8 @@ protected:
     
     void UnBind() const
     {
-        m_oVertexBuffer.UnBind();
         glBindVertexArray(0);
+        m_oVertexBuffer.UnBind();
     }
 };
     
