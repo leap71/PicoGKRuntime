@@ -212,7 +212,7 @@ void Viewer::AddMesh(   int32_t         nGroupID,
     RemoveMesh(hLib, hMesh);
     
     RecalcNeeded();
-    roGroupAt(nGroupID)->AddMesh(hLib, hMesh);
+    roGroupAt(nGroupID)->AddMesh(hLib, hMesh, *m_roShaderProgMeshPoly);
     RequestUpdate();
 }
 
@@ -268,7 +268,7 @@ void Viewer::AddPolyLine(   int32_t nGroupID,
     RemoveMesh(hLib, hPoly);
     
     RecalcNeeded();
-    roGroupAt(nGroupID)->AddPolyLine(hLib, hPoly);
+    roGroupAt(nGroupID)->AddPolyLine(hLib, hPoly, *m_roShaderProgMeshPoly);
     RequestUpdate();
 }
 

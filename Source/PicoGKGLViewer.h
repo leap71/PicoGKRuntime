@@ -197,8 +197,8 @@ GLuint              m_nSceneFBO         = 0;
         
         Group()
         {
-            m_bStatic  = false;
-            m_bVisible = true;
+            m_bStatic   = false;
+            m_bVisible  = true;
         }
         
         ~Group()
@@ -206,7 +206,9 @@ GLuint              m_nSceneFBO         = 0;
             
         }
         
-        void AddMesh(int64_t hLib, int64_t hMesh)
+        void AddMesh(   int64_t hLib,
+                        int64_t hMesh,
+                        const ShaderProgMeshPoly& oShader)
         {
             PKTRACE(AddMesh);
             
@@ -273,12 +275,17 @@ GLuint              m_nSceneFBO         = 0;
             return !(m_oViewMeshes.find(std::make_pair(hLib, hVoxels)) == m_oViewMeshes.end());
         }
         
-        void AddPolyLine(int64_t hLib, int64_t hPoly)
+        void AddPolyLine(   int64_t hLib,
+                            int64_t hPoly,
+                            const ShaderProgMeshPoly& oShader)
         {
             auto roLib  = Library::oLib().roGetInstance(hLib);
             auto roPoly = roLib->m_oPolyLines.roGet(hPoly);
             
-            m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_unique<ViewPolyLine>(*roPoly);
+            if (roPoly->nVertexCount() == 0)
+                return; // nothing to do
+            
+            m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_unique<ViewPolyLine>(oShader, *roPoly);
         }
         
         void RemovePolyLine(int64_t hLib, int64_t hPoly)
@@ -397,15 +404,16 @@ GLuint              m_nSceneFBO         = 0;
         {
             PKSHAREDPTR(ViewPolyLine);
             
-            ViewPolyLine(const PolyLine& oPoly);
+            ViewPolyLine(   const ShaderProgMeshPoly& oShader,
+                            const PolyLine& oPoly);
             
             void Draw(  const ShaderProgMeshPoly& oShaderProg,
                         const Material& sMaterial,
                         const Matrix4x4& mat);
             
-            GlVertexBuffer<Vector3> m_oVertexBuffer;
-            ColorFloat              m_clrLine;
-            BBox3                   m_oBBox;
+            std::unique_ptr<GlVertexBuffer<Vector3>>    m_roVertexBuffer;
+            ColorFloat                                  m_clrLine;
+            BBox3                                       m_oBBox;
         };
         
         std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewMesh>>        m_oViewMeshes;

@@ -40,27 +40,23 @@
 namespace PicoGK
 {
 
-Viewer::Group::ViewPolyLine::ViewPolyLine(const PicoGK::PolyLine& oPoly)
-: m_oVertexBuffer(oPoly.vVertices())
+Viewer::Group::ViewPolyLine::ViewPolyLine(  const ShaderProgMeshPoly& oShader,
+                                            const PicoGK::PolyLine& oPoly)
 {
-    m_clrLine       = oPoly.clrLines();
-    m_oBBox         = oPoly.oBBox();
+    oShader.CreateBufferInstance(oPoly.vVertices(), &m_roVertexBuffer);
+    m_clrLine           = oPoly.clrLines();
+    m_oBBox             = oPoly.oBBox();
 }
 
 void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
                                         const Material& oMaterial,
                                         const Matrix4x4& mat)
 {
-    if (m_oVertexBuffer.bIsEmpty())
-        return;
-    
     oShader.SetValues(  mat,
                         m_clrLine);
     
-    GlBind oBind(m_oVertexBuffer);
-    m_oVertexBuffer.BindToShaderAttrib(oShader.nAttribPosition());
-    
-    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_oVertexBuffer.nVertexCount()));
+    GlBind oBind(*m_roVertexBuffer);
+    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_roVertexBuffer->nVertexCount()));
     
     CHECKGLERRORS;
 }

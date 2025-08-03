@@ -38,6 +38,7 @@
 
 #include "PicoGKGLShader.h"
 #include "PicoGKTypes.h"
+#include "PicoGKGLObjects.h"
 
 namespace PicoGK
 {
@@ -51,6 +52,9 @@ public:
                                 uint32_t nDiffuseBufferSize,
                                 const char* pSpecularTextureDDS,
                                 uint32_t nSpecularBufferSize);
+    
+    void CreateBufferInstance(  const std::vector<Vector3> vVertices,
+                                std::unique_ptr<GlVertexBuffer<Vector3>>* prResult) const;
     
     void Use(   const Matrix4x4&    matMVP,
                 const Vector3&      vecEye) const;
