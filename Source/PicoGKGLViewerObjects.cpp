@@ -56,7 +56,7 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
                         m_clrLine);
     
     GlBind oBind(*m_roVertexBuffer);
-    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(m_roVertexBuffer->nVertexCount()));
+    glDrawArrays(GL_LINE_STRIP, 0, m_roVertexBuffer->nVertexCount());
     
     CHECKGLERRORS;
 }
