@@ -96,20 +96,32 @@ template<typename T>
 class GlVertexBuffer
 {
 public:
-    GlVertexBuffer(     const std::vector<T>& vVertices,
-                        GLenum eUsage = GL_STATIC_DRAW)
+    GlVertexBuffer( GLuint nAttribLocation,
+                    const std::vector<T>& vVertices,
+                    GLenum eUsage = GL_STATIC_DRAW)
     {
         if (vVertices.size() == 0)
-            return;
+            throw new std::invalid_argument("Cannot build a vertex buffer for an empty vertex array");
         
         m_nVertexCount = static_cast<int32_t>(vVertices.size());
         
         glGenVertexArrays(1, &m_nVAO);
-        
+        glBindVertexArray(m_nVAO);
+
         glGenBuffers(1, &m_nVBO);
         glBindBuffer(GL_ARRAY_BUFFER, m_nVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(T) * vVertices.size(), vVertices.data(), eUsage);
+
+        glEnableVertexAttribArray(nAttribLocation);
+        glVertexAttribPointer(  nAttribLocation,
+                                GlVertexAttribTraits<T>::nComponents,
+                                GlVertexAttribTraits<T>::eType,
+                                GlVertexAttribTraits<T>::bNormalized,
+                                static_cast<GLsizei>(sizeof(T)),
+                                nullptr);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
     }
     
     ~GlVertexBuffer()
@@ -120,26 +132,9 @@ public:
             glDeleteVertexArrays(1, &m_nVAO);
     }
     
-    bool bIsEmpty() const
-    {
-        return m_nVertexCount < 1;
-    }
-    
     int32_t nVertexCount() const
     {
         return m_nVertexCount;
-    }
-    
-    void BindToShaderAttrib(GLuint nAttribLocation) const
-    {
-       glEnableVertexAttribArray(nAttribLocation);
-        
-        glVertexAttribPointer(  nAttribLocation,
-                                GlVertexAttribTraits<T>::nComponents,
-                                GlVertexAttribTraits<T>::eType,
-                                GlVertexAttribTraits<T>::bNormalized,
-                                static_cast<GLsizei>(sizeof(T)),
-                                nullptr );
     }
     
     GlVertexBuffer(const GlVertexBuffer&)               = delete;

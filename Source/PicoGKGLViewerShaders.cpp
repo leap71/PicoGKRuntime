@@ -59,6 +59,12 @@ ShaderProgMeshPoly::ShaderProgMeshPoly()
     m_nAvec3Pos       = nAttribLoc("vec3Pos");
 }
 
+void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3> vVertices,
+                                                std::unique_ptr<GlVertexBuffer<Vector3>>* prResult) const
+{
+    *prResult = std::make_unique<GlVertexBuffer<Vector3>>(m_nAvec3Pos, vVertices);
+}
+
 void ShaderProgMeshPoly::Use(   const Matrix4x4& matMVP,
                                 const Vector3& vecEye) const
 {
