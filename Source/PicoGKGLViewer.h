@@ -242,6 +242,9 @@ GLuint              m_nSceneFBO         = 0;
             
             // Transform to Mesh
             Mesh::Ptr roNew = roVoxels->roAsMesh(roLib->fVoxelSizeMM());
+            if (roNew->nVertexCount() == 0)
+                return; // Empty Voxel Field cannot be added
+
             m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_unique<ViewMesh>(oShader, *roNew);
         }
         
