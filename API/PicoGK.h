@@ -665,7 +665,7 @@ PICOGK_API PKGUI            Viewer_SideBar_hCreate(         PKVIEWER            
                                                             PKColorFloat       clrBackground,
                                                             PKColorFloat       clrBackgroundHv);
 
-PICOGK_API PKGUI            Viewer_SideBar_Destroy(         PKVIEWER            hThis,
+PICOGK_API void             Viewer_SideBar_Destroy(         PKVIEWER            hThis,
                                                             PKGUI               hSideBar);
 
 #endif
