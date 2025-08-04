@@ -457,6 +457,18 @@ public:
         *poBBox     = oResult;
     }
     
+    inline bool bIsInside(  Vector3 vecTest,
+                            VoxelSize oVoxelSize)
+    {
+        auto oAccess = m_roGrid->getConstAccessor();
+    
+        openvdb::Coord xyz( oVoxelSize.iToVoxels(vecTest.X),
+                            oVoxelSize.iToVoxels(vecTest.Y),
+                            oVoxelSize.iToVoxels(vecTest.Z));
+        
+        return (oAccess.getValue(xyz) <= 0.0f);
+    }
+    
     inline void GetSurfaceNormal(   Vector3 vecPt,
                                     VoxelSize oVoxelSize,
                                     Vector3* pvecNormal)

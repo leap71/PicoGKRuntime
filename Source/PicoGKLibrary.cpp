@@ -537,15 +537,6 @@ PICOGK_API void Voxels_ProjectZSlice(   PKINSTANCE hLib,
                             roLib->fVoxelSizeMM());
 }
 
-PICOGK_API bool Voxels_bIsInside(   PKINSTANCE hLib,
-                                    PKVOXELS hThis,
-                                    const PKVector3* pvecTestPoint)
-{
-    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    /// TODO
-    return true;
-}
-
 PICOGK_API bool Voxels_bIsEqual(    PKINSTANCE hLib,
                                     PKVOXELS hThis,
                                     PKVOXELS hOther)
@@ -565,6 +556,14 @@ PICOGK_API void Voxels_CalculateProperties( PKINSTANCE hLib,
         ->CalculateProperties(  pfVolume,
                                 poBBox,
                                 roLib->fVoxelSizeMM());
+}
+
+PICOGK_API bool Voxels_bIsInside(   PKINSTANCE hLib,
+                                    PKVOXELS hThis,
+                                    const PKVector3* pvecTestPoint)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)->bIsInside(*pvecTestPoint, roLib->fVoxelSizeMM());
 }
 
 PICOGK_API void Voxels_GetSurfaceNormal(    PKINSTANCE hLib,
