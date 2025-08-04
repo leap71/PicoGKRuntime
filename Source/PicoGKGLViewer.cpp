@@ -306,10 +306,17 @@ void Viewer::SetGroupVisible(   int32_t     nGroupID,
     RequestUpdate();
 }
 
-void Viewer::SetGroupStatic(    int32_t     nGroupID,
-                                bool        bStatic)
+void Viewer::EnableGroupWarnOverhang(   int32_t     nGroupID,
+                                        int32_t     nWarningAngleDeg,
+                                        int32_t     nErrorAngleDeg)
 {
-    roGroupAt(nGroupID)->SetStatic(bStatic);
+    roGroupAt(nGroupID)->EnableWarnOverhang(nWarningAngleDeg, nErrorAngleDeg);
+    RequestUpdate();
+}
+
+void Viewer::DisableGroupWarnOverhang(int32_t nGroupID)
+{
+    roGroupAt(nGroupID)->DisableWarnOverhang();
     RequestUpdate();
 }
 
@@ -553,28 +560,10 @@ void Viewer::DrawScene()
     
     CHECKGLERRORS;
     
-    // Draw the not-static stuff
-    
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
-        if (!poGroup->bStatic())
-        {
-            poGroup->Draw(matModelTrans, *m_roShaderProgMeshPoly);
-        }
-    }
-    
-    m_roShaderProgMeshPoly->Use(matStatic, vecEyeStatic);
-    
-    // Now draw the static stuff
-    
-    for (auto Pair : m_oGroups)
-    {
-        Group::Ptr poGroup = Pair.second;
-        if (poGroup->bStatic())
-        {
-            poGroup->Draw(matModelTrans, *m_roShaderProgMeshPoly);
-        }
+        poGroup->Draw(matModelTrans, *m_roShaderProgMeshPoly);
     }
     
     if (m_strScreenShotPath != "")

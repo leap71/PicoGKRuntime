@@ -628,10 +628,6 @@ PICOGK_API  void            Viewer_SetGroupVisible(         PKVIEWER            
                                                             int32_t             nGroupID,
                                                             bool                bVisible);
 
-PICOGK_API  void            Viewer_SetGroupStatic(          PKVIEWER            hThis,
-                                                            int32_t             nGroupID,
-                                                            bool                bStatic);
-
 PICOGK_API  void            Viewer_SetGroupMaterial(        PKVIEWER            hThis,
                                                             int32_t             nGroupID,
                                                             const PKColorFloat* pclr,
@@ -641,6 +637,14 @@ PICOGK_API  void            Viewer_SetGroupMaterial(        PKVIEWER            
 PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            hThis,
                                                             int32_t             nGroupID,
                                                             const PKMatrix4x4*  pmat);
+
+PICOGK_API void             Viewer_EnableGroupWarnOverhang( PKVIEWER    hThis,
+                                                            int32_t     nGroupID,
+                                                            int32_t     nWarningAngleDeg,
+                                                            int32_t     nErrorAngleDeg);
+
+PICOGK_API void             Viewer_DisableGroupWarnOverhang(PKVIEWER    hThis,
+                                                            int32_t     nGroupID);
 
 PICOGK_API void             Viewer_GetBoundingBox(          PKVIEWER            hThis,
                                                             PKBBox3*            poBox);

@@ -120,8 +120,11 @@ public:
     void SetGroupVisible(   int32_t     nGroupID,
                             bool        bVisible);
     
-    void SetGroupStatic(    int32_t     nGroupID,
-                            bool        bStatic);
+    void EnableGroupWarnOverhang(   int32_t     nGroupID,
+                                    int32_t     nWarningAngleDeg,
+                                    int32_t     nErrorAngleDeg);
+
+    void DisableGroupWarnOverhang(int32_t nGroupID);
     
     void SetGroupMaterial(  int32_t     nGroupID,
                             ColorFloat  clr,
@@ -194,17 +197,6 @@ GLuint              m_nSceneFBO         = 0;
     {
     public:
         PKSHAREDPTR(Group);
-        
-        Group()
-        {
-            m_bStatic   = false;
-            m_bVisible  = true;
-        }
-        
-        ~Group()
-        {
-            
-        }
         
         void AddMesh(   int64_t hLib,
                         int64_t hMesh,
@@ -325,14 +317,17 @@ GLuint              m_nSceneFBO         = 0;
             return m_bVisible;
         }
         
-        inline void SetStatic(bool bStatic)
+        inline void EnableWarnOverhang( int nWarningAngleDeg,
+                                        int nErrorAngleDeg)
         {
-            m_bStatic = bStatic;
+            m_bWarnOverhang     = true;
+            m_nWarningAngleDeg  = nWarningAngleDeg;
+            m_nErrorAngleDeg    = nErrorAngleDeg;
         }
         
-        inline bool bStatic() const
+        inline void DisableWarnOverhang()
         {
-            return m_bStatic;
+            m_bWarnOverhang = false;
         }
         
         void SetMaterial(   ColorFloat  clr,
@@ -356,8 +351,10 @@ GLuint              m_nSceneFBO         = 0;
         BBox3 oCalculateBBox() const;
         
     protected:
-        bool m_bVisible;
-        bool m_bStatic;
+        bool    m_bVisible          = true;
+        bool    m_bWarnOverhang     = false;
+        int     m_nWarningAngleDeg  = 0;
+        int     m_nErrorAngleDeg    = 0;
         
         Matrix4x4 m_mat;
         
@@ -389,7 +386,10 @@ GLuint              m_nSceneFBO         = 0;
             
             void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
-                        const Matrix4x4& mat);
+                        const Matrix4x4& mat,
+                        bool bWarnOverhang,
+                        int nWarningAngleDeg,
+                        int nErrorAngleDeg);
             
             std::unique_ptr<GlElementBuffer<Vector3>>   m_roElementBuffer;
             BBox3                                       m_oBBox;

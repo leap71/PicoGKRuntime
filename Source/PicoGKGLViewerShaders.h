@@ -63,30 +63,35 @@ public:
     void Use(   const Matrix4x4&    matMVP,
                 const Vector3&      vecEye) const;
     
-    void SetValues( const Matrix4x4& matOtoW,
-                    const ColorFloat& clr,
-                    float fMetallic     = 0.5f,
-                    float fRoughness    = 0.5f) const;
+    void SetValues( const Matrix4x4&    matOtoW,
+                    const ColorFloat&   clr,
+                    float               fMetallic           = 0.5f,
+                    float               fRoughness          = 0.5f,
+                    bool                bWarnOverhang       = false,
+                    int                 nWarningAngleDeg    = 45,           // 45º (0º is vertical)
+                    int                 nErrorAngleDeg      = 55) const;    // 55º (90º is horizontal)
     
 private:
     static const std::string c_strVertShader;
     static const std::string c_strFragShader;
     
-    GLuint  m_hTexSpecular  = 0;
-    GLuint  m_hTexDiffuse   = 0;
+    GLuint  m_hTexSpecular          = 0;
+    GLuint  m_hTexDiffuse           = 0;
     
-    GLint m_nUmat4MVP       =-1;
-    GLint m_nUmat4OtoW      =-1;
-    GLint m_nUvec3Eye       =-1;
-    GLint m_nUtexSpec       =-1;
-    GLint m_nUfMetallic     =-1;
-    GLint m_nUvec4Color     =-1;
-    GLint m_nUfRoughness    =-1;
-    GLint m_nUtexDiff       =-1;
+    GLint m_nUmat4MVP               =-1;
+    GLint m_nUmat4OtoW              =-1;
+    GLint m_nUvec3Eye               =-1;
+    GLint m_nUtexSpec               =-1;
+    GLint m_nUfMetallic             =-1;
+    GLint m_nUvec4Color             =-1;
+    GLint m_nUfRoughness            =-1;
+    GLint m_nUtexDiff               =-1;
+    GLint m_nUbWarnOverhang         =-1;
+    GLint m_nUfOverhangWarningCos   =-1;
+    GLint m_nUfOverhangErrorCos     =-1;
 
-    GLint m_nAvec3Pos       = -1;
+    GLint m_nAvec3Pos               = -1;
 };
-
 
     
 } // namespace PicoGK

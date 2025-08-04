@@ -77,7 +77,12 @@ void Viewer::Group::Draw(   const Matrix4x4& matModelTrans,
     
     for (auto& oMapEntry : m_oViewMeshes)
     {
-        oMapEntry.second->Draw(oShader, m_sMaterial, matMult);
+        oMapEntry.second->Draw( oShader,
+                                m_sMaterial,
+                                matMult,
+                                m_bWarnOverhang,
+                                m_nWarningAngleDeg,
+                                m_nErrorAngleDeg);
     }
 }
 
@@ -110,12 +115,18 @@ Viewer::Group::ViewMesh::ViewMesh(  const ShaderProgMeshPoly& oShader,
 
 void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     const Material& sMaterial,
-                                    const Matrix4x4& mat)
+                                    const Matrix4x4& mat,
+                                    bool bWarnOverhang,
+                                    int nWarningAngleDeg,
+                                    int nErrorAngleDeg)
 {
     oShader.SetValues(  mat,
                         sMaterial.clr,
                         sMaterial.fMetallic,
-                        sMaterial.fRoughness);
+                        sMaterial.fRoughness,
+                        bWarnOverhang,
+                        nWarningAngleDeg,
+                        nErrorAngleDeg);
     
     GlBind oBind(*m_roElementBuffer);
     glDrawElements(GL_TRIANGLES, m_roElementBuffer->nIndexCount(), GL_UNSIGNED_INT, nullptr);

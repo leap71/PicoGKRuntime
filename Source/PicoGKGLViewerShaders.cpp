@@ -37,6 +37,7 @@
 #include "PicoGKGLViewerShaders.h"
 #include "PicoGKGLTexture.h"
 #include <iostream>
+#include <numbers>
 
 namespace PicoGK
 {
@@ -47,16 +48,19 @@ ShaderProgMeshPoly::ShaderProgMeshPoly()
     std::cerr << strListUniforms()   << "\n";
     std::cerr << strListAttributes() << "\n";
     
-    m_nUmat4MVP       = nUniformLoc("mat4MVP");
-    m_nUmat4OtoW      = nUniformLoc("mat4OtoW");
-    m_nUvec3Eye       = nUniformLoc("vec3Eye");
-    m_nUtexSpec       = nUniformLoc("texSpec");
-    m_nUfMetallic     = nUniformLoc("fMetallic");
-    m_nUvec4Color     = nUniformLoc("vec4Color");
-    m_nUfRoughness    = nUniformLoc("fRoughness");
-    m_nUtexDiff       = nUniformLoc("texDiff");
+    m_nUmat4MVP                 = nUniformLoc("mat4MVP");
+    m_nUmat4OtoW                = nUniformLoc("mat4OtoW");
+    m_nUvec3Eye                 = nUniformLoc("vec3Eye");
+    m_nUtexSpec                 = nUniformLoc("texSpec");
+    m_nUfMetallic               = nUniformLoc("fMetallic");
+    m_nUvec4Color               = nUniformLoc("vec4Color");
+    m_nUfRoughness              = nUniformLoc("fRoughness");
+    m_nUtexDiff                 = nUniformLoc("texDiff");
+    m_nUbWarnOverhang           = nUniformLoc("bWarnOverhang");
+    m_nUfOverhangWarningCos     = nUniformLoc("fOverhangWarningCos");
+    m_nUfOverhangErrorCos       = nUniformLoc("fOverhangErrorCos");
 
-    m_nAvec3Pos       = nAttribLoc("vec3Pos");
+    m_nAvec3Pos                 = nAttribLoc("vec3Pos");
 }
 
 void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3>& vVertices,
@@ -84,10 +88,13 @@ void ShaderProgMeshPoly::Use(   const Matrix4x4&    matMVP,
     glUniform3fv(       m_nUvec3Eye,  1,  (GLfloat*) &vecEye);
 }
 
-void ShaderProgMeshPoly::SetValues( const Matrix4x4& mat,
-                                    const ColorFloat& clr,
-                                    float fMetallic,
-                                    float fRoughness) const
+void ShaderProgMeshPoly::SetValues( const Matrix4x4&    mat,
+                                    const ColorFloat&   clr,
+                                    float               fMetallic,
+                                    float               fRoughness,
+                                    bool                bWarnOverhang,
+                                    int                 nWarningAngleDeg,
+                                    int                 nErrorAngleDeg) const
 {
     
     glUniformMatrix4fv( m_nUmat4OtoW,
@@ -103,6 +110,14 @@ void ShaderProgMeshPoly::SetValues( const Matrix4x4& mat,
     
     glUniform1f(m_nUfMetallic,  fMetallic);
     glUniform1f(m_nUfRoughness, fRoughness);
+    
+    glUniform1i(m_nUbWarnOverhang, bWarnOverhang);
+    
+    float fWarningAngleCos  = std::cos((90-nWarningAngleDeg) * std::numbers::pi_v<float> / 180.0f);
+    float fErrorAngleCos    = std::cos((90-nErrorAngleDeg)   * std::numbers::pi_v<float> / 180.0f);
+    
+    glUniform1f(m_nUfOverhangWarningCos,    fWarningAngleCos);
+    glUniform1f(m_nUfOverhangErrorCos,      fErrorAngleCos);
 }
 
 void ShaderProgMeshPoly::SetLightingTextures(   const char* pDiffuseTextureDDS,
@@ -149,6 +164,7 @@ in  vec3 vec3Pos;
 out vec3 vec3World;
 uniform mat4 mat4OtoW;
 uniform mat4 mat4MVP;
+
 void main()
 {
     vec3World   = (mat4OtoW * vec4(vec3Pos, 1)).xyz;
@@ -170,6 +186,10 @@ uniform vec4    vec4Color;
 uniform float   fMetallic;
 uniform float   fRoughness;
 
+uniform bool  bWarnOverhang;
+uniform float fOverhangWarningCos;
+uniform float fOverhangErrorCos;
+
 uniform samplerCube texDiff;
 uniform samplerCube texSpec;
 
@@ -177,10 +197,30 @@ layout(location = 0) out vec4 vec4Fragment;
 
 void main()
 {
-    vec3 vec3Color = vec3(vec4Color.r, vec4Color.g, vec4Color.b);
     vec3 vec3N     = normalize(cross(dFdx(vec3World), dFdy(vec3World)));
     vec3 vec3View  = normalize(vec3World - vec3Eye);
     vec3 vec3Ref   = normalize(reflect(vec3View, vec3N));
+
+    vec3 vec3Color = vec3(vec4Color.r, vec4Color.g, vec4Color.b);
+
+    if (bWarnOverhang)
+    {
+        vec3 vec3Down = vec3(0, 0, -1);
+        
+        float fDotN = dot(vec3N, vec3Down);  // in [-1, 1], where 1 = perfectly down
+
+        if (fDotN >= fOverhangWarningCos)
+        {
+            float fBlend = smoothstep(fOverhangErrorCos, fOverhangWarningCos, fDotN);
+            vec3Color = mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 0.5, 0.0), fBlend);
+            vec4Fragment   = vec4(vec3Color, 0.9);
+            return;
+        }
+        else
+        {
+            vec3Color = vec3(0.0, 1.0, 0.0);  
+        }
+    }
     
     float fVdotN   = clamp(dot(-vec3View, vec3N), 0, 1.0);
     float fFresnel = fMetallic + (1.0 - fMetallic) * pow(1.0 - fVdotN, 5.0) * (1.0 - fRoughness * 0.9);
@@ -191,6 +231,7 @@ void main()
     vec3 vec3NonM  = vec3Diff + vec3Spec * fFresnel;
     vec3 vec3Metal = vec3Color * vec3Spec;
     float fMix     = smoothstep(0.25, 0.45, fMetallic);
+
     vec4Fragment   = vec4(pow(mix(vec3NonM, vec3Metal, fMix), GAMMA), vec4Color.a);
 }
 )FS";

@@ -1496,18 +1496,6 @@ PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
     poThis->SetGroupVisible(nGroupID, bVisible);
 }
 
-PICOGK_API void Viewer_SetGroupStatic(  PKVIEWER    hThis,
-                                        int32_t     nGroupID,
-                                        bool        bStatic)
-{
-    PKTRACE(Viewer_SetGroupStatic);
-    
-    Viewer* poThis = (Viewer*) hThis;
-    assert(ViewerManager::oMgr().bIsValid(poThis));
-    
-    poThis->SetGroupStatic(nGroupID, bStatic);
-}
-
 PICOGK_API void Viewer_SetGroupMaterial(    PKVIEWER            hThis,
                                             int32_t             nGroupID,
                                             const ColorFloat*   pclr,
@@ -1532,6 +1520,30 @@ PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
     poThis->SetGroupMatrix(nGroupID, *pmat);
+}
+
+PICOGK_API void Viewer_EnableGroupWarnOverhang( PKVIEWER    hThis,
+                                                int32_t     nGroupID,
+                                                int32_t     nWarningAngleDeg,
+                                                int32_t     nErrorAngleDeg)
+{
+    PKTRACE(Viewer_EnableGroupWarnOverhang);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->EnableGroupWarnOverhang(nGroupID, nWarningAngleDeg, nErrorAngleDeg);
+}
+
+PICOGK_API void Viewer_DisableGroupWarnOverhang(    PKVIEWER    hThis,
+                                                    int32_t     nGroupID)
+{
+    PKTRACE(Viewer_DisableGroupWarnOverhang);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->DisableGroupWarnOverhang(nGroupID);
 }
 
 PICOGK_API void Viewer_GetBoundingBox(  PKVIEWER hThis,
