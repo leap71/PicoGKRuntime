@@ -104,6 +104,7 @@ Viewer::Group::ViewMesh::ViewMesh(  const ShaderProgMeshPoly& oShader,
     oShader.CreateBufferInstance(   oMesh.vVertices(),
                                     oMesh.vTriangles(),
                                     &m_roElementBuffer);
+    m_oBBox = oMesh.oBBox();
     CHECKGLERRORS;
 }
 
