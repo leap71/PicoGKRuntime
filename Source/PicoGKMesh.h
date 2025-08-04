@@ -151,7 +151,10 @@ public:
         return false;
     }
     
-    inline BBox3 oBBox() {return m_oBBox;}
+    inline BBox3 oBBox() const
+    {
+        return m_oBBox;
+    }
     
 public:
     
