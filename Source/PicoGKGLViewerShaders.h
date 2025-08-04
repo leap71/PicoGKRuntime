@@ -68,8 +68,6 @@ public:
                     float fMetallic     = 0.5f,
                     float fRoughness    = 0.5f) const;
     
-    GLint nAttribPosition() const {return m_nAvec3Pos;}
-    
 private:
     static const std::string c_strVertShader;
     static const std::string c_strFragShader;
