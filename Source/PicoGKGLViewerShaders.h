@@ -39,6 +39,7 @@
 #include "PicoGKGLShader.h"
 #include "PicoGKTypes.h"
 #include "PicoGKGLObjects.h"
+#include <memory>
 
 namespace PicoGK
 {

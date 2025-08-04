@@ -40,7 +40,7 @@
 #include "PicoGKApiTypes.h"
 #include <string>
 #include <mutex>
-#include <map>
+#include <unordered_map>
 
 #include "PicoGKTrace.h"
 

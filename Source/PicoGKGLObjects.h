@@ -40,6 +40,8 @@
 #include <vector>
 #include "PicoGKTypes.h"
 
+#include <stdexcept>
+
 namespace PicoGK
 {
 

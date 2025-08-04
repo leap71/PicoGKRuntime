@@ -37,6 +37,7 @@
 #define PICOGKGLSHADER_H_
 
 #include <string>
+#include <stdexcept>
 
 namespace PicoGK
 {
