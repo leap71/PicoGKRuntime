@@ -271,7 +271,7 @@ PICOGK_API int32_t Mesh_nAddVertex( PKINSTANCE hLib,
 PICOGK_API void Mesh_GetVertex( PKINSTANCE hLib,
                                 PKMESH      hThis,
                                 int32_t     nVertex,
-                                Vector3*    pvecVertex)
+                                PKVector3*    pvecVertex)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oMeshes.roGet(hThis)->GetVertex(nVertex, pvecVertex);
@@ -286,7 +286,7 @@ PICOGK_API int32_t Mesh_nVertexCount(   PKINSTANCE hLib,
 
 PICOGK_API int32_t Mesh_nAddTriangle(   PKINSTANCE hLib,
                                         PKMESH hThis,
-                                        const Triangle* psTri)
+                                        const PKTriangle* psTri)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oMeshes.roGet(hThis)->nAddTriangle(*psTri);
@@ -295,7 +295,7 @@ PICOGK_API int32_t Mesh_nAddTriangle(   PKINSTANCE hLib,
 PICOGK_API void Mesh_GetTriangle(   PKINSTANCE hLib,
                                     PKMESH hThis,
                                     int32_t nTriangle,
-                                    Triangle* psTri)
+                                    PKTriangle* psTri)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oMeshes.roGet(hThis)->GetTriangle( nTriangle, psTri);
@@ -304,9 +304,9 @@ PICOGK_API void Mesh_GetTriangle(   PKINSTANCE hLib,
 PICOGK_API void Mesh_GetTriangleV(  PKINSTANCE hLib,
                                     PKMESH      hThis,
                                     int32_t     nTriangle,
-                                    Vector3*    pvecA,
-                                    Vector3*    pvecB,
-                                    Vector3*    pvecC)
+                                    PKVector3*  pvecA,
+                                    PKVector3*  pvecB,
+                                    PKVector3*  pvecC)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oMeshes.roGet(hThis)->GetTriangle(
@@ -318,7 +318,7 @@ PICOGK_API void Mesh_GetTriangleV(  PKINSTANCE hLib,
 
 PICOGK_API void Mesh_GetBoundingBox(    PKINSTANCE hLib,
                                         PKMESH hThis,
-                                        BBox3* poBox)
+                                        PKBBox3* poBox)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     *poBox = roLib->m_oMeshes.roGet(hThis)->oBBox();
@@ -368,7 +368,7 @@ PICOGK_API int64_t Lattice_nMemUsage(   PKINSTANCE hLib,
 
 PICOGK_API void Lattice_AddSphere(  PKINSTANCE hLib,
                                     PKLATTICE hThis,
-                                    const Vector3* vecCenter,
+                                    const PKVector3* vecCenter,
                                     float fRadius)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
@@ -379,8 +379,8 @@ PICOGK_API void Lattice_AddSphere(  PKINSTANCE hLib,
 
 PICOGK_API void Lattice_AddBeam(    PKINSTANCE hLib,
                                     PKLATTICE hThis,
-                                    const Vector3* pvecA,
-                                    const Vector3* pvecB,
+                                    const PKVector3* pvecA,
+                                    const PKVector3* pvecB,
                                     float fRadiusA,
                                     float fRadiusB,
                                     bool  bRoundCap)
@@ -423,7 +423,7 @@ PICOGK_API void Voxels_Destroy( PKINSTANCE hLib,
     if (Library::oLib().bIsValid(hLib))
     {
         Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-        return roLib->m_oVoxels.bDestroy(hThis);
+        roLib->m_oVoxels.bDestroy(hThis);
     }
 }
 
@@ -537,6 +537,15 @@ PICOGK_API void Voxels_ProjectZSlice(   PKINSTANCE hLib,
                             roLib->fVoxelSizeMM());
 }
 
+PICOGK_API bool Voxels_bIsInside(   PKINSTANCE hLib,
+                                    PKVOXELS hThis,
+                                    const PKVector3* pvecTestPoint)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    /// TODO
+    return true;
+}
+
 PICOGK_API bool Voxels_bIsEqual(    PKINSTANCE hLib,
                                     PKVOXELS hThis,
                                     PKVOXELS hOther)
@@ -549,7 +558,7 @@ PICOGK_API bool Voxels_bIsEqual(    PKINSTANCE hLib,
 PICOGK_API void Voxels_CalculateProperties( PKINSTANCE hLib,
                                             PKVOXELS hThis,
                                             float* pfVolume,
-                                            BBox3* poBBox)
+                                            PKBBox3* poBBox)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
@@ -642,7 +651,7 @@ PICOGK_API void Voxels_GetInterpolatedSlice(    PKINSTANCE hLib,
 }
 
 PICOGK_API PKPOLYLINE PolyLine_hCreate( PKINSTANCE hLib,
-                                        const ColorFloat*  pclr)
+                                        const PKColorFloat*  pclr)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oPolyLines.hAdd(std::make_shared<PolyLine>(*pclr));
@@ -671,7 +680,7 @@ PICOGK_API int64_t PolyLine_nMemUsage(  PKINSTANCE hLib,
                                         PKPOLYLINE hThis)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oPolyLines.roGet(hThis)->nMemUsage();
+    return roLib->m_oPolyLines.roGet(hThis)->nMemUsage();
 }
 
 PICOGK_API int32_t PolyLine_nAddVertex( PKINSTANCE hLib,
@@ -685,7 +694,7 @@ PICOGK_API int32_t PolyLine_nAddVertex( PKINSTANCE hLib,
 PICOGK_API void PolyLine_GetVertex( PKINSTANCE hLib,
                                     PKPOLYLINE hThis,
                                     int32_t nIndex,
-                                    Vector3* pvec)
+                                    PKVector3* pvec)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oPolyLines.roGet(hThis)->GetVertex(nIndex, pvec);
@@ -693,7 +702,7 @@ PICOGK_API void PolyLine_GetVertex( PKINSTANCE hLib,
 
 PICOGK_API void PolyLine_GetBoundingBox(    PKINSTANCE hLib,
                                             PKPOLYLINE hThis,
-                                            BBox3* poBox)
+                                            PKBBox3* poBox)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     *poBox = roLib->m_oPolyLines.roGet(hThis)->oBBox();
@@ -708,7 +717,7 @@ PICOGK_API int32_t PolyLine_nVertexCount(   PKINSTANCE hLib,
 
 PICOGK_API void PolyLine_GetColor(  PKINSTANCE hLib,
                                     PKPOLYLINE hThis,
-                                    ColorFloat* pclr)
+                                    PKColorFloat* pclr)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     *pclr = roLib->m_oPolyLines.roGet(hThis)->clrLines();
@@ -740,7 +749,7 @@ PICOGK_API bool VdbFile_bIsValid(   PKINSTANCE hLib,
                                     PKVDBFILE hThis)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVdbFiles.bIsValid(hThis);
+    return roLib->m_oVdbFiles.bIsValid(hThis);
 }
 
 PICOGK_API void VdbFile_Destroy(    PKINSTANCE hLib,
@@ -759,7 +768,7 @@ PICOGK_API int64_t VdbFile_nMemUsage(   PKINSTANCE hLib,
                                         PKVDBFILE hThis)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVdbFiles.roGet(hThis)->nMemUsage();
+    return roLib->m_oVdbFiles.roGet(hThis)->nMemUsage();
 }
 
 PICOGK_API bool VdbFile_bSaveToFile(    PKINSTANCE hLib,
@@ -767,7 +776,7 @@ PICOGK_API bool VdbFile_bSaveToFile(    PKINSTANCE hLib,
                                         const char*     pszFileName)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVdbFiles.roGet(hThis)->bSaveToFile(pszFileName);
+    return roLib->m_oVdbFiles.roGet(hThis)->bSaveToFile(pszFileName);
 }
 
 PICOGK_API PKVOXELS VdbFile_hGetVoxels( PKINSTANCE hLib,
@@ -969,7 +978,7 @@ PICOGK_API bool ScalarField_bGetValue(  PKINSTANCE hLib,
                         pfValue);
 }
 
-PICOGK_API void ScalarField_RemoveValue(    PKINSTANCE hLib,
+PICOGK_API void ScalarField_RemoveValue(    PKINSTANCE          hLib,
                                             PKSCALARFIELD       hThis,
                                             const PKVector3*    pvecPosition)
 {
@@ -1096,20 +1105,20 @@ PICOGK_API void VectorField_SetValue(   PKINSTANCE hLib,
                     *pvecValue);
 }
 
-PICOGK_API bool VectorField_bGetValue(  PKINSTANCE hLib,
-                                        PKSCALARFIELD       hThis,
+PICOGK_API bool VectorField_bGetValue(  PKINSTANCE          hLib,
+                                        PKVECTORFIELD       hThis,
                                         const PKVector3*    pvecPosition,
                                         PKVector3*          pvecValue)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
-    roLib->m_oVectorFields.roGet(hThis)
+    return roLib->m_oVectorFields.roGet(hThis)
         ->bGetValue(   *pvecPosition,
                        roLib->fVoxelSizeMM(),
                        pvecValue);
 }
 
-PICOGK_API void VectorField_RemoveValue(    PKINSTANCE hLib,
+PICOGK_API void VectorField_RemoveValue(    PKINSTANCE          hLib,
                                             PKVECTORFIELD       hThis,
                                             const PKVector3*    pvecPosition)
 {
@@ -1302,7 +1311,7 @@ PICOGK_API void MetaData_RemoveValue(   PKINSTANCE hLib,
 }
 
 PICOGK_API PKVIEWER Viewer_hCreate( const char*             pszWindowTitle,
-                                    const Vector2*          pvecSize,
+                                    const PKVector2*         pvecSize,
                                     PKFInfo                 pfnInfoCallback,
                                     PKPFUpdateRequested     pfnUpdateCallback,
                                     PKPFKeyPressed          pfnKeyPressedCallback,
@@ -1496,9 +1505,9 @@ PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
     poThis->SetGroupVisible(nGroupID, bVisible);
 }
 
-PICOGK_API void Viewer_SetGroupMaterial(    PKVIEWER            hThis,
+PICOGK_API  void Viewer_SetGroupMaterial(   PKVIEWER            hThis,
                                             int32_t             nGroupID,
-                                            const ColorFloat*   pclr,
+                                            const PKColorFloat* pclr,
                                             float               fMetallic,
                                             float               fRoughness)
 {
@@ -1512,7 +1521,7 @@ PICOGK_API void Viewer_SetGroupMaterial(    PKVIEWER            hThis,
 
 PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
                                         int32_t             nGroupID,
-                                        const Matrix4x4*    pmat)
+                                        const PKMatrix4x4*  pmat)
 {
     PKTRACE(Viewer_SetGroupMatrix);
     
@@ -1602,8 +1611,8 @@ PICOGK_API PKGUI Viewer_SideBar_hCreate(    PKVIEWER        hThis,
                                     clrBackgroundHv);
 }
 
-PICOGK_API PKGUI Viewer_SideBar_Destroy(    PKVIEWER hThis,
-                                            PKGUI hSideBar)
+PICOGK_API void Viewer_SideBar_Destroy( PKVIEWER hThis,
+                                        PKGUI hSideBar)
 {
     PKTRACE(Viewer_SideBar_Destroy);
 
