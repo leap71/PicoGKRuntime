@@ -1601,7 +1601,19 @@ PICOGK_API PKGPUTEX Viewer_GpuTex_hCreate(      PKVIEWER    hThis,
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    return poThis->hCreateGpuTexture(nWidth, nHeight, pRgba8);
+    return poThis->hGpuTexCreate(nWidth, nHeight, pRgba8);
+}
+
+PICOGK_API void Viewer_GpuTex_Refresh(          PKVIEWER    hThis,
+                                                PKGPUTEX    hTex,
+                                                const char* pRgba8)
+{
+    PKTRACE(Viewer_GpuTex_Refresh);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->GpuTexRefresh(hTex, pRgba8);
 }
 
 PICOGK_API void Viewer_GpuTex_MarkForCleanup(   PKVIEWER hThis,
@@ -1612,7 +1624,7 @@ PICOGK_API void Viewer_GpuTex_MarkForCleanup(   PKVIEWER hThis,
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    poThis->MarkGpuTextureForCleanup(hTex);
+    poThis->GpuTexMarkForCleanup(hTex);
 }
 
 PICOGK_API PKGUI Viewer_SideBar_hCreate(    PKVIEWER        hThis,

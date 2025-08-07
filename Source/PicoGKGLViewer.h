@@ -642,16 +642,21 @@ GLuint              m_nSceneFBO         = 0;
     };
 
 public:
-    uint64_t hCreateGpuTexture( int nWidth,
-                                int nHeight,
-                                const char* pBuffer)
+    uint64_t hGpuTexCreate( int nWidth,
+                            int nHeight,
+                            const char* pBuffer)
     {
         return m_oTextures.hAdd(nWidth, nHeight, pBuffer);
     }
     
-    void MarkGpuTextureForCleanup(uint64_t hTexture)
+    void GpuTexRefresh(uint64_t hTex, const char* pBuffer)
     {
-        m_oTextures.MarkForDestruction(hTexture);
+        m_oTextures.Refresh(hTex, pBuffer);
+    }
+    
+    void GpuTexMarkForCleanup(uint64_t hTex)
+    {
+        m_oTextures.MarkForDestruction(hTex);
     }
     
 protected:

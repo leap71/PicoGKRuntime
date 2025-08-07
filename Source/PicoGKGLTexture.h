@@ -61,13 +61,16 @@ public:
     :   PKINIT(nWidth),
         PKINIT(nHeight)
     {
-        int nSize = nWidth * nHeight * 4;
-        
-        m_pBuffer = std::make_unique<char[]>(nSize);
+        Refresh(pSource);
+    }
+    
+    void Refresh(const char* pSource)
+    {
+        m_pBuffer = std::make_unique<char[]>(nMemSize());
         
         memcpy( m_pBuffer.get(),
                 pSource,
-                nSize);
+                nMemSize());
     }
     
     virtual ~GpuTextureRgba()
@@ -86,6 +89,11 @@ public:
         assert(!bNeedsUpload());
         
         return m_nGlHandle;
+    }
+    
+    int nMemSize() const
+    {
+        return m_nWidth * m_nHeight * 4;
     }
     
     int nWidth() const
@@ -108,12 +116,13 @@ public:
         PKTRACE(GpuTextureRgba_TransferToGpu);
         assert(bNeedsUpload());
         
-        glGenTextures(1, &m_nGlHandle);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glBindTexture(GL_TEXTURE_2D, m_nGlHandle);
-        
+        if (m_nGlHandle == INVALID_GL_ID)
         {
-            PKTRACE(GpuTextureRgba_TransferToGpu_glTexImage2D);
+            PKTRACE(GpuTextureRgba_TransferToGpu_CreateNew);
+            // First time, create a new texture
+            
+            glGenTextures(1, &m_nGlHandle);
+            glBindTexture(GL_TEXTURE_2D, m_nGlHandle);
             
             glTexImage2D(   GL_TEXTURE_2D,
                             0,
@@ -122,7 +131,29 @@ public:
                             0,
                             GL_RGBA,
                             GL_UNSIGNED_BYTE,
-                            m_pBuffer.get());
+                            nullptr); // allocate but don't upload yet
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
+        
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glBindTexture(GL_TEXTURE_2D, m_nGlHandle);
+        
+        {
+            PKTRACE(GpuTextureRgba_TransferToGpu_CopyToGpuMem);
+            
+            PKTRACE(GpuTextureRgba_TransferToGpu_glTexImage2D);
+            
+            glTexSubImage2D( GL_TEXTURE_2D,
+                             0,
+                             0, 0,
+                             m_nWidth, m_nHeight,
+                             GL_RGBA,
+                             GL_UNSIGNED_BYTE,
+                             m_pBuffer.get());
             
             glGenerateMipmap(GL_TEXTURE_2D);
         }
@@ -197,6 +228,40 @@ public:
         throw std::out_of_range("Invalid Texture Handle " + std::to_string(hObject));
     }
     
+    void Refresh(   uint64_t hObject,
+                    const char* pData)
+    {
+        PKTRACE(GpuTextureList_Refresh);
+        std::lock_guard lk(m_mtx);
+        
+        // First check if this is still in the "new" pipeline
+        if (auto node = m_oNew.extract(hObject))
+        {
+            node.mapped()->Refresh(pData);
+            m_oRefresh.insert(std::move(node));
+            return;
+        }
+        
+        // Is it in the active pipeline?
+        if (auto node = m_oActive.extract(hObject))
+        {
+            node.mapped()->Refresh(pData);
+            m_oRefresh.insert(std::move(node));
+            return;
+        }
+        
+        // Maybe refresh is called too quickly and it
+        // hasn't been refreshed yet
+        
+        auto it = m_oRefresh.find(hObject);
+        
+        if (it == m_oRefresh.end())
+            throw std::out_of_range("Invalid Texture Handle " + std::to_string(hObject));
+        
+        // Refresh in place
+        it->second->Refresh(pData);
+    }
+    
     /// Called with the current GL context active to activate and cleanup all textures
     void ManageTextureState()
     {
@@ -205,8 +270,16 @@ public:
         
         while (!m_oNew.empty())
         {
-            PKTRACE(GpuTextureList_ManageTextureState_Loop);
+            PKTRACE(GpuTextureList_ManageTextureState_New_Loop);
             auto node = m_oNew.extract(m_oNew.begin());
+            node.mapped()->TransferToGpu();
+            m_oActive.insert(std::move(node));
+        }
+        
+        while (!m_oRefresh.empty())
+        {
+            PKTRACE(GpuTextureList_ManageTextureState_Refresh_Loop);
+            auto node = m_oRefresh.extract(m_oRefresh.begin());
             node.mapped()->TransferToGpu();
             m_oActive.insert(std::move(node));
         }
@@ -220,6 +293,7 @@ public:
         std::lock_guard lk(m_mtx);
         m_oNew.clear();
         m_oActive.clear();
+        m_oRefresh.clear();
         m_oCleanUp.clear();
     }
     
@@ -262,6 +336,7 @@ public:
     uint64_t                                                        m_hCurrent = 0;
     std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oNew;
     std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oActive;
+    std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oRefresh;
     std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oCleanUp;
 };
 

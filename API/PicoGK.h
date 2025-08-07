@@ -672,6 +672,10 @@ PICOGK_API PKGPUTEX         Viewer_GpuTex_hCreate(          PKVIEWER            
                                                             int                 nHeight,
                                                             const char*         pRgba8);
 
+PICOGK_API void             Viewer_GpuTex_Refresh(          PKVIEWER            hThis,
+                                                            PKGPUTEX            hTex,
+                                                            const char*         pRgba8);
+
 PICOGK_API void             Viewer_GpuTex_MarkForCleanup(   PKVIEWER            hThis,
                                                             PKGPUTEX);
 
