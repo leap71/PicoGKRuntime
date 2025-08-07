@@ -42,13 +42,16 @@
 namespace PicoGK
 {
 
+//
+//
+// class ShaderProgMeshPoly
+//
+//
+
 ShaderProgMeshPoly::ShaderProgMeshPoly()
 : GlShaderProgram(c_strVertShader, c_strFragShader)
 {
-    std::cerr << strListUniforms()   << "\n";
-    std::cerr << strListAttributes() << "\n";
-    
-    m_nUmat4MVP                 = nUniformLoc("mat4MVP");
+    m_nUmat4VP                  = nUniformLoc("mat4VP");
     m_nUmat4OtoW                = nUniformLoc("mat4OtoW");
     m_nUvec3Eye                 = nUniformLoc("vec3Eye");
     m_nUtexSpec                 = nUniformLoc("texSpec");
@@ -76,7 +79,7 @@ void ShaderProgMeshPoly::CreateBufferInstance(  const std::vector<Vector3>& vVer
     *prResult = std::make_unique<GlElementBuffer<Vector3>>(m_nAvec3Pos, vVertices, vTriangles);
 }
 
-void ShaderProgMeshPoly::Use(   const Matrix4x4&    matMVP,
+void ShaderProgMeshPoly::Use(   const Matrix4x4&    matVP,
                                 const Vector3&      vecEye) const
 {
     GlShaderProgram::Use();
@@ -84,8 +87,8 @@ void ShaderProgMeshPoly::Use(   const Matrix4x4&    matMVP,
     glUniform1i(m_nUtexDiff, 0);
     glUniform1i(m_nUtexSpec, 1);
     
-    glUniformMatrix4fv( m_nUmat4MVP,  1,  GL_FALSE, (GLfloat*) &matMVP);
-    glUniform3fv(       m_nUvec3Eye,  1,  (GLfloat*) &vecEye);
+    glUniformMatrix4fv( m_nUmat4VP,     1,  GL_FALSE, (GLfloat*) &matVP);
+    glUniform3fv(       m_nUvec3Eye,    1,  (GLfloat*) &vecEye);
 }
 
 void ShaderProgMeshPoly::SetValues( const Matrix4x4&    mat,
@@ -163,12 +166,12 @@ R"VS(
 in  vec3 vec3Pos;
 out vec3 vec3World;
 uniform mat4 mat4OtoW;
-uniform mat4 mat4MVP;
+uniform mat4 mat4VP;
 
 void main()
 {
     vec3World   = (mat4OtoW * vec4(vec3Pos, 1)).xyz;
-    gl_Position = mat4MVP * vec4(vec3World, 1);
+    gl_Position = mat4VP * vec4(vec3World, 1);
 }
 )VS";
 
@@ -234,6 +237,98 @@ void main()
 
     vec4Fragment   = vec4(pow(mix(vec3NonM, vec3Metal, fMix), GAMMA), vec4Color.a);
 }
+)FS";
+
+
+//
+//
+// class ShaderProgQuad
+//
+//
+
+
+ShaderProgQuad::ShaderProgQuad()
+: GlShaderProgram(c_strVertShader, c_strFragShader)
+{
+    m_nUmat4MVP           = nUniformLoc("mat4MVP");
+    m_nUbRenderSolid      = nUniformLoc("bRenderSolid");
+    m_nUvec4SolidColor    = nUniformLoc("vec4SolidColor");
+    m_nUtexTexture        = nUniformLoc("texTexture");
+    m_nUfAlpha            = nUniformLoc("fAlpha");
+
+    m_nAvec3Pos           = nAttribLoc("vec3Pos");
+    m_nAvec2InUV          = nAttribLoc("vec2InUV");
+}
+
+void ShaderProgQuad::CreateBufferInstance(  Vector3 vec0, Vector3 vec1, Vector3 vec2, Vector3 vec3,
+                                            std::unique_ptr<GlQuadBuffer>* prResult) const
+{
+    *prResult = std::make_unique<GlQuadBuffer>(m_nAvec3Pos, m_nAvec2InUV, vec0, vec1, vec2, vec3);
+}
+
+
+
+void ShaderProgQuad::SetValues( const Matrix4x4& matMVP,
+                                bool bRenderSolid,
+                                ColorFloat clrSolid,
+                                float fAlpha,
+                                GLuint hTexture)
+{
+    glUniformMatrix4fv(m_nUmat4MVP, 1, GL_FALSE, (GLfloat*) &matMVP);
+    glUniform1i(m_nUbRenderSolid, bRenderSolid ? 1 : 0);
+    glUniform4f(m_nUvec4SolidColor, clrSolid.R, clrSolid.G, clrSolid.B, clrSolid.A);
+    glUniform1f(m_nUfAlpha, fAlpha);
+
+    if (hTexture != 0)
+    {
+        // Bind texture to texture unit 2 to avoid collisions with viewer textures
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, hTexture);
+        glUniform1i(m_nUtexTexture, 2); // Tell shader that texTexture = texture unit 2
+    }
+}
+
+/*static*/ const std::string ShaderProgQuad::c_strVertShader = R"VS(
+#version 330 core
+
+layout(location = 0) in vec3 vec3Pos;
+layout(location = 1) in vec2 vec2InUV;
+
+uniform mat4 mat4MVP;
+
+out vec2 vec2UV;
+
+void main()
+{
+    vec2UV = vec2InUV;
+    gl_Position = mat4MVP * vec4(vec3Pos, 1.0);
+}
+)VS";
+
+/*static*/ const std::string ShaderProgQuad::c_strFragShader = R"FS(
+#version 330 core
+
+in vec2     vec2UV;
+out vec4    vec4FragColor;
+
+uniform sampler2D   texTexture;
+uniform float       fAlpha;
+uniform bool        bRenderSolid;
+uniform vec4        vec4SolidColor;
+
+void main()
+{
+    if (bRenderSolid)
+    {
+        vec4FragColor = vec4SolidColor;
+        return;
+    }
+
+    vec4 vec4Color  = texture(texTexture, vec2UV);
+    vec4Color.a     *= fAlpha;
+    vec4FragColor   = vec4Color;
+}
+
 )FS";
 
 } // namespace PicoGK

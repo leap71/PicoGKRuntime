@@ -115,6 +115,32 @@ public:
     void RemovePolyLine(    int64_t hLib,
                             int64_t hPoly);
     
+    int64_t hAddQuad(   uint64_t    hTexObject,
+                        ColorFloat  clrDefault,
+                        float       fAlpha,
+                        Matrix4x4   mat,
+                        Vector3     vec0,
+                        Vector3     vec1,
+                        Vector3     vec2,
+                        Vector3     vec3)
+    {
+        
+        return m_oQuads.hAdd(std::make_shared<ViewQuad>(    *m_roShaderProgQuad,
+                                                            hTexObject,
+                                                            clrDefault,
+                                                            fAlpha,
+                                                            mat,
+                                                            vec0,
+                                                            vec1,
+                                                            vec2,
+                                                            vec3));
+    }
+    
+    bool bRemoveQuad(uint64_t hQuad)
+    {
+        return m_oQuads.bDestroy(hQuad);
+    }
+    
     void RemoveAllObjects();
 
     void SetGroupVisible(   int32_t     nGroupID,
@@ -175,7 +201,8 @@ protected:
     void OnWindowSize(  int nWidth,
                         int nHeight);
     
-    std::unique_ptr<ShaderProgMeshPoly>  m_roShaderProgMeshPoly;
+    std::unique_ptr<ShaderProgMeshPoly> m_roShaderProgMeshPoly;
+    std::unique_ptr<ShaderProgQuad>     m_roShaderProgQuad;
     
     void Redraw(bool bDraw3dScene);
     
@@ -191,7 +218,6 @@ GLuint              m_nSceneFBO         = 0;
     int             m_nSceneWidth       = 0;
     int             m_nSceneHeight      = 0;
     ImGuiContext*   m_psImGuiContext    = nullptr;
-    
     
     class Group
     {
@@ -303,6 +329,7 @@ GLuint              m_nSceneFBO         = 0;
         {
             return !(m_oViewPolyLines.find(std::make_pair(hLib, hPoly)) == m_oViewPolyLines.end());
         }
+        
         
         inline void RemoveAllObjects()
         {
@@ -437,6 +464,55 @@ GLuint              m_nSceneFBO         = 0;
     }
     
     std::map<int,Group::Ptr> m_oGroups;
+    
+    class ViewQuad
+    {
+    public:
+        ViewQuad(   const ShaderProgQuad& oShader,
+                    uint64_t    hTexObject,
+                    ColorFloat  clrDefault,
+                    float       fAlpha,
+                    Matrix4x4   mat,
+                    Vector3     vec0,
+                    Vector3     vec1,
+                    Vector3     vec2,
+                    Vector3     vec3);
+        
+        void SetMatrix(const Matrix4x4& matNew)
+        {
+            m_mat = matNew;
+        }
+        
+        void SetShaderValues(   const Matrix4x4& matVP,
+                                const Viewer& oViewer,
+                                ShaderProgQuad& oShader) const
+        {
+            Matrix4x4 matMVP = m_mat;
+            matMVP *= matVP;
+            
+            GLuint nGlTex = 0;
+            int nWidth;
+            int nHeight;
+            bool bTexAvailabe = oViewer.m_oTextures.bGetGlHandle(   m_hTexture,
+                                                                    &nGlTex,
+                                                                    &nWidth,
+                                                                    &nHeight);
+            
+            oShader.SetValues(  matMVP,
+                                !bTexAvailabe,
+                                m_clr,
+                                m_fAlpha,
+                                nGlTex);
+        }
+        
+        std::unique_ptr<GlQuadBuffer> m_roBuffer;
+        Matrix4x4   m_mat;
+        ColorFloat  m_clr;
+        float       m_fAlpha;
+        uint64_t    m_hTexture;
+    };
+    
+    HandleManager<ViewQuad> m_oQuads;
     
     void RecalculateInformationIfNeeded();
     

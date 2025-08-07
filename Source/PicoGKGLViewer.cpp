@@ -67,7 +67,8 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     PKINIT(pfnMouseButtonCallback),
     PKINIT(pfnScrollWheelCallback),
     PKINIT(pfnWindowSizeCallback),
-    m_oGuiElements("GuiElements")
+    m_oGuiElements("GuiElements"),
+    m_oQuads("ViewQuads")
 {
     m_vecMousePos.X = 0.0f;
     m_vecMousePos.Y = 0.0f;
@@ -77,7 +78,8 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     
     CHECKGLERRORS;
     
-    m_roShaderProgMeshPoly = std::make_unique<ShaderProgMeshPoly>();
+    m_roShaderProgMeshPoly  = std::make_unique<ShaderProgMeshPoly>();
+    m_roShaderProgQuad      = std::make_unique<ShaderProgQuad>();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

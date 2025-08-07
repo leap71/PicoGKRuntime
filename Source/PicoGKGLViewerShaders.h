@@ -44,7 +44,7 @@
 namespace PicoGK
 {
 
-class ShaderProgMeshPoly: public GlShaderProgram
+class ShaderProgMeshPoly: protected GlShaderProgram
 {
 public:
     ShaderProgMeshPoly();
@@ -61,7 +61,7 @@ public:
                                 const std::vector<Triangle>& vTriangles,
                                 std::unique_ptr<GlElementBuffer<Vector3>>* prResult) const;
     
-    void Use(   const Matrix4x4&    matMVP,
+    void Use(   const Matrix4x4&    matVP,
                 const Vector3&      vecEye) const;
     
     void SetValues( const Matrix4x4&    matOtoW,
@@ -79,7 +79,7 @@ private:
     GLuint  m_hTexSpecular          = 0;
     GLuint  m_hTexDiffuse           = 0;
     
-    GLint m_nUmat4MVP               =-1;
+    GLint m_nUmat4VP                =-1;
     GLint m_nUmat4OtoW              =-1;
     GLint m_nUvec3Eye               =-1;
     GLint m_nUtexSpec               =-1;
@@ -94,6 +94,38 @@ private:
     GLint m_nAvec3Pos               = -1;
 };
 
+class ShaderProgQuad: protected GlShaderProgram
+{
+public:
+    ShaderProgQuad();
+    
+    void CreateBufferInstance(  Vector3 vec0, Vector3 vec1, Vector3 vec2, Vector3 vec3,
+                                std::unique_ptr<GlQuadBuffer>* prResult) const;
+    
+    void Use()
+    {
+        GlShaderProgram::Use();
+    }
+    
+    void SetValues( const Matrix4x4& matMVP,
+                    bool bRenderSolid,
+                    ColorFloat clrSolid,
+                    float fAlpha,
+                    GLuint hTexture);
+    
+private:
+    static const std::string c_strVertShader;
+    static const std::string c_strFragShader;
+    
+    GLint m_nUmat4MVP           = -1;
+    GLint m_nUbRenderSolid      = -1;
+    GLint m_nUvec4SolidColor    = -1;
+    GLint m_nUtexTexture        = -1;
+    GLint m_nUfAlpha            = -1;
+
+    GLint m_nAvec3Pos           = -1;
+    GLint m_nAvec2InUV          = -1;
+};
     
 } // namespace PicoGK
 

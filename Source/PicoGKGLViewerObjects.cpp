@@ -130,5 +130,27 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
     CHECKGLERRORS;
 }
 
+//
+//
+// class Viewer::ViewQuad
+//
+//:
+
+Viewer::ViewQuad::ViewQuad( const ShaderProgQuad& oShader,
+                            uint64_t    hTexObject,
+                            ColorFloat  clrDefault,
+                            float       fAlpha,
+                            Matrix4x4   mat,
+                            Vector3     vec0,
+                            Vector3     vec1,
+                            Vector3     vec2,
+                            Vector3     vec3)
+{
+    oShader.CreateBufferInstance(vec0, vec1, vec2, vec3, &m_roBuffer);
+    m_mat       = mat;
+    m_fAlpha    = fAlpha;
+    m_clr       = clrDefault;
+}
+    
 } // namespace PicoGK
 
