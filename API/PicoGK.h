@@ -303,11 +303,29 @@ PICOGK_API void             Voxels_GetVoxelDimensions(      PKINSTANCE          
                                                             int32_t*            pnYSize,
                                                             int32_t*            pnZSize);
 
-PICOGK_API void             Voxels_GetSlice(                PKINSTANCE          hInstance,
+PICOGK_API void             Voxels_GetXSlice(               PKINSTANCE          hInstance,
+                                                            PKVOXELS            hThis,
+                                                            int32_t             nXSlice,
+                                                            float*              pfBuffer,
+                                                            float*              pfBackgroundValue);
+
+PICOGK_API void             Voxels_GetYSlice(               PKINSTANCE          hInstance,
+                                                            PKVOXELS            hThis,
+                                                            int32_t             nYSlice,
+                                                            float*              pfBuffer,
+                                                            float*              pfBackgroundValue);
+
+PICOGK_API void             Voxels_GetZSlice(               PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis,
                                                             int32_t             nZSlice,
                                                             float*              pfBuffer,
                                                             float*              pfBackgroundValue);
+
+PICOGK_API void Voxels_GetInterpolatedZSlice(               PKINSTANCE hLib,
+                                                            PKVOXELS    hThis,
+                                                            float       fZSlice,
+                                                            float*      pfBuffer,
+                                                            float*      pfBackgroundValue);
 
 // POLYLINE
 

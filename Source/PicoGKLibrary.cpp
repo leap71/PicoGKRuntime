@@ -623,7 +623,33 @@ PICOGK_API void Voxels_GetVoxelDimensions(  PKINSTANCE hLib,
                                 pnZSize);
 }
 
-PICOGK_API void Voxels_GetSlice(    PKINSTANCE hLib,
+PICOGK_API void Voxels_GetXSlice(   PKINSTANCE hLib,
+                                    PKVOXELS    hThis,
+                                    int32_t     nXSlice,
+                                    float*      pfBuffer,
+                                    float*      pfBackgroundValue)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    
+    Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
+    *pfBackgroundValue = roThis->fBackground();
+    return roThis->GetXSlice(nXSlice, pfBuffer);
+}
+
+PICOGK_API void Voxels_GetYSlice(   PKINSTANCE hLib,
+                                    PKVOXELS    hThis,
+                                    int32_t     nYSlice,
+                                    float*      pfBuffer,
+                                    float*      pfBackgroundValue)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    
+    Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
+    *pfBackgroundValue = roThis->fBackground();
+    return roThis->GetYSlice(nYSlice, pfBuffer);
+}
+
+PICOGK_API void Voxels_GetZSlice(   PKINSTANCE hLib,
                                     PKVOXELS    hThis,
                                     int32_t     nZSlice,
                                     float*      pfBuffer,
@@ -633,7 +659,7 @@ PICOGK_API void Voxels_GetSlice(    PKINSTANCE hLib,
     
     Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
     *pfBackgroundValue = roThis->fBackground();
-    return roThis->GetSlice(nZSlice, pfBuffer);
+    return roThis->GetZSlice(nZSlice, pfBuffer);
 }
 
 PICOGK_API void Voxels_GetInterpolatedSlice(    PKINSTANCE hLib,
@@ -646,7 +672,7 @@ PICOGK_API void Voxels_GetInterpolatedSlice(    PKINSTANCE hLib,
     
     Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
     *pfBackgroundValue = roThis->fBackground();
-    return roThis->GetInterpolatedSlice(fZSlice, pfBuffer);
+    return roThis->GetInterpolatedZSlice(fZSlice, pfBuffer);
 }
 
 PICOGK_API PKPOLYLINE PolyLine_hCreate( PKINSTANCE hLib,

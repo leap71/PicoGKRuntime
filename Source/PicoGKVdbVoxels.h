@@ -582,8 +582,8 @@ public:
         *pnZSize    = oBBox.extents().z();
     }
     
-    void GetSlice( int32_t nZSlice,
-                   float* pfBuffer)
+    void GetZSlice( int32_t nZSlice,
+                    float* pfBuffer)
     {
         CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
         openvdb::Coord xyz(0, 0, nZSlice + oBBox.min().z());
@@ -599,7 +599,43 @@ public:
         }
     }
     
-    void GetInterpolatedSlice(  float fZSlice,
+    void GetXSlice( int32_t nXSlice,
+                    float* pfBuffer)
+    {
+        CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
+        openvdb::Coord xyz(nXSlice + oBBox.min().x(), 0, 0);
+        
+        auto oAccess = m_roGrid->getConstAccessor();
+        
+        int32_t n=0;
+        for (xyz.z()=oBBox.max().z(); xyz.z()>=oBBox.min().z(); xyz.z()--)
+        for (xyz.y()=oBBox.min().y(); xyz.y()<=oBBox.max().y(); xyz.y()++)
+        {
+            pfBuffer[n] = oAccess.getValue(xyz);
+            n++;
+        }
+    }
+    
+    void GetYSlice( int32_t nYSlice,
+                    float* pfBuffer)
+    {
+        CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
+        openvdb::Coord xyz(0, nYSlice + oBBox.min().y(), 0);
+        
+        auto oAccess = m_roGrid->getConstAccessor();
+        
+        int32_t n=0;
+        for (xyz.z()=oBBox.max().z(); xyz.z()>=oBBox.min().z(); xyz.z()--)
+        for (xyz.x()=oBBox.min().x(); xyz.x()<=oBBox.max().x(); xyz.x()++)
+        {
+            pfBuffer[n] = oAccess.getValue(xyz);
+            n++;
+        }
+    }
+    
+    
+    
+    void GetInterpolatedZSlice( float fZSlice,
                                 float* pfBuffer)
     {
         CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
