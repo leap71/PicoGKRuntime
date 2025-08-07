@@ -73,11 +73,8 @@ void SetIdentityMatrix(PKMatrix4x4* pmat)
 void UpdateRequested(   PKVIEWER            hViewer,
                         const PKVector2*    pvecViewport,
                         PKColorFloat*       pclrBackground,
-                        PKMatrix4x4*        pmatModelViewProjection,
-                        PKMatrix4x4*        pmatModelTransform,
-                        PKMatrix4x4*        pmatStatic,
-                        PKVector3*          pvecEyePosition,
-                        PKVector3*          pvecEyeStatic)
+                        PKMatrix4x4*        pmatViewProjection,
+                        PKVector3*          pvecEyePosition)
 {
     assert(hViewer == g_hViewer);
     
@@ -85,10 +82,6 @@ void UpdateRequested(   PKVIEWER            hViewer,
     pclrBackground->R = ((float)(rand() % 10000)) / 10000.0f;
     pclrBackground->G = ((float)(rand() % 10000)) / 10000.0f;
     pclrBackground->A = 0.0f;
-    
-    static PKMatrix4x4 matTrans;
-    
-    SetIdentityMatrix(&matTrans);
     
     static PKMatrix4x4 mat;
     mat.vec1.X = -0.6971824f;
@@ -111,8 +104,7 @@ void UpdateRequested(   PKVIEWER            hViewer,
     mat.vec4.Z = 33.2254829f;
     mat.vec4.W = 33.2542801f;
     
-    *pmatModelTransform         = matTrans;
-    *pmatModelViewProjection    = mat;
+    *pmatViewProjection    = mat;
     
     PKVector3 vecEye;
     vecEye.X = 20.493336f;
@@ -147,7 +139,11 @@ void KeyPressed(        PKVIEWER    hViewer,
 }
 
 void MouseMoved(    PKVIEWER            hViewer,
-                    const PKVector2*    vecMousePos)
+                    const PKVector2*    vecMousePos,
+                    bool                bShift,
+                    bool                bCtrl,
+                    bool                bAlt,
+                    bool                bCmd)
 {
     assert(hViewer == g_hViewer);
     
@@ -156,7 +152,11 @@ void MouseMoved(    PKVIEWER            hViewer,
 
 void ScrollWheel(   PKVIEWER            hViewer,
                     const PKVector2*    vecOffset,
-                    const PKVector2*    vecMousePos)
+                    const PKVector2*    vecMousePos,
+                    bool                bShift,
+                    bool                bCtrl,
+                    bool                bAlt,
+                    bool                bCmd)
 {
     assert(hViewer == g_hViewer);
     

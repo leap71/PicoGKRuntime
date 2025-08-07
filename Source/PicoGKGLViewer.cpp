@@ -361,13 +361,25 @@ void Viewer::OnMouseMoved(  double dMouseX,
     ImGui::SetCurrentContext(m_psImGuiContext);
     if (ImGui::GetIO().WantCaptureMouse)
         return;
-    
+
     m_vecMousePos.X = (float) dMouseX;
     m_vecMousePos.Y = (float) dMouseY;
+    
+    bool bShift = glfwGetKey(   m_pTheWindow, GLFW_KEY_LEFT_SHIFT)  == GLFW_PRESS ||
+                                glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+
+    bool bCtrl  = glfwGetKey(   m_pTheWindow, GLFW_KEY_LEFT_CONTROL)  == GLFW_PRESS ||
+                                glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+
+    bool bAlt   = glfwGetKey(   m_pTheWindow, GLFW_KEY_LEFT_ALT)  == GLFW_PRESS ||
+                                glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS;
+
+    bool bSuper  = glfwGetKey(  m_pTheWindow, GLFW_KEY_LEFT_SUPER)  == GLFW_PRESS ||
+                                glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS;
 
     if (m_pfnMouseMoveCallback != nullptr)
     {
-        m_pfnMouseMoveCallback(this, &m_vecMousePos);
+        m_pfnMouseMoveCallback(this, &m_vecMousePos, bShift, bCtrl, bAlt, bSuper);
     }
 }
 
@@ -398,10 +410,28 @@ void Viewer::OnScrollWheel( double dX,
             
     if (m_pfnScrollWheelCallback != nullptr)
     {
+        bool bShift = glfwGetKey(   m_pTheWindow, GLFW_KEY_LEFT_SHIFT)  == GLFW_PRESS ||
+                                    glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+
+        bool bCtrl  = glfwGetKey(   m_pTheWindow, GLFW_KEY_LEFT_CONTROL)  == GLFW_PRESS ||
+                                    glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+
+        bool bAlt   = glfwGetKey(   m_pTheWindow, GLFW_KEY_LEFT_ALT)  == GLFW_PRESS ||
+                                    glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS;
+
+        bool bSuper  = glfwGetKey(  m_pTheWindow, GLFW_KEY_LEFT_SUPER)  == GLFW_PRESS ||
+                                    glfwGetKey(m_pTheWindow, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS;
+        
         Vector2 vec;
         vec.X = dX;
         vec.Y = dY;
-        m_pfnScrollWheelCallback(this, &vec, &m_vecMousePos);
+        m_pfnScrollWheelCallback(   this,
+                                    &vec,
+                                    &m_vecMousePos,
+                                    bShift,
+                                    bCtrl,
+                                    bAlt,
+                                    bSuper);
     }
 }
 
@@ -523,11 +553,8 @@ void Viewer::DrawScene()
     clrBackground.B = 0.0f;
     clrBackground.A = 0.0f;
     
-    Matrix4x4 matMVP;
-    Matrix4x4 matModelTrans;
-    Vector3   vecEye(0,0,0);
-    Matrix4x4 matStatic;
-    Vector3   vecEyeStatic(0,0,0);
+    Matrix4x4   matVP;
+    Vector3     vecEye(0,0,0);
     
     if (m_pfnUpdateCallback != nullptr)
     {
@@ -538,11 +565,8 @@ void Viewer::DrawScene()
         m_pfnUpdateCallback(    this,
                                 &vecViewSize,
                                 &clrBackground,
-                                &matMVP,
-                                &matModelTrans,
-                                &matStatic,
-                                &vecEye,
-                                &vecEyeStatic);
+                                &matVP,
+                                &vecEye);
     }
     
     glClearColor(   clrBackground.R,
@@ -556,14 +580,14 @@ void Viewer::DrawScene()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    m_roShaderProgMeshPoly->Use(matMVP, vecEye);
+    m_roShaderProgMeshPoly->Use(matVP, vecEye);
     
     CHECKGLERRORS;
     
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
-        poGroup->Draw(matModelTrans, *m_roShaderProgMeshPoly);
+        poGroup->Draw(*m_roShaderProgMeshPoly);
     }
     
     if (m_strScreenShotPath != "")

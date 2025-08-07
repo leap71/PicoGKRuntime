@@ -1310,7 +1310,7 @@ PICOGK_API void MetaData_RemoveValue(   PKINSTANCE hLib,
 }
 
 PICOGK_API PKVIEWER Viewer_hCreate( const char*             pszWindowTitle,
-                                    const PKVector2*         pvecSize,
+                                    const PKVector2*        pvecSize,
                                     PKFInfo                 pfnInfoCallback,
                                     PKPFUpdateRequested     pfnUpdateCallback,
                                     PKPFKeyPressed          pfnKeyPressedCallback,

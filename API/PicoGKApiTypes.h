@@ -138,11 +138,8 @@ typedef void (*PKFInfo)(                const char*         pszMessage,
 typedef void (*PKPFUpdateRequested)(    void*               poViewer,
                                         const PKVector2*    pvecViewport,
                                         PKColorFloat*       pclrBackground,
-                                        PKMatrix4x4*        pmatModelViewProjection,
-                                        PKMatrix4x4*        pmatModelTransform,
-                                        PKMatrix4x4*        pmatStatic,
-                                        PKVector3*          pvecEyePosition,
-                                        PKVector3*          pvecEyeStatic);
+                                        PKMatrix4x4*        pmatViewProjection,
+                                        PKVector3*          pvecEyePosition);
 
 typedef void (*PKPFKeyPressed)(         void*               poViewer,
                                         int32_t             iKey,
@@ -151,7 +148,11 @@ typedef void (*PKPFKeyPressed)(         void*               poViewer,
                                         int32_t             iModifiers);
 
 typedef void (*PKPFMouseMoved)(         void*               poViewer,
-                                        const PKVector2*    pvecMousePos);
+                                        const PKVector2*    pvecMousePos,
+                                        bool                bShift,
+                                        bool                bCtrl,
+                                        bool                bAlt,
+                                        bool                bSuper);
 
 typedef void (*PKPFMouseButton)(        void*               poViewer,
                                         int32_t             iButton,
@@ -161,7 +162,11 @@ typedef void (*PKPFMouseButton)(        void*               poViewer,
 
 typedef void (*PKPFScrollWheel)(        void*               poViewer,
                                         const PKVector2*    pvecOffset,
-                                        const PKVector2*    pvecMousePos);
+                                        const PKVector2*    pvecMousePos,
+                                        bool                bShift,
+                                        bool                bCtrl,
+                                        bool                bAlt,
+                                        bool                bSuper);
 
 typedef void (*PKPFWindowSize)(         void*               poViewer,
                                         const PKVector2*    pvecWindowSize);

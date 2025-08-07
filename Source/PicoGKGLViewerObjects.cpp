@@ -61,25 +61,21 @@ void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
     CHECKGLERRORS;
 }
 
-void Viewer::Group::Draw(   const Matrix4x4& matModelTrans,
-                            const ShaderProgMeshPoly& oShader)
+void Viewer::Group::Draw(const ShaderProgMeshPoly& oShader)
 {
     if (!m_bVisible)
         return;
     
-    Matrix4x4 matMult = matModelTrans;
-    matMult *= m_mat;
-    
     for (auto& oMapEntry : m_oViewPolyLines)
     {
-        oMapEntry.second->Draw(oShader, m_sMaterial, matMult);
+        oMapEntry.second->Draw(oShader, m_sMaterial, m_mat);
     }
     
     for (auto& oMapEntry : m_oViewMeshes)
     {
         oMapEntry.second->Draw( oShader,
                                 m_sMaterial,
-                                matMult,
+                                m_mat,
                                 m_bWarnOverhang,
                                 m_nWarningAngleDeg,
                                 m_nErrorAngleDeg);

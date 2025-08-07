@@ -348,8 +348,7 @@ GLuint              m_nSceneFBO         = 0;
             m_mat = mat;
         }
         
-        void Draw(  const Matrix4x4& matModelTrans,
-                    const ShaderProgMeshPoly& oShaderProg);
+        void Draw(const ShaderProgMeshPoly& oShaderProg);
         
         BBox3 oCalculateBBox() const;
         
