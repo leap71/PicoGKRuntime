@@ -272,7 +272,7 @@ void ShaderProgQuad::SetValues( const Matrix4x4& matMVP,
                                 bool bRenderSolid,
                                 ColorFloat clrSolid,
                                 float fAlpha,
-                                GLuint hTexture)
+                                GLuint hTexture) const
 {
     glUniformMatrix4fv(m_nUmat4MVP, 1, GL_FALSE, (GLfloat*) &matMVP);
     glUniform1i(m_nUbRenderSolid, bRenderSolid ? 1 : 0);

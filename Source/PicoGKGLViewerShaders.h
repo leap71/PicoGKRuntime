@@ -111,7 +111,7 @@ public:
                     bool bRenderSolid,
                     ColorFloat clrSolid,
                     float fAlpha,
-                    GLuint hTexture);
+                    GLuint hTexture) const;
     
 private:
     static const std::string c_strVertShader;

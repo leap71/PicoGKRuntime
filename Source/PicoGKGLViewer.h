@@ -485,7 +485,7 @@ GLuint              m_nSceneFBO         = 0;
         
         void SetShaderValues(   const Matrix4x4& matVP,
                                 const Viewer& oViewer,
-                                ShaderProgQuad& oShader) const
+                                const ShaderProgQuad& oShader) const
         {
             Matrix4x4 matMVP = m_mat;
             matMVP *= matVP;
