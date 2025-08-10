@@ -145,7 +145,8 @@ public:
     
     bool bRemoveQuad(uint64_t hQuad)
     {
-        return m_oQuads.bDestroy(hQuad);
+        bool bResult = m_oQuads.bDestroy(hQuad);
+        RequestUpdate();
     }
     
     void RemoveAllObjects();
