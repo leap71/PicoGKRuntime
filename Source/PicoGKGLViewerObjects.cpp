@@ -134,23 +134,57 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
 //
 // class Viewer::ViewQuad
 //
-//:
+//
 
 Viewer::ViewQuad::ViewQuad( const ShaderProgQuad& oShader,
                             uint64_t    hTexObject,
                             ColorFloat  clrDefault,
                             float       fAlpha,
                             Matrix4x4   mat,
-                            Vector3     vec0,
-                            Vector3     vec1,
-                            Vector3     vec2,
-                            Vector3     vec3)
+                            bool        bFlipX,
+                            bool        bFlipY)
+:   PKINIT(bFlipX),
+    PKINIT(bFlipY)
 {
-    oShader.CreateBufferInstance(vec0, vec1, vec2, vec3, &m_roBuffer);
+    PKTRACE(Viewer_ViewQuad_ViewQuad);
     m_mat       = mat;
     m_fAlpha    = fAlpha;
     m_clr       = clrDefault;
+    m_hTexture  = hTexObject;
 }
+
+void Viewer::ViewQuad::Draw(    const Matrix4x4& matVP,
+                                const Viewer& oViewer,
+                                const ShaderProgQuad& oShader) const
+{
+    PKTRACE(Viewer_ViewQuad_Draw);
+    
+    Matrix4x4 matMVP = matVP;
+    matMVP *= m_mat;
+    
+    GLuint nGlTex = 0;
+    int nWidth;
+    int nHeight;
+    
+    bool bTexAvailable = oViewer.m_oTextures.bGetGlHandle(  m_hTexture,
+                                                            &nGlTex,
+                                                            &nWidth,
+                                                            &nHeight);
+    
+    if (nGlTex != 0)
+    {
+        PKTRACE(Viewer_ViewQuad_Draw_GlTexAvailable);
+    }
+    
+    oShader.DrawQuad(   matMVP,
+                        !bTexAvailable,
+                        m_clr,
+                        m_fAlpha,
+                        nGlTex,
+                        m_bFlipX,
+                        m_bFlipY);
+}
+    
     
 } // namespace PicoGK
 

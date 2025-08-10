@@ -577,20 +577,28 @@ void Viewer::DrawScene()
                     clrBackground.A);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    m_roShaderProgMeshPoly->Use(matVP, vecEye);
+    CHECKGLERRORS;
+    
+    m_roShaderProgQuad->Use();
+    m_oQuads.DrawAll(matVP, *this, *m_roShaderProgQuad);
     
     CHECKGLERRORS;
+    
+    m_roShaderProgMeshPoly->Use(matVP, vecEye);
     
     for (auto Pair : m_oGroups)
     {
         Group::Ptr poGroup = Pair.second;
         poGroup->Draw(*m_roShaderProgMeshPoly);
     }
+    
+    CHECKGLERRORS;
     
     if (m_strScreenShotPath != "")
     {

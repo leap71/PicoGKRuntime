@@ -115,25 +115,30 @@ public:
     void RemovePolyLine(    int64_t hLib,
                             int64_t hPoly);
     
-    int64_t hAddQuad(   uint64_t    hTexObject,
-                        ColorFloat  clrDefault,
-                        float       fAlpha,
-                        Matrix4x4   mat,
-                        Vector3     vec0,
-                        Vector3     vec1,
-                        Vector3     vec2,
-                        Vector3     vec3)
+    int64_t hAddQuad(   uint64_t            hTexObject,
+                        ColorFloat          clrDefault,
+                        float               fAlpha,
+                        const Matrix4x4&    mat,
+                        bool                bFlipX,
+                        bool                bFlipY)
     {
+        PKTRACE(Viewer_hAddQuad);
         
         return m_oQuads.hAdd(std::make_shared<ViewQuad>(    *m_roShaderProgQuad,
                                                             hTexObject,
                                                             clrDefault,
                                                             fAlpha,
                                                             mat,
-                                                            vec0,
-                                                            vec1,
-                                                            vec2,
-                                                            vec3));
+                                                            bFlipX,
+                                                            bFlipY));
+        
+        RequestUpdate();
+    }
+    
+    void SetQuadMatrix(uint64_t hQuad, const Matrix4x4& mat)
+    {
+        m_oQuads.roGet(hQuad)->SetMatrix(mat);
+        RequestUpdate();
     }
     
     bool bRemoveQuad(uint64_t hQuad)
@@ -473,46 +478,46 @@ GLuint              m_nSceneFBO         = 0;
                     ColorFloat  clrDefault,
                     float       fAlpha,
                     Matrix4x4   mat,
-                    Vector3     vec0,
-                    Vector3     vec1,
-                    Vector3     vec2,
-                    Vector3     vec3);
+                    bool        bFlipX,
+                    bool        bFlipY);
         
         void SetMatrix(const Matrix4x4& matNew)
         {
             m_mat = matNew;
         }
         
-        void SetShaderValues(   const Matrix4x4& matVP,
-                                const Viewer& oViewer,
-                                const ShaderProgQuad& oShader) const
-        {
-            Matrix4x4 matMVP = m_mat;
-            matMVP *= matVP;
-            
-            GLuint nGlTex = 0;
-            int nWidth;
-            int nHeight;
-            bool bTexAvailabe = oViewer.m_oTextures.bGetGlHandle(   m_hTexture,
-                                                                    &nGlTex,
-                                                                    &nWidth,
-                                                                    &nHeight);
-            
-            oShader.SetValues(  matMVP,
-                                !bTexAvailabe,
-                                m_clr,
-                                m_fAlpha,
-                                nGlTex);
-        }
+        void Draw(  const Matrix4x4& matVP,
+                    const Viewer& oViewer,
+                    const ShaderProgQuad& oShader) const;
         
-        std::unique_ptr<GlQuadBuffer> m_roBuffer;
         Matrix4x4   m_mat;
         ColorFloat  m_clr;
         float       m_fAlpha;
         uint64_t    m_hTexture;
+        bool        m_bFlipX;
+        bool        m_bFlipY;
     };
     
-    HandleManager<ViewQuad> m_oQuads;
+    class QuadHandleManager : public HandleManager<ViewQuad>
+    {
+    public:
+        QuadHandleManager(std::string strName)
+        : HandleManager(strName)
+        {
+            
+        }
+        
+        void DrawAll(   const Matrix4x4& matVP,
+                        const Viewer& oViewer,
+                        const ShaderProgQuad& oShader)
+        {
+            std::shared_lock lk(m_mtx);
+            for (const auto& oPair : m_map)
+            {
+                oPair.second->Draw(matVP, oViewer, oShader);
+            }
+        }
+    } m_oQuads;
     
     void RecalculateInformationIfNeeded();
     
