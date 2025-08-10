@@ -99,25 +99,41 @@ class ShaderProgQuad: protected GlShaderProgram
 public:
     ShaderProgQuad();
     
-    void CreateBufferInstance(  Vector3 vec0, Vector3 vec1, Vector3 vec2, Vector3 vec3,
-                                std::unique_ptr<GlQuadBuffer>* prResult) const;
+    virtual ~ShaderProgQuad()
+    {
+        if (m_nVBO)
+            glDeleteBuffers(1, &m_nVBO);
+            
+        if (m_nVAO)
+            glDeleteVertexArrays(1, &m_nVAO);
+    }
     
     void Use()
     {
+        glBindVertexArray(m_nVAO);
         GlShaderProgram::Use();
     }
     
-    void SetValues( const Matrix4x4& matMVP,
+    void DrawQuad(  const Matrix4x4& matMVP,
                     bool bRenderSolid,
                     ColorFloat clrSolid,
                     float fAlpha,
-                    GLuint hTexture) const;
+                    GLuint hTexture,
+                    bool bFlipX,
+                    bool bFlipY) const;
+    
+    ShaderProgQuad(const ShaderProgQuad&)               = delete;
+    ShaderProgQuad& operator=(const ShaderProgQuad&)    = delete;
+    ShaderProgQuad(ShaderProgQuad&&)                    = delete;
+    ShaderProgQuad& operator=(ShaderProgQuad&&)         = delete;
     
 private:
     static const std::string c_strVertShader;
     static const std::string c_strFragShader;
     
     GLint m_nUmat4MVP           = -1;
+    GLint m_nUbFlipX            = -1;
+    GLint m_nUbFlipY            = -1;
     GLint m_nUbRenderSolid      = -1;
     GLint m_nUvec4SolidColor    = -1;
     GLint m_nUtexTexture        = -1;
@@ -125,6 +141,13 @@ private:
 
     GLint m_nAvec3Pos           = -1;
     GLint m_nAvec2InUV          = -1;
+    
+private:
+    // GL buffer objects to store one quad
+    // that is re-used
+    
+    GLuint m_nVAO = 0;
+    GLuint m_nVBO = 0;
 };
     
 } // namespace PicoGK

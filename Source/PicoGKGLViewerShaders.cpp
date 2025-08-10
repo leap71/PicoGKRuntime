@@ -250,34 +250,66 @@ void main()
 ShaderProgQuad::ShaderProgQuad()
 : GlShaderProgram(c_strVertShader, c_strFragShader)
 {
-    m_nUmat4MVP           = nUniformLoc("mat4MVP");
-    m_nUbRenderSolid      = nUniformLoc("bRenderSolid");
-    m_nUvec4SolidColor    = nUniformLoc("vec4SolidColor");
-    m_nUtexTexture        = nUniformLoc("texTexture");
-    m_nUfAlpha            = nUniformLoc("fAlpha");
+    m_nUmat4MVP         = nUniformLoc("mat4MVP");
+    m_nUbRenderSolid    = nUniformLoc("bRenderSolid");
+    m_nUvec4SolidColor  = nUniformLoc("vec4SolidColor");
+    m_nUtexTexture      = nUniformLoc("texTexture");
+    m_nUfAlpha          = nUniformLoc("fAlpha");
+    m_nUbFlipX          = nUniformLoc("bFlipX");
+    m_nUbFlipY          = nUniformLoc("bFlipY");
 
     m_nAvec3Pos           = nAttribLoc("vec3Pos");
     m_nAvec2InUV          = nAttribLoc("vec2InUV");
+    
+    // Build reusable quad with UV coords
+    
+    struct SVertex
+    {
+        float x,y,z,u,v;
+    };
+
+    // Triangle strip order:
+    // v0 (-0.5,-0.5) → v1 (0.5,-0.5) → v2 (-0.5,0.5) → v3 (0.5,0.5)
+    const SVertex aVertices[4] =
+    {
+        { -0.5f, -0.5f, 0.0f, 0.0f, 0.0f },  // v0
+        {  0.5f, -0.5f, 0.0f, 1.0f, 0.0f },  // v1
+        { -0.5f,  0.5f, 0.0f, 0.0f, 1.0f },  // v2
+        {  0.5f,  0.5f, 0.0f, 1.0f, 1.0f },  // v3
+    };
+        
+    glGenVertexArrays(1, &m_nVAO);
+    glBindVertexArray(m_nVAO);
+
+    glGenBuffers(1, &m_nVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_nVBO);
+        
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aVertices), aVertices, GL_STATIC_DRAW);
+
+    // Attribute locations are fixed by layout qualifiers (0:pos, 1:uv)
+    glEnableVertexAttribArray(m_nAvec3Pos);
+    glVertexAttribPointer(m_nAvec3Pos, 3, GL_FLOAT, GL_FALSE, sizeof(SVertex), (void*)offsetof(SVertex,x));
+
+    glEnableVertexAttribArray(m_nAvec2InUV);
+    glVertexAttribPointer(m_nAvec2InUV, 2, GL_FLOAT, GL_FALSE, sizeof(SVertex), (void*)offsetof(SVertex,u));
+
+    glBindVertexArray(0);
 }
 
-void ShaderProgQuad::CreateBufferInstance(  Vector3 vec0, Vector3 vec1, Vector3 vec2, Vector3 vec3,
-                                            std::unique_ptr<GlQuadBuffer>* prResult) const
-{
-    *prResult = std::make_unique<GlQuadBuffer>(m_nAvec3Pos, m_nAvec2InUV, vec0, vec1, vec2, vec3);
-}
-
-
-
-void ShaderProgQuad::SetValues( const Matrix4x4& matMVP,
+void ShaderProgQuad::DrawQuad(  const Matrix4x4& matMVP,
                                 bool bRenderSolid,
                                 ColorFloat clrSolid,
                                 float fAlpha,
-                                GLuint hTexture) const
+                                GLuint hTexture,
+                                bool bFlipX,
+                                bool bFlipY) const
 {
     glUniformMatrix4fv(m_nUmat4MVP, 1, GL_FALSE, (GLfloat*) &matMVP);
     glUniform1i(m_nUbRenderSolid, bRenderSolid ? 1 : 0);
     glUniform4f(m_nUvec4SolidColor, clrSolid.R, clrSolid.G, clrSolid.B, clrSolid.A);
     glUniform1f(m_nUfAlpha, fAlpha);
+    glUniform1i(m_nUbFlipX, bFlipX ? 1 : 0);
+    glUniform1i(m_nUbFlipY, bFlipY ? 1 : 0);
 
     if (hTexture != 0)
     {
@@ -286,6 +318,8 @@ void ShaderProgQuad::SetValues( const Matrix4x4& matMVP,
         glBindTexture(GL_TEXTURE_2D, hTexture);
         glUniform1i(m_nUtexTexture, 2); // Tell shader that texTexture = texture unit 2
     }
+    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 /*static*/ const std::string ShaderProgQuad::c_strVertShader = R"VS(
@@ -295,12 +329,16 @@ layout(location = 0) in vec3 vec3Pos;
 layout(location = 1) in vec2 vec2InUV;
 
 uniform mat4 mat4MVP;
+uniform bool bFlipX;
+uniform bool bFlipY;
 
 out vec2 vec2UV;
 
 void main()
 {
-    vec2UV = vec2InUV;
+    vec2UV.x = bFlipX ? (1.0 - vec2InUV.x) : vec2InUV.x;
+    vec2UV.y = bFlipY ? (1.0 - vec2InUV.y) : vec2InUV.y;
+
     gl_Position = mat4MVP * vec4(vec3Pos, 1.0);
 }
 )VS";
