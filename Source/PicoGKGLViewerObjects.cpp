@@ -142,9 +142,11 @@ Viewer::ViewQuad::ViewQuad( const ShaderProgQuad& oShader,
                             float       fAlpha,
                             Matrix4x4   mat,
                             bool        bFlipX,
-                            bool        bFlipY)
+                            bool        bFlipY,
+                            bool        bDoubleSided)
 :   PKINIT(bFlipX),
-    PKINIT(bFlipY)
+    PKINIT(bFlipY),
+    PKINIT(bDoubleSided)
 {
     PKTRACE(Viewer_ViewQuad_ViewQuad);
     m_mat       = mat;
@@ -182,7 +184,8 @@ void Viewer::ViewQuad::Draw(    const Matrix4x4& matVP,
                         m_fAlpha,
                         nGlTex,
                         m_bFlipX,
-                        m_bFlipY);
+                        m_bFlipY,
+                        m_bDoubleSided);
 }
     
     

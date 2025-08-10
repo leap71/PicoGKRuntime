@@ -120,7 +120,8 @@ public:
                     float fAlpha,
                     GLuint hTexture,
                     bool bFlipX,
-                    bool bFlipY) const;
+                    bool bFlipY,
+                    bool bDoubleSided) const;
     
     ShaderProgQuad(const ShaderProgQuad&)               = delete;
     ShaderProgQuad& operator=(const ShaderProgQuad&)    = delete;

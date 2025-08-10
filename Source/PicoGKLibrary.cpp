@@ -1633,7 +1633,8 @@ PICOGK_API PKQUAD Viewer_Quad_hCreate(  PKVIEWER            hThis,
                                         float               fAlpha,
                                         const PKMatrix4x4*  pmat,
                                         bool                bFlipX,
-                                        bool                bFlipY)
+                                        bool                bFlipY,
+                                        bool                bDoubleSided)
 {
     PKTRACE(Viewer_Quad_hCreate);
     
@@ -1645,7 +1646,8 @@ PICOGK_API PKQUAD Viewer_Quad_hCreate(  PKVIEWER            hThis,
                                 fAlpha,
                                 *pmat,
                                 bFlipX,
-                                bFlipY);
+                                bFlipY,
+                                bDoubleSided);
 }
 
 PICOGK_API void Viewer_Quad_Destroy(    PKVIEWER    hThis,

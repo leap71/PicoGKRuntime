@@ -302,7 +302,8 @@ void ShaderProgQuad::DrawQuad(  const Matrix4x4& matMVP,
                                 float fAlpha,
                                 GLuint hTexture,
                                 bool bFlipX,
-                                bool bFlipY) const
+                                bool bFlipY,
+                                bool bDoubleSided) const
 {
     glUniformMatrix4fv(m_nUmat4MVP, 1, GL_FALSE, (GLfloat*) &matMVP);
     glUniform1i(m_nUbRenderSolid, bRenderSolid ? 1 : 0);
@@ -310,6 +311,11 @@ void ShaderProgQuad::DrawQuad(  const Matrix4x4& matMVP,
     glUniform1f(m_nUfAlpha, fAlpha);
     glUniform1i(m_nUbFlipX, bFlipX ? 1 : 0);
     glUniform1i(m_nUbFlipY, bFlipY ? 1 : 0);
+    
+    if (bDoubleSided)
+        glDisable(GL_CULL_FACE);
+    else
+        glEnable(GL_CULL_FACE);
 
     if (hTexture != 0)
     {

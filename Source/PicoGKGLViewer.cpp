@@ -579,7 +579,6 @@ void Viewer::DrawScene()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -589,6 +588,8 @@ void Viewer::DrawScene()
     m_oQuads.DrawAll(matVP, *this, *m_roShaderProgQuad);
     
     CHECKGLERRORS;
+    
+    glEnable(GL_CULL_FACE);
     
     m_roShaderProgMeshPoly->Use(matVP, vecEye);
     

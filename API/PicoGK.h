@@ -686,7 +686,8 @@ PICOGK_API PKQUAD           Viewer_Quad_hCreate(            PKVIEWER            
                                                             float               fAlpha,
                                                             const PKMatrix4x4*  pmat,
                                                             bool                bFlipX,
-                                                            bool                bFlipY);
+                                                            bool                bFlipY,
+                                                            bool                bDoubleSided);
 
 PICOGK_API void             Viewer_Quad_Destroy(            PKVIEWER    hThis,
                                                             PKQUAD      hQuad);

@@ -120,7 +120,8 @@ public:
                         float               fAlpha,
                         const Matrix4x4&    mat,
                         bool                bFlipX,
-                        bool                bFlipY)
+                        bool                bFlipY,
+                        bool                bDoubleSided)
     {
         PKTRACE(Viewer_hAddQuad);
         
@@ -130,7 +131,8 @@ public:
                                                             fAlpha,
                                                             mat,
                                                             bFlipX,
-                                                            bFlipY));
+                                                            bFlipY,
+                                                            bDoubleSided));
         
         RequestUpdate();
     }
@@ -479,7 +481,8 @@ GLuint              m_nSceneFBO         = 0;
                     float       fAlpha,
                     Matrix4x4   mat,
                     bool        bFlipX,
-                    bool        bFlipY);
+                    bool        bFlipY,
+                    bool        bDoubleSided);
         
         void SetMatrix(const Matrix4x4& matNew)
         {
@@ -496,6 +499,7 @@ GLuint              m_nSceneFBO         = 0;
         uint64_t    m_hTexture;
         bool        m_bFlipX;
         bool        m_bFlipY;
+        bool        m_bDoubleSided;
     };
     
     class QuadHandleManager : public HandleManager<ViewQuad>
