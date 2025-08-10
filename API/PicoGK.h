@@ -85,6 +85,7 @@ PICOGK_API void         Library_GetBuildInfo(               char psz[PKINFOSTRIN
 
 #define PKVIEWER        void*
 #define PKGPUTEX        PKHANDLE
+#define PKQUAD          PKHANDLE
 #define PKGUI           PKHANDLE
 
 // LIBRARY INSTANCE
@@ -678,6 +679,21 @@ PICOGK_API void             Viewer_GpuTex_Refresh(          PKVIEWER            
 
 PICOGK_API void             Viewer_GpuTex_MarkForCleanup(   PKVIEWER            hThis,
                                                             PKGPUTEX);
+
+PICOGK_API PKQUAD           Viewer_Quad_hCreate(            PKVIEWER            hThis,
+                                                            PKGPUTEX            hTexDefault,
+                                                            PKColorFloat        clrDefault,
+                                                            float               fAlpha,
+                                                            const PKMatrix4x4*  pmat,
+                                                            bool                bFlipX,
+                                                            bool                bFlipY);
+
+PICOGK_API void             Viewer_Quad_Destroy(            PKVIEWER    hThis,
+                                                            PKQUAD      hQuad);
+
+PICOGK_API void             Viewer_Quad_SetMatrix(          PKVIEWER            hThis,
+                                                            PKQUAD              hQuad,
+                                                            const PKMatrix4x4*  pmat);
 
 PICOGK_API PKGUI            Viewer_SideBar_hCreate(         PKVIEWER            hThis,
                                                             bool                bLeft,

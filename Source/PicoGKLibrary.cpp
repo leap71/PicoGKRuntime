@@ -1619,12 +1619,57 @@ PICOGK_API void Viewer_GpuTex_Refresh(          PKVIEWER    hThis,
 PICOGK_API void Viewer_GpuTex_MarkForCleanup(   PKVIEWER hThis,
                                                 PKGPUTEX hTex)
 {
-    PKTRACE(Viewer_DeleteGpuTex);
+    PKTRACE(Viewer_GpuTex_MarkForCleanup);
     
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
     poThis->GpuTexMarkForCleanup(hTex);
+}
+
+PICOGK_API PKQUAD Viewer_Quad_hCreate(  PKVIEWER            hThis,
+                                        PKGPUTEX            hTexDefault,
+                                        PKColorFloat        clrDefault,
+                                        float               fAlpha,
+                                        const PKMatrix4x4*  pmat,
+                                        bool                bFlipX,
+                                        bool                bFlipY)
+{
+    PKTRACE(Viewer_Quad_hCreate);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    return poThis->hAddQuad(    hTexDefault,
+                                clrDefault,
+                                fAlpha,
+                                *pmat,
+                                bFlipX,
+                                bFlipY);
+}
+
+PICOGK_API void Viewer_Quad_Destroy(    PKVIEWER    hThis,
+                                        PKQUAD      hQuad)
+{
+    PKTRACE(Viewer_Quad_Destroy);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    if (!poThis->bRemoveQuad(hQuad))
+        throw new std::invalid_argument("Removing non-existing quad");
+}
+
+PICOGK_API void Viewer_Quad_SetMatrix(  PKVIEWER            hThis,
+                                        PKQUAD              hQuad,
+                                        const PKMatrix4x4*  pmat)
+{
+    PKTRACE(Viewer_Quad_SetMatrix);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetQuadMatrix(hQuad, *pmat);
 }
 
 PICOGK_API PKGUI Viewer_SideBar_hCreate(    PKVIEWER        hThis,
