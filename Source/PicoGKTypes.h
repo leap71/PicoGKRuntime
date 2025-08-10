@@ -391,7 +391,7 @@ public:
 
     inline int32_t iToVoxels(float fMM)
     {
-        return (int) 0.5f + fToVoxels(fMM);
+        return (int) (0.5f + fToVoxels(fMM));
     }
     
     inline float fToVoxels(float fMM)
