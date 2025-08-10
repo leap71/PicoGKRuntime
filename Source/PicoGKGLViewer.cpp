@@ -545,10 +545,6 @@ void Viewer::DrawScene()
         return;
     }
     
-    // Bind FBO instead of default framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
-    glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
-    
     ColorFloat clrBackground;
     clrBackground.R = 1.0f;
     clrBackground.G = 0.0f;
@@ -571,16 +567,25 @@ void Viewer::DrawScene()
                                 &vecEye);
     }
     
+    // Bind FBO instead of default framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+    glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
+    
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    
     glClearColor(   clrBackground.R,
                     clrBackground.G,
                     clrBackground.B,
-                    clrBackground.A);
+                    1);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
     
     CHECKGLERRORS;
     

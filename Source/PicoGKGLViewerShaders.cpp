@@ -177,9 +177,7 @@ void main()
 
 const std::string ShaderProgMeshPoly::c_strFragShader = R"FS(
 #version 330 core
-#extension GL_ARB_shader_texture_lod : enable
-
-#define GAMMA   vec3(0.45, 0.45, 0.45)
+//#extension GL_ARB_shader_texture_lod : enable
 
 in highp vec3   vec3World;
 
@@ -235,7 +233,7 @@ void main()
     vec3 vec3Metal = vec3Color * vec3Spec;
     float fMix     = smoothstep(0.25, 0.45, fMetallic);
 
-    vec4Fragment   = vec4(pow(mix(vec3NonM, vec3Metal, fMix), GAMMA), vec4Color.a);
+    vec4Fragment   = vec4(mix(vec3NonM, vec3Metal, fMix) * vec4Color.a, vec4Color.a);
 }
 )FS";
 
@@ -370,7 +368,7 @@ void main()
 
     vec4 vec4Color  = texture(texTexture, vec2UV);
     vec4Color.a     *= fAlpha;
-    vec4FragColor   = vec4Color;
+    vec4FragColor   = vec4Color * vec4Color.a;
 }
 
 )FS";
