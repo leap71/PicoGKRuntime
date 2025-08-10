@@ -39,8 +39,8 @@
 #include <cstddef>
 #include <vector>
 #include "PicoGKTypes.h"
-
 #include <stdexcept>
+#include "PicoGKTrace.h"
 
 namespace PicoGK
 {
@@ -102,17 +102,27 @@ public:
                     const std::vector<T>& vVertices,
                     GLenum eUsage = GL_STATIC_DRAW)
     {
+        PKTRACE(GlVertexBuffer_GlVertexBuffer);
+        
         if (vVertices.size() == 0)
             throw std::invalid_argument("Cannot build a vertex buffer for an empty vertex array");
         
+        PKTRACE(GlVertexBuffer_GlVertexBuffer_1);
+        
         m_nVertexCount = static_cast<GLsizei>(vVertices.size());
+        
+        PKTRACE(GlVertexBuffer_GlVertexBuffer_2);
         
         glGenVertexArrays(1, &m_nVAO);
         glBindVertexArray(m_nVAO);
+        
+        PKTRACE(GlVertexBuffer_GlVertexBuffer_3);
 
         glGenBuffers(1, &m_nVBO);
         glBindBuffer(GL_ARRAY_BUFFER, m_nVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(T) * vVertices.size(), vVertices.data(), eUsage);
+        
+        PKTRACE(GlVertexBuffer_GlVertexBuffer_4);
 
         glEnableVertexAttribArray(nAttribLocation);
         glVertexAttribPointer(  nAttribLocation,
@@ -121,6 +131,8 @@ public:
                                 GlVertexAttribTraits<T>::bNormalized,
                                 static_cast<GLsizei>(sizeof(T)),
                                 reinterpret_cast<void*>(GlVertexAttribTraits<T>::nOffset));
+        
+        PKTRACE(GlVertexBuffer_GlVertexBuffer_5);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -231,180 +243,7 @@ protected:
         m_oVertexBuffer.UnBind();
     }
 };
-
-struct VertexUv
-{
-    Vector3 vecPos;
-    Vector2 vecUv;
-};
-
-
-template<>
-class GlVertexBuffer<VertexUv>
-{
-public:
-    GlVertexBuffer( GLuint nAttribPos,
-                    GLuint nAttribUV,
-                    const std::vector<VertexUv>& vVertices,
-                    GLenum eUsage = GL_STATIC_DRAW)
-    {
-        if (vVertices.empty())
-            throw std::invalid_argument("Cannot build vertex buffer for an empty vertex array");
-        
-        m_nVertexCount = static_cast<GLsizei>(vVertices.size());
-        
-        glGenVertexArrays(1, &m_nVAO);
-        glBindVertexArray(m_nVAO);
-        
-        glGenBuffers(1, &m_nVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_nVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(VertexUv) * vVertices.size(), vVertices.data(), eUsage);
-        
-        glEnableVertexAttribArray(nAttribPos);
-        glVertexAttribPointer(  nAttribPos,
-                              3,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(VertexUv),
-                              reinterpret_cast<void*>(offsetof(VertexUv, vecPos)));
-        
-        glEnableVertexAttribArray(nAttribUV);
-        glVertexAttribPointer(  nAttribUV,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              sizeof(VertexUv),
-                              reinterpret_cast<void*>(offsetof(VertexUv, vecUv)));
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-    
-    GLsizei nVertexCount() const
-    {
-        return m_nVertexCount;
-    }
-    
-public:
-    template<typename> friend class GlBind;
-    
-    void Bind() const
-    {
-        if (m_nVertexCount == 0)
-            return;
-        
-        glBindVertexArray(m_nVAO);
-    }
-    
-    void UnBind() const
-    {
-        if (m_nVertexCount == 0)
-            return;
-        
-        glBindVertexArray(0);
-    }
-    
-protected:
-    int32_t m_nVertexCount  = 0;
-    GLuint m_nVAO           = 0;
-    GLuint m_nVBO           = 0;
-    
-    template<typename> friend class GlBind;
-};
-
-template<>
-class GlElementBuffer<VertexUv>
-{
-public:
-    GlElementBuffer( GLuint nAttribPos,
-                     GLuint nAttribUV,
-                     const std::vector<VertexUv>& vVertices,
-                     const std::vector<Triangle>& vIndices,
-                     GLenum eUsage = GL_STATIC_DRAW)
-    : m_oVertexBuffer(nAttribPos, nAttribUV, vVertices)
-    {
-        if (vIndices.empty())
-            throw std::invalid_argument("Cannot build an element buffer for an empty element array");
-
-        static_assert(sizeof(Triangle) == 3 * sizeof(uint32_t), "Triangle size mismatch");
-        m_nIndexCount = static_cast<GLsizei>(vIndices.size() * 3);
-
-        GlBind oBind(m_oVertexBuffer);
-
-        glGenBuffers(1, &m_nEBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_nEBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_nIndexCount * sizeof(uint32_t), vIndices.data(), eUsage);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
-
-    ~GlElementBuffer()
-    {
-        if (m_nEBO)
-            glDeleteBuffers(1, &m_nEBO);
-    }
-
-    void Bind() const
-    {
-        m_oVertexBuffer.Bind();
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_nEBO);
-    }
-
-    void UnBind() const
-    {
-        glBindVertexArray(0); // consistent with rest of framework
-        m_oVertexBuffer.UnBind();
-    }
-
-    GLsizei nVertexCount() const { return m_oVertexBuffer.nVertexCount(); }
-    GLsizei nIndexCount()  const { return m_nIndexCount; }
-
-private:
-    GlVertexBuffer<VertexUv> m_oVertexBuffer;
-    GLuint m_nEBO = 0;
-    GLint  m_nIndexCount = 0;
-
-    template<typename> friend class GlBind;
-};
-
-
-class GlQuadBuffer
-{
-public:
-    GlQuadBuffer(   GLuint nAttribPos,
-                    GLuint nAttribUV,
-                    Vector3 vec0,
-                    Vector3 vec1,
-                    Vector3 vec2,
-                    Vector3 vec3)
-    {
-        std::vector<VertexUv> vVertices =
-        {
-            { vec0, {0, 0} },
-            { vec1, {1, 0} },
-            { vec2, {1, 1} },
-            { vec3, {0, 1} }
-        };
-
-        std::vector<Triangle> vTriangles =
-        {
-            { 0, 1, 2 },
-            { 2, 3, 0 }
-        };
-        
-        m_pBuffer = std::make_unique<GlElementBuffer<VertexUv>>(nAttribPos, nAttribUV, vVertices, vTriangles);
-    }
-
-    void Draw()
-    {
-        GlBind bind(*m_pBuffer);
-        glDrawElements(GL_TRIANGLES, m_pBuffer->nIndexCount(), GL_UNSIGNED_INT, 0);
-    }
-
-private:
-    std::unique_ptr<GlElementBuffer<VertexUv>> m_pBuffer;
-};
-    
+   
 } // namespace PicoGK
 
 #endif
