@@ -115,7 +115,7 @@ public:
         return nBytes;
     }
 
-private:
+protected:
     std::string                                     m_strName;
     mutable std::shared_mutex                       m_mtx;
     Handle                                          m_hCurrent = 0;
