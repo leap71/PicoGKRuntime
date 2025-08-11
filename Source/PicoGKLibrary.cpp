@@ -1658,8 +1658,7 @@ PICOGK_API void Viewer_Quad_Destroy(    PKVIEWER    hThis,
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    if (!poThis->bRemoveQuad(hQuad))
-        throw new std::invalid_argument("Removing non-existing quad");
+    poThis->RemoveQuad(hQuad);
 }
 
 PICOGK_API void Viewer_Quad_SetMatrix(  PKVIEWER            hThis,

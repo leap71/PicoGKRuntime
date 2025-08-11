@@ -143,9 +143,10 @@ public:
         RequestUpdate();
     }
     
-    bool bRemoveQuad(uint64_t hQuad)
+    void RemoveQuad(uint64_t hQuad)
     {
         bool bResult = m_oQuads.bDestroy(hQuad);
+        assert(bResult == true);
         RequestUpdate();
     }
     
