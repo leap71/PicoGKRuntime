@@ -267,8 +267,7 @@ void Viewer::AddPolyLine(   int32_t nGroupID,
                             int64_t hPoly)
 {
     // Remove PolyLine if already there
-    RemoveMesh(hLib, hPoly);
-    
+    RemovePolyLine(hLib, hPoly);
     RecalcNeeded();
     roGroupAt(nGroupID)->AddPolyLine(hLib, hPoly, *m_roShaderProgMeshPoly);
     RequestUpdate();
