@@ -65,8 +65,7 @@ public:
         m_roGrid->setGridClass(GRID_LEVEL_SET);
     };
     
-    Voxels( FloatGrid::Ptr roGrid,
-            float fBackground = PICOGK_VOXEL_DEFAULTBACKGROUND)
+    Voxels(FloatGrid::Ptr roGrid)
     {
         m_roGrid = roGrid;
         m_roGrid->setGridClass(GRID_LEVEL_SET);
@@ -75,7 +74,6 @@ public:
     Voxels(const Voxels& oSource)
     {
         m_roGrid = deepCopyTypedGrid<FloatGrid>(oSource.m_roGrid);
-        m_roGrid->setGridClass(GRID_LEVEL_SET);
     };
 
     ~Voxels()
@@ -107,7 +105,7 @@ public:
         int32_t iMaxY = std::max(   oBBoxThis.max().y(),
                                     oBBoxComp.max().y());
         
-        int32_t iMaxZ = std::max(   oBBoxThis.min().z(),
+        int32_t iMaxZ = std::max(   oBBoxThis.max().z(),
                                     oBBoxComp.max().z());
         
         auto oThis = m_roGrid->getConstAccessor();
