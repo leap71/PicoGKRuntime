@@ -375,12 +375,12 @@ public:
         m_fVoxelSizeMM = f;
     }
     
-    operator float()
+    operator float() const
     {
         return m_fVoxelSizeMM;
     }
     
-    Coord xyzToVoxels(const Vector3& vecMM)
+    Coord xyzToVoxels(const Vector3& vecMM) const
     {
         Coord xyzVoxels(    iToVoxels(vecMM.X),
                             iToVoxels(vecMM.Y),
@@ -389,17 +389,17 @@ public:
         return xyzVoxels;
     }
 
-    inline int32_t iToVoxels(float fMM)
+    inline int32_t iToVoxels(float fMM) const
     {
-        return (int) (0.5f + fToVoxels(fMM));
+        return (int32_t) std::lround(fToVoxels(fMM));
     }
     
-    inline float fToVoxels(float fMM)
+    inline float fToVoxels(float fMM) const
     {
         return fMM / m_fVoxelSizeMM;
     }
 
-    Vector3 vecToMM(const Coord& xyzVoxels)
+    Vector3 vecToMM(const Coord& xyzVoxels) const
     {
         Vector3 vecMM(  fToMM(xyzVoxels.X),
                         fToMM(xyzVoxels.Y),
@@ -408,7 +408,7 @@ public:
         return vecMM;
     }
     
-    Vector3 vecToVoxels(const Vector3& vecMM)
+    Vector3 vecToVoxels(const Vector3& vecMM) const
     {
         Vector3 vecVox( fToVoxels(vecMM.X),
                         fToVoxels(vecMM.Y),
@@ -417,7 +417,7 @@ public:
         return vecVox;
     }
 
-    float fToMM(int iVoxels)
+    float fToMM(int iVoxels) const
     {
         return iVoxels * m_fVoxelSizeMM;
     }
