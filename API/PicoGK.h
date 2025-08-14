@@ -218,6 +218,9 @@ PICOGK_API void             Voxels_Destroy(                 PKINSTANCE          
 PICOGK_API int64_t          Voxels_nMemUsage(               PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis);
 
+PICOGK_API float            Voxels_fVoxelSize(              PKINSTANCE          hInstance,
+                                                            PKVOXELS            hVoxels);
+
 PICOGK_API void             Voxels_BoolAdd(                 PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis,
                                                             PKVOXELS            hOther);

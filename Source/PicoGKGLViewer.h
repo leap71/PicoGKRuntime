@@ -276,7 +276,7 @@ GLuint              m_nSceneFBO         = 0;
             auto roVoxels   = roLib->m_oVoxels.roGet(hVoxels);
             
             // Transform to Mesh
-            Mesh::Ptr roNew = roVoxels->roAsMesh(roLib->fVoxelSizeMM());
+            Mesh::Ptr roNew = roVoxels->roAsMesh();
             if (roNew->nVertexCount() == 0)
                 return; // Empty Voxel Field cannot be added
 

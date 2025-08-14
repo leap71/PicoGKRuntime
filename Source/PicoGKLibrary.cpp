@@ -227,7 +227,7 @@ PICOGK_API PKMESH Mesh_hCreateFromVoxels(   PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr roVoxels = roLib->m_oVoxels.roGet(hVoxels);
-    return roLib->m_oMeshes.hAdd(roVoxels->roAsMesh(roLib->fVoxelSizeMM()));
+    return roLib->m_oMeshes.hAdd(roVoxels->roAsMesh());
 }
 
 PICOGK_API bool Mesh_bIsValid(  PKINSTANCE hLib,
@@ -397,7 +397,7 @@ PICOGK_API void Lattice_AddBeam(    PKINSTANCE hLib,
 PICOGK_API PKVOXELS Voxels_hCreate(PKINSTANCE hLib)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>());
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(roLib->fVoxelSizeMM()));
 }
 
 PICOGK_API PKVOXELS Voxels_hCreateCopy( PKINSTANCE hLib,
@@ -434,6 +434,13 @@ PICOGK_API int64_t Voxels_nMemUsage(    PKINSTANCE hLib,
     return roLib->m_oVoxels.roGet(hThis)->nMemUsage();
 }
 
+PICOGK_API float Voxels_fVoxelSize( PKINSTANCE  hLib,
+                                    PKVOXELS    hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return (float) roLib->m_oVoxels.roGet(hThis)->oVoxelSize();
+}
+
 PICOGK_API void Voxels_BoolAdd( PKINSTANCE hLib,
                                 PKVOXELS hThis,
                                 PKVOXELS hOther)
@@ -463,7 +470,7 @@ PICOGK_API void Voxels_Offset(  PKINSTANCE hLib,
                                 float fDist)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVoxels.roGet(hThis)->Offset(fDist, roLib->fVoxelSizeMM());
+    roLib->m_oVoxels.roGet(hThis)->Offset(fDist);
 }
 
 PICOGK_API void Voxels_DoubleOffset(    PKINSTANCE hLib,
@@ -472,7 +479,7 @@ PICOGK_API void Voxels_DoubleOffset(    PKINSTANCE hLib,
                                         float fDist2)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVoxels.roGet(hThis)->DoubleOffset(fDist1, fDist2, roLib->fVoxelSizeMM());
+    roLib->m_oVoxels.roGet(hThis)->DoubleOffset(fDist1, fDist2);
 }
 
 PICOGK_API void Voxels_TripleOffset(    PKINSTANCE hLib,
@@ -480,7 +487,7 @@ PICOGK_API void Voxels_TripleOffset(    PKINSTANCE hLib,
                                         float fDist)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVoxels.roGet(hThis)->TripleOffset(fDist, roLib->fVoxelSizeMM());
+    roLib->m_oVoxels.roGet(hThis)->TripleOffset(fDist);
 }
 
 
@@ -490,7 +497,7 @@ PICOGK_API void Voxels_RenderMesh(  PKINSTANCE hLib,
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
-        ->RenderMesh(*roLib->m_oMeshes.roGet(hMesh), roLib->fVoxelSizeMM());
+        ->RenderMesh(*roLib->m_oMeshes.roGet(hMesh));
 }
 
 PICOGK_API void Voxels_RenderImplicit(  PKINSTANCE hLib,
@@ -501,8 +508,7 @@ PICOGK_API void Voxels_RenderImplicit(  PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
         ->RenderImplicit(   *poBBox,
-                            pfnSDF,
-                            roLib->fVoxelSizeMM());
+                            pfnSDF);
 }
 
 PICOGK_API void Voxels_IntersectImplicit(   PKINSTANCE hLib,
@@ -511,8 +517,7 @@ PICOGK_API void Voxels_IntersectImplicit(   PKINSTANCE hLib,
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
-        ->IntersectImplicit(    pfnSDF,
-                                roLib->fVoxelSizeMM());
+        ->IntersectImplicit(    pfnSDF);
 }
 
 PICOGK_API void Voxels_RenderLattice(   PKINSTANCE hLib,
@@ -521,8 +526,7 @@ PICOGK_API void Voxels_RenderLattice(   PKINSTANCE hLib,
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
-        ->RenderLattice(    *roLib->m_oLattices.roGet(hLattice),
-                            roLib->fVoxelSizeMM());
+        ->RenderLattice(    *roLib->m_oLattices.roGet(hLattice));
 }
 
 PICOGK_API void Voxels_ProjectZSlice(   PKINSTANCE hLib,
@@ -533,8 +537,7 @@ PICOGK_API void Voxels_ProjectZSlice(   PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
         ->ProjectZSlice(    fZStart,
-                            fZEnd,
-                            roLib->fVoxelSizeMM());
+                            fZEnd);
 }
 
 PICOGK_API bool Voxels_bIsEqual(    PKINSTANCE hLib,
@@ -554,8 +557,7 @@ PICOGK_API void Voxels_CalculateProperties( PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
         ->CalculateProperties(  pfVolume,
-                                poBBox,
-                                roLib->fVoxelSizeMM());
+                                poBBox);
 }
 
 PICOGK_API bool Voxels_bIsInside(   PKINSTANCE hLib,
@@ -563,7 +565,7 @@ PICOGK_API bool Voxels_bIsInside(   PKINSTANCE hLib,
                                     const PKVector3* pvecTestPoint)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    return roLib->m_oVoxels.roGet(hThis)->bIsInside(*pvecTestPoint, roLib->fVoxelSizeMM());
+    return roLib->m_oVoxels.roGet(hThis)->bIsInside(*pvecTestPoint);
 }
 
 PICOGK_API void Voxels_GetSurfaceNormal(    PKINSTANCE hLib,
@@ -574,7 +576,6 @@ PICOGK_API void Voxels_GetSurfaceNormal(    PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
         ->GetSurfaceNormal( *pvecSurfacePoint,
-                            roLib->fVoxelSizeMM(),
                             pvecNormal);
 }
 
@@ -586,7 +587,6 @@ PICOGK_API bool Voxels_bClosestPointOnSurface(  PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oVoxels.roGet(hThis)
         ->bFindClosestPointOnSurface(  *pvecSearch,
-                                        roLib->fVoxelSizeMM(),
                                         pvecSurfacePoint);
 }
 
@@ -600,8 +600,7 @@ PICOGK_API bool Voxels_bRayCastToSurface(   PKINSTANCE hLib,
     return roLib->m_oVoxels.roGet(hThis)
         ->bRayCastToSurface(    *pvecSearch,
                                 *pvecDirection,
-                                roLib->fVoxelSizeMM(),
-                                            pvecSurfacePoint);
+                                pvecSurfacePoint);
 }
 
 PICOGK_API void Voxels_GetVoxelDimensions(  PKINSTANCE hLib,
@@ -915,7 +914,7 @@ PICOGK_API int VdbFile_nFieldType(  PKINSTANCE hLib,
 PICOGK_API PKSCALARFIELD ScalarField_hCreate(PKINSTANCE hLib)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    return roLib->m_oScalarFields.hAdd(std::make_shared<ScalarField>());
+    return roLib->m_oScalarFields.hAdd(std::make_shared<ScalarField>(roLib->fVoxelSizeMM()));
 }
 
 PICOGK_API PKSCALARFIELD ScalarField_hCreateCopy(   PKINSTANCE hLib,
@@ -987,7 +986,6 @@ PICOGK_API void ScalarField_SetValue(   PKINSTANCE hLib,
     
     roLib->m_oScalarFields.roGet(hThis)
         ->SetValue(     *pvecPosition,
-                        roLib->fVoxelSizeMM(),
                         fValue);
 }
 
@@ -999,7 +997,6 @@ PICOGK_API bool ScalarField_bGetValue(  PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     return roLib->m_oScalarFields.roGet(hThis)
         ->bGetValue(    *pvecPosition,
-                        roLib->fVoxelSizeMM(),
                         pfValue);
 }
 
@@ -1008,8 +1005,7 @@ PICOGK_API void ScalarField_RemoveValue(    PKINSTANCE          hLib,
                                             const PKVector3*    pvecPosition)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oScalarFields.roGet(hThis)->RemoveValue(   *pvecPosition,
-                                                        roLib->fVoxelSizeMM());
+    roLib->m_oScalarFields.roGet(hThis)->RemoveValue(   *pvecPosition);
 }
 
 PICOGK_API void ScalarField_GetVoxelDimensions( PKINSTANCE hLib,
@@ -1046,14 +1042,13 @@ PICOGK_API void ScalarField_TraverseActive( PKINSTANCE hLib,
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oScalarFields.roGet(hThis)
-        ->TraverseActive(   pfnCallback,
-                            roLib->fVoxelSizeMM());
+        ->TraverseActive(pfnCallback);
 }
 
 PICOGK_API PKVECTORFIELD VectorField_hCreate(PKINSTANCE hLib)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    return roLib->m_oVectorFields.hAdd(std::make_shared<VectorField>());
+    return roLib->m_oVectorFields.hAdd(std::make_shared<VectorField>(roLib->fVoxelSizeMM()));
 }
 
 PICOGK_API PKVECTORFIELD VectorField_hCreateCopy(   PKINSTANCE hLib,
@@ -1090,7 +1085,7 @@ PICOGK_API PKVECTORFIELD VectorField_hCreateFromVoxels( PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr         roVoxels    = roLib->m_oVoxels.roGet(hVoxels);
-    VectorField::Ptr    roField     = std::make_shared<VectorField>();
+    VectorField::Ptr    roField     = std::make_shared<VectorField>(roVoxels->oVoxelSize());
     
     roField->AddGradientFieldFrom(roVoxels);
     return roLib->m_oVectorFields.hAdd(roField);
@@ -1104,7 +1099,7 @@ PICOGK_API PKVECTORFIELD VectorField_hBuildFromVoxels(  PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr         roVoxels    = roLib->m_oVoxels.roGet(hVoxels);
-    VectorField::Ptr    roField     = std::make_shared<VectorField>();
+    VectorField::Ptr    roField     = std::make_shared<VectorField>(roVoxels->oVoxelSize());
     
     roField->BuildFieldFrom(roVoxels, *pvecValue, fSdThreshold);
     return roLib->m_oVectorFields.hAdd(roField);
@@ -1126,7 +1121,6 @@ PICOGK_API void VectorField_SetValue(   PKINSTANCE hLib,
     
     roLib->m_oVectorFields.roGet(hThis)
         ->SetValue( *pvecPosition,
-                    roLib->fVoxelSizeMM(),
                     *pvecValue);
 }
 
@@ -1138,9 +1132,8 @@ PICOGK_API bool VectorField_bGetValue(  PKINSTANCE          hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     return roLib->m_oVectorFields.roGet(hThis)
-        ->bGetValue(   *pvecPosition,
-                       roLib->fVoxelSizeMM(),
-                       pvecValue);
+        ->bGetValue(    *pvecPosition,
+                        pvecValue);
 }
 
 PICOGK_API void VectorField_RemoveValue(    PKINSTANCE          hLib,
@@ -1150,8 +1143,7 @@ PICOGK_API void VectorField_RemoveValue(    PKINSTANCE          hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     roLib->m_oVectorFields.roGet(hThis)
-        ->RemoveValue(  *pvecPosition,
-                        roLib->fVoxelSizeMM());
+        ->RemoveValue(*pvecPosition);
 }
 
 PICOGK_API void VectorField_TraverseActive( PKINSTANCE hLib,
@@ -1160,8 +1152,7 @@ PICOGK_API void VectorField_TraverseActive( PKINSTANCE hLib,
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVectorFields.roGet(hThis)
-        ->TraverseActive(   pfnCallback,
-                            roLib->fVoxelSizeMM());
+        ->TraverseActive(pfnCallback);
 }
 
 PICOGK_API PKMETADATA Metadata_hFromVoxels( PKINSTANCE hLib,
