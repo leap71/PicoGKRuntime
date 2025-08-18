@@ -90,6 +90,21 @@ public:
         return sizeof(Voxels) + m_roGrid->memUsage();
     }
     
+    bool bIsEmpty() const
+    {
+        if (m_roGrid->tree().empty())
+            return true;
+
+        // Check if any values are at or below 0 (at or below surface)
+        for (auto iter = m_roGrid->cbeginValueOn(); iter.test(); ++iter)
+        {
+            if (*iter <= 0.0f)
+                return false;
+        }
+
+        return true;
+    }
+    
     bool bIsEqual(const Voxels& oCompare) const
     {
         if (m_roGrid->transform() != oCompare.m_roGrid->transform())

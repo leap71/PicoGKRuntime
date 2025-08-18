@@ -414,6 +414,13 @@ PICOGK_API bool Voxels_bIsValid(    PKINSTANCE hLib,
     return roLib->m_oVoxels.bIsValid(hThis);
 }
 
+PICOGK_API bool Voxels_bIsEmpty(    PKINSTANCE hLib,
+                                    PKVOXELS hThis)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.roGet(hThis)->bIsEmpty();
+}
+
 PICOGK_API void Voxels_Destroy( PKINSTANCE hLib,
                                 PKVOXELS hThis)
 {
