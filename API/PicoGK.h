@@ -355,7 +355,7 @@ PICOGK_API int32_t          PolyLine_nAddVertex(            PKINSTANCE          
 PICOGK_API int32_t          PolyLine_nVertexCount(          PKINSTANCE          hInstance,
                                                             PKPOLYLINE          hThis);
 
-PICOGK_API void             olyLine_GetVertex(              PKINSTANCE          hInstance,
+PICOGK_API void             PolyLine_GetVertex(             PKINSTANCE          hInstance,
                                                             PKPOLYLINE          hThis,
                                                             int32_t             nIndex,
                                                             PKVector3*          pvec);
