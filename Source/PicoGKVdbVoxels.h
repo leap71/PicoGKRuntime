@@ -42,13 +42,16 @@
 #include <openvdb/tools/VolumeToMesh.h>
 #include <openvdb/tools/LevelSetRebuild.h>
 #include <openvdb/tools/LevelSetFilter.h>
+#include <openvdb/tools/Diagnostics.h>
+#include <openvdb/tools/LevelSetMeasure.h>
 #include <openvdb/tools/RayIntersector.h>
 
 #include "PicoGKMesh.h"
+#include "PicoGKTrace.h"
 
 using namespace openvdb;
 
-#define PICOGK_VOXEL_DEFAULTBACKGROUND 3.0f
+#define PICOGK_VOXEL_DEFAULTNARROWBAND 3
 
 namespace PicoGK
 {
@@ -60,29 +63,44 @@ public:
     typedef std::shared_ptr<Voxels> Ptr;
     
     Voxels( VoxelSize oVoxelSize,
-            float fBackground = PICOGK_VOXEL_DEFAULTBACKGROUND)
+            int nNarrowBand)
     {
-        m_roGrid = FloatGrid::create(fBackground);
+        m_nSdfNarrowBand    = nNarrowBand;
+        m_roGrid            = FloatGrid::create(oVoxelSize.fToMM(nNarrowBand));
         m_roGrid->setGridClass(GRID_LEVEL_SET);
         m_roGrid->setTransform(openvdb::math::Transform::createLinearTransform(oVoxelSize));
     };
     
-    Voxels(FloatGrid::Ptr roGrid)
+    Voxels( FloatGrid::Ptr roGrid,
+            int nNarrowBand)
     {
+        PKTRACE(Voxels_FromGridConstructor);
+        
         if (!bHasValidPicoGKTransform(roGrid))
             throw std::invalid_argument("Source grid sent to Voxels constructor has complex transformation");
         
-        m_roGrid = roGrid;
+        m_nSdfNarrowBand    = nNarrowBand;
+        m_roGrid            = roGrid;
         m_roGrid->setGridClass(GRID_LEVEL_SET);
     };
     
     Voxels(const Voxels& oSource)
     {
+        PKTRACE(Voxels_CopyConstructor);
         m_roGrid = deepCopyTypedGrid<FloatGrid>(oSource.m_roGrid);
+        m_nSdfNarrowBand = oSource.m_nSdfNarrowBand;
+        
+        assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
+        assert(bHasValidPicoGKTransform(m_roGrid));
     };
 
     ~Voxels()
     {
+    }
+    
+    std::string strDiagnose() const
+    {
+        return tools::checkLevelSet<FloatGrid>(*m_roGrid);
     }
     
     int64_t nMemUsage() const
@@ -92,21 +110,30 @@ public:
     
     bool bIsEmpty() const
     {
-        if (m_roGrid->tree().empty())
+        PKTRACE(Voxels_bIsEmpty);
+        
+       if (m_roGrid->tree().empty())
             return true;
-
-        // Check if any values are at or below 0 (at or below surface)
+        
+        // We check for values below 0, which are inside the object.
+        // Technically 0 would be at the surface, but 0 values are often
+        // left over after boolean operations, and an object that has
+        // 0 values, but no value below 0 is fundamentally empty
         for (auto iter = m_roGrid->cbeginValueOn(); iter.test(); ++iter)
         {
-            if (*iter <= 0.0f)
+            if (*iter < 0.0f)
+            {
                 return false;
+            }
         }
-
+        
         return true;
     }
     
     bool bIsEqual(const Voxels& oCompare) const
     {
+        PKTRACE(Voxels_bIsEqual);
+        
         if (m_roGrid->transform() != oCompare.m_roGrid->transform())
             return false;
         
@@ -152,36 +179,59 @@ public:
 
     void BoolAdd(const Voxels& oOther)
     {
+        PKTRACE(Voxels_BoolAdd);
+        
         FloatGrid::Ptr roOperand = deepCopyTypedGrid<FloatGrid>(oOther.m_roGrid);
         openvdb::tools::csgUnion(*m_roGrid, *roOperand);
+        
+        RebuildGrid();
     }
 
     void BoolSubtract(const Voxels& oOther)
     {
+        PKTRACE(Voxels_BoolSubtract);
+        
         FloatGrid::Ptr roOperand = deepCopyTypedGrid<FloatGrid>(oOther.m_roGrid);
         openvdb::tools::csgDifference(*m_roGrid, *roOperand);
+        
+        RebuildGrid();
     }
 
     void BoolIntersect(const Voxels& oOther)
     {
+        PKTRACE(Voxels_BoolIntersect);
+        
         FloatGrid::Ptr roOperand = deepCopyTypedGrid<FloatGrid>(oOther.m_roGrid);
         openvdb::tools::csgIntersection(*m_roGrid, *roOperand);
+        
+        RebuildGrid();
     }
     
     void Offset(float fSize)
     {
+        PKTRACE(Voxels_Offset);
+        
+        // Create a clean level set with the extended size narrow band
+        RebuildGrid(std::abs(fSize));
+        
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         
         float fSizeVx = -oVoxelSize().fToVoxels(fSize); // openvdb treats offsets as inwards
         
-        // The following command doesn't seem to be necessary, but verify
-        //oFilter.resize(std::abs(fSizeVx) + fBackground());
         oFilter.offset(fSizeVx);
+        
+        RebuildGrid();
     }
     
     void DoubleOffset(  float fSize1,
                         float fSize2)
     {
+        PKTRACE(Voxels_DoubleOffset);
+        
+        // Create a clean level set with the extended size narrow band
+        float fNarrowBandMM = std::max(std::abs(fSize1), std::abs(fSize2));
+        RebuildGrid(fNarrowBandMM);
+        
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         
         float fSize1Vx = -oVoxelSize().fToVoxels(fSize1); // openvdb treats offsets as inwards
@@ -189,10 +239,17 @@ public:
         
         oFilter.offset(fSize1Vx);
         oFilter.offset(fSize2Vx);
+        
+        RebuildGrid();
     }
     
     void TripleOffset(float fSize)
     {
+        PKTRACE(Voxels_TripleOffset);
+        
+        // Create a clean level set with the extended size narrow band
+        RebuildGrid(std::abs(fSize));
+        
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         
         float fSizeVx = -oVoxelSize().fToVoxels(fSize); // openvdb treats offsets as inwards
@@ -206,47 +263,51 @@ public:
         // offset inwards again. Now we are back where we started
         // but have lost a lot of detail = smooth
         oFilter.offset(-fSizeVx);
+        
+        RebuildGrid();
     }
 
     void RenderMesh(const Mesh& oMesh)
     {
+        PKTRACE(Voxels_RenderMesh);
+        
         FloatGrid::Ptr roVoxelized = roFloatGridFromMesh(   oMesh,
                                                             oVoxelSize(),
-                                                            fBackground());
+                                                            fBackgroundMM());
         
         openvdb::tools::csgUnion(*m_roGrid, *roVoxelized);
     }
     
     void RenderLattice(const Lattice& oLattice)
     {
+        PKTRACE(Voxels_RenderLattice);
+        
         auto oAccess = m_roGrid->getAccessor();
         
         for (auto roSphere : oLattice.oSpheres())
         {
-            DoRenderLattice(&oAccess, oVoxelSize(), fBackground(), *roSphere);
+            DoRenderLattice(&oAccess, *roSphere, oVoxelSize(), m_nSdfNarrowBand);
         }
         
         for (auto roBeam : oLattice.oBeams())
         {
-            DoRenderLattice(&oAccess, oVoxelSize(), fBackground(), *roBeam);
+            DoRenderLattice(&oAccess, *roBeam, oVoxelSize(), m_nSdfNarrowBand);
         }
     }
     
     void RenderImplicit(    const BBox3& oBBox,
                             PKPFnfSdf pfn)
     {
+        PKTRACE(Voxels_RenderImplicit);
+        
         auto oAccess = m_roGrid->getAccessor();
         
         Coord xyzMin = oVoxelSize().xyzToVoxels(oBBox.vecMin);
         Coord xyzMax = oVoxelSize().xyzToVoxels(oBBox.vecMax);
         
-        // Increase the bounding box by the voxel distance of the background value
-        // so we don't cut off the narrow band
-        int32_t iAdd = (int32_t) (m_roGrid->background() + 0.5f);
-        
-        for(int32_t x = xyzMin.X - iAdd; x <= xyzMax.X + iAdd; x++)
-        for(int32_t y = xyzMin.Y - iAdd; y <= xyzMax.Y + iAdd; y++)
-        for(int32_t z = xyzMin.Z - iAdd; z <= xyzMax.Z + iAdd; z++)
+        for(int32_t x = xyzMin.X - m_nSdfNarrowBand; x <= xyzMax.X + m_nSdfNarrowBand; x++)
+        for(int32_t y = xyzMin.Y - m_nSdfNarrowBand; y <= xyzMax.Y + m_nSdfNarrowBand; y++)
+        for(int32_t z = xyzMin.Z - m_nSdfNarrowBand; z <= xyzMax.Z + m_nSdfNarrowBand; z++)
         {
             Vector3 vecSample = oVoxelSize().vecToMM(Coord(x,y,z));
             openvdb::Coord xyz(x,y,z);
@@ -254,13 +315,17 @@ public:
             float fValue = std::min(    oVoxelSize().fToVoxels((*pfn)(&vecSample)),
                                         oAccess.getValue(xyz));
             
-            SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+            SetSdValue(&oAccess, xyz, fBackgroundMM(), fValue);
         }
+        
+        RebuildGrid();
     }
     
     void IntersectImplicit(PKPFnfSdf pfn)
     {
-        Voxels oVox(oVoxelSize(), fBackground());
+        PKTRACE(Voxels_IntersectImplicit);
+        
+        Voxels oVox(oVoxelSize(), fBackgroundMM());
         
         CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
         
@@ -286,6 +351,8 @@ public:
 
     Mesh::Ptr roAsMesh() const
     {
+        PKTRACE(Voxels_roAsMesh);
+        
         Mesh::Ptr roMesh = std::make_shared<Mesh>();
         
     	std::vector< openvdb::Vec3s > oPoints;
@@ -346,7 +413,7 @@ public:
             float fValue = std::min(    oAccess.getValue(xyzUnder),
                                         oAccess.getValue(xyz));
             
-            SetSdValue(&oAccess, xyzUnder, m_roGrid->background(), fValue);
+            SetSdValue(&oAccess, xyzUnder, fBackgroundMM(), fValue);
         }
         
         // Close the last slice, and update the background
@@ -359,9 +426,11 @@ public:
                 openvdb::Coord xyzUnder(x,y,z-1);
                 
                 float fValue = (oAccess.getValue(xyz) + oAccess.getValue(xyzUnder)) / 2.0f;
-                SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+                SetSdValue(&oAccess, xyz, fBackgroundMM(), fValue);
             }
         }
+        
+        RebuildGrid();
     }
     
     void ProjectZSliceUp(   float fZStart,
@@ -385,7 +454,7 @@ public:
             float fValue = std::min(    oAccess.getValue(xyzOver),
                                         oAccess.getValue(xyz));
             
-            SetSdValue(&oAccess, xyzOver, m_roGrid->background(), fValue);
+            SetSdValue(&oAccess, xyzOver, fBackgroundMM(), fValue);
         }
         
         // Close the last slice, and update the background
@@ -398,9 +467,11 @@ public:
                 openvdb::Coord xyzOver(x,y,z+1);
                 
                 float fValue = (oAccess.getValue(xyz) + oAccess.getValue(xyzOver)) / 2.0f;
-                SetSdValue(&oAccess, xyz, m_roGrid->background(), fValue);
+                SetSdValue(&oAccess, xyz, fBackgroundMM(), fValue);
             }
         }
+        
+        RebuildGrid();
     }
 
     void ProjectZSlice( float fZStart,
@@ -415,32 +486,37 @@ public:
     void CalculateProperties(   float* pfVolume,
                                 BBox3* poBBox)
     {
-        CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
-        
-        auto oAccess = m_roGrid->getConstAccessor();
-        
-        int nCount = 0;
-        
-        BBox3 oResult;
-        
-        for (int32_t x=oBBox.min().x(); x<=oBBox.max().x(); x++)
-        for (int32_t y=oBBox.min().y(); y<=oBBox.max().y(); y++)
-        for (int32_t z=oBBox.min().z(); z<=oBBox.max().z(); z++)
+        if (m_roGrid->tree().empty())
         {
-            if (oAccess.getValue(openvdb::Coord(x,y,z)) <= 0.0f)
-            {
-                // Voxel is set
-                nCount++;
-                oResult.Include(oVoxelSize().vecToMM(Coord(x,y,z)));
-            }
+            *pfVolume = 0.0f;
+            // Don't set bounding box (defaults to empty on C# side)
+            return;
         }
         
-        float fVolume = nCount;
-        fVolume *= oVoxelSize();
-        fVolume *= oVoxelSize();
-        fVolume *= oVoxelSize(); // cubic!
+        RebuildGrid();
         
-        *pfVolume   = fVolume;
+        /// TODO Revisit this function, it returns a bounding box extended by the narrow band
+        /// and the levelSetVolume seems to be way too low.
+        ///
+        
+        *pfVolume = openvdb::tools::levelSetVolume(*m_roGrid, true);
+       
+        openvdb::CoordBBox oBox = m_roGrid->evalActiveVoxelBoundingBox();
+        if (oBox.empty())
+        {
+            // Don't set box (defaults to empty on C# side)
+            return;
+        }
+        
+        BBox3 oResult;
+        oResult.vecMin = oVoxelSize().vecToMM(  Coord(  oBox.min().x(),
+                                                        oBox.min().y(),
+                                                        oBox.min().z()));
+        
+        oResult.vecMax = oVoxelSize().vecToMM(  Coord(  oBox.max().x(),
+                                                        oBox.max().y(),
+                                                        oBox.max().z()));
+        
         *poBBox     = oResult;
     }
     
@@ -616,8 +692,6 @@ public:
         }
     }
     
-    
-    
     void GetInterpolatedZSlice( float fZSlice,
                                 float* pfBuffer)
     {
@@ -639,7 +713,7 @@ public:
     
     FloatGrid::Ptr roVdbGrid() const 	{return m_roGrid;}
     
-    inline float fBackground() const    {return m_roGrid->background();}
+    inline float fBackgroundMM() const  {return m_roGrid->background();}
     
     inline VoxelSize oVoxelSize() const
     {
@@ -648,13 +722,45 @@ public:
     }
     
 protected:
-    FloatGrid::Ptr    m_roGrid;
+    FloatGrid::Ptr      m_roGrid;
+    int32_t             m_nSdfNarrowBand;
+    
+    bool bLevelSetNeedsRebuild() const
+    {
+        return strDiagnose().length() > 0;
+    }
+    
+    /// Rebuilds the grid after possibly destructive changes to the signed distances
+    void RebuildGrid(float fDistanceMM = 0.0f)
+    {
+        PKTRACE(Voxels_RebuildGrid);
+        
+        /// TODO — this is probably triggering way too often.
+        /// We will need a careful analysis of when this is necessary
+        /// Also, we need to carefully evaluate what it does to internal cavities
+        
+        if ((fDistanceMM > 0.0f) || (bLevelSetNeedsRebuild()))
+        {
+            std::cerr << "--- Rebuilding Level Set '" << strDiagnose() << "'\n";
+            
+            float fHalfVal = oVoxelSize().fToVoxels(fDistanceMM);
+            
+            if (fHalfVal == 0.0f)
+                fHalfVal = m_nSdfNarrowBand;
+            
+            std::cerr << "Halfval = " << fHalfVal << "\n";
+            
+            m_roGrid = openvdb::tools::levelSetRebuild(*m_roGrid, 0.0f, fHalfVal, fHalfVal);
+            
+            std::cerr << "--- Done - Result: '" << strDiagnose() << "'\n";
+        }
+    }
     
     template<class TAccessor, class TLatticeBeam>
     static void DoRenderLattice(    TAccessor* poAccess,
+                                    const TLatticeBeam& oLattice,
                                     VoxelSize oVoxelSize,
-                                    float fBackground,
-                                    const TLatticeBeam& oLattice)
+                                    int32_t nNarrowBand)
     {
         Vector3 vecMin(oLattice.vecMin());
         Vector3 vecMax(oLattice.vecMax());
@@ -662,13 +768,11 @@ protected:
         Coord xyzMin = oVoxelSize.xyzToVoxels(vecMin);
         Coord xyzMax = oVoxelSize.xyzToVoxels(vecMax);
         
-        // Increase the bounding box by the voxel distance of the background value
-        // so we don't cut off the narrow band
-        int32_t iAdd = (int32_t) (fBackground + 0.5f);
+        float fBackground = oVoxelSize.fToMM(nNarrowBand);
         
-        for(int32_t x = xyzMin.X - iAdd; x <= xyzMax.X + iAdd; x++)
-        for(int32_t y = xyzMin.Y - iAdd; y <= xyzMax.Y + iAdd; y++)
-        for(int32_t z = xyzMin.Z - iAdd; z <= xyzMax.Z + iAdd; z++)
+        for(int32_t x = xyzMin.X - nNarrowBand; x <= xyzMax.X + nNarrowBand; x++)
+        for(int32_t y = xyzMin.Y - nNarrowBand; y <= xyzMax.Y + nNarrowBand; y++)
+        for(int32_t z = xyzMin.Z - nNarrowBand; z <= xyzMax.Z + nNarrowBand; z++)
         {
             openvdb::Coord xyz(x,y,z);
             

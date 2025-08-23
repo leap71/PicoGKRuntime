@@ -215,6 +215,10 @@ PICOGK_API bool             Voxels_bIsValid(                PKINSTANCE          
 PICOGK_API void             Voxels_Destroy(                 PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis);
 
+PICOGK_API bool             Voxels_bDiagnose(               PKINSTANCE          hInstance,
+                                                            PKVOXELS            hThis,
+                                                            char psz[PKINFOSTRINGLEN]);
+
 PICOGK_API bool             Voxels_bIsEmpty(                PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis);
 

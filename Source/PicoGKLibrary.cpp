@@ -397,7 +397,8 @@ PICOGK_API void Lattice_AddBeam(    PKINSTANCE hLib,
 PICOGK_API PKVOXELS Voxels_hCreate(PKINSTANCE hLib)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(roLib->fVoxelSizeMM()));
+    return roLib->m_oVoxels.hAdd(   std::make_shared<Voxels>(   roLib->fVoxelSizeMM(),
+                                                                PICOGK_VOXEL_DEFAULTNARROWBAND));
 }
 
 PICOGK_API PKVOXELS Voxels_hCreateCopy( PKINSTANCE hLib,
@@ -432,6 +433,16 @@ PICOGK_API void Voxels_Destroy( PKINSTANCE hLib,
         Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
         roLib->m_oVoxels.bDestroy(hThis);
     }
+}
+
+PICOGK_API bool Voxels_bDiagnose(   PKINSTANCE  hLib,
+                                    PKVOXELS    hThis,
+                                    char    psz[PKINFOSTRINGLEN])
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    std::string strDiagnostic = roLib->m_oVoxels.roGet(hThis)->strDiagnose();
+    SafeCopyInfoString(strDiagnostic, psz);
+    return strDiagnostic.length() == 0;
 }
 
 PICOGK_API int64_t Voxels_nMemUsage(    PKINSTANCE hLib,
@@ -538,8 +549,8 @@ PICOGK_API void Voxels_RenderLattice(   PKINSTANCE hLib,
 
 PICOGK_API void Voxels_ProjectZSlice(   PKINSTANCE hLib,
                                         PKVOXELS hThis,
-                                      float fZStart,
-                                      float fZEnd)
+                                        float fZStart,
+                                        float fZEnd)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     roLib->m_oVoxels.roGet(hThis)
@@ -638,7 +649,7 @@ PICOGK_API void Voxels_GetXSlice(   PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
-    *pfBackgroundValue = roThis->fBackground();
+    *pfBackgroundValue = roThis->fBackgroundMM();
     return roThis->GetXSlice(nXSlice, pfBuffer);
 }
 
@@ -651,7 +662,7 @@ PICOGK_API void Voxels_GetYSlice(   PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
-    *pfBackgroundValue = roThis->fBackground();
+    *pfBackgroundValue = roThis->fBackgroundMM();
     return roThis->GetYSlice(nYSlice, pfBuffer);
 }
 
@@ -664,7 +675,7 @@ PICOGK_API void Voxels_GetZSlice(   PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
-    *pfBackgroundValue = roThis->fBackground();
+    *pfBackgroundValue = roThis->fBackgroundMM();
     return roThis->GetZSlice(nZSlice, pfBuffer);
 }
 
@@ -677,7 +688,7 @@ PICOGK_API void Voxels_GetInterpolatedSlice(    PKINSTANCE hLib,
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
     
     Voxels::Ptr roThis = roLib->m_oVoxels.roGet(hThis);
-    *pfBackgroundValue = roThis->fBackground();
+    *pfBackgroundValue = roThis->fBackgroundMM();
     return roThis->GetInterpolatedZSlice(fZSlice, pfBuffer);
 }
 
@@ -825,7 +836,8 @@ PICOGK_API PKVOXELS VdbFile_hGetVoxels( PKINSTANCE hLib,
     if (roGrid->getGridClass() != GRID_LEVEL_SET)
         return 0; // not a voxel field
             
-    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(gridPtrCast<FloatGrid>(roGrid)));
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(  gridPtrCast<FloatGrid>(roGrid),
+                                                            PICOGK_VOXEL_DEFAULTNARROWBAND));
 }
 
 PICOGK_API int32_t VdbFile_nAddVoxels(  PKINSTANCE hLib,
