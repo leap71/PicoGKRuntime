@@ -408,6 +408,32 @@ PICOGK_API PKVOXELS Voxels_hCreateCopy( PKINSTANCE hLib,
     return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(*roLib->m_oVoxels.roGet(hSource)));
 }
 
+PICOGK_API PKVOXELS Voxels_hCreateSphere(   PKINSTANCE          hLib,
+                                            const PKVector3*    pvecCenter,
+                                            float               fRadius)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(  roLib->fVoxelSizeMM(),
+                                                            PICOGK_VOXEL_DEFAULTNARROWBAND,
+                                                            *pvecCenter,
+                                                            fRadius));
+}
+
+PICOGK_API PKVOXELS Voxels_hCreateCapsule(  PKINSTANCE          hLib,
+                                            const PKVector3*    pvecStart,
+                                            const PKVector3*    pvecStop,
+                                            float               fRadius1,
+                                            float               fRadius2)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(  roLib->fVoxelSizeMM(),
+                                                            PICOGK_VOXEL_DEFAULTNARROWBAND,
+                                                            *pvecStart,
+                                                            *pvecStop,
+                                                            fRadius1,
+                                                            fRadius2));
+}
+
 PICOGK_API bool Voxels_bIsValid(    PKINSTANCE hLib,
                                     PKVOXELS hThis)
 {

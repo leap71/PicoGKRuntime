@@ -45,6 +45,8 @@
 #include <openvdb/tools/Diagnostics.h>
 #include <openvdb/tools/LevelSetMeasure.h>
 #include <openvdb/tools/RayIntersector.h>
+#include <openvdb/tools/LevelSetSphere.h>
+#include <openvdb/tools/LevelSetTubes.h>
 
 #include "PicoGKMesh.h"
 #include "PicoGKTrace.h"
@@ -93,6 +95,44 @@ public:
         assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
         assert(bHasValidPicoGKTransform(m_roGrid));
     };
+    
+    Voxels( VoxelSize oVoxSize,
+            int32_t nNarrowBand,
+            const Vector3& vecCenter,
+            float fRadius)
+    {
+        m_roGrid = openvdb::tools::createLevelSetSphere<FloatGrid>( fRadius,
+                                                                    openvdb::Vec3f( vecCenter.X,
+                                                                                    vecCenter.Y,
+                                                                                    vecCenter.Z),
+                                                                    oVoxSize,
+                                                                    oVoxSize.fToMM(nNarrowBand));
+        
+        assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
+        assert(bHasValidPicoGKTransform(m_roGrid));
+    }
+    
+    Voxels( VoxelSize oVoxSize,
+            int32_t nNarrowBand,
+            const Vector3& vecStart,
+            const Vector3& vecEnd,
+            float fRadiusStart,
+            float fRadiusEnd)
+    {
+        m_roGrid = openvdb::tools::createLevelSetTaperedCapsule<FloatGrid>( openvdb::Vec3f( vecStart.X,
+                                                                                            vecStart.Y,
+                                                                                            vecStart.Z),
+                                                                            openvdb::Vec3f( vecEnd.X,
+                                                                                            vecEnd.Y,
+                                                                                            vecEnd.Z),
+                                                                            fRadiusStart,
+                                                                            fRadiusEnd,
+                                                                            oVoxSize,
+                                                                            oVoxSize.fToMM(nNarrowBand));
+        
+        assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
+        assert(bHasValidPicoGKTransform(m_roGrid));
+    }
 
     ~Voxels()
     {
@@ -495,29 +535,23 @@ public:
         
         RebuildGrid();
         
-        /// TODO Revisit this function, it returns a bounding box extended by the narrow band
-        /// and the levelSetVolume seems to be way too low.
-        ///
-        
-        *pfVolume = openvdb::tools::levelSetVolume(*m_roGrid, true);
-       
         openvdb::CoordBBox oBox = m_roGrid->evalActiveVoxelBoundingBox();
         if (oBox.empty())
         {
             // Don't set box (defaults to empty on C# side)
+            *pfVolume = 0.0f;
             return;
         }
         
-        BBox3 oResult;
-        oResult.vecMin = oVoxelSize().vecToMM(  Coord(  oBox.min().x(),
+        poBBox->vecMin = oVoxelSize().vecToMM(Coord(    oBox.min().x(),
                                                         oBox.min().y(),
                                                         oBox.min().z()));
         
-        oResult.vecMax = oVoxelSize().vecToMM(  Coord(  oBox.max().x(),
+        poBBox->vecMax = oVoxelSize().vecToMM(Coord(    oBox.max().x(),
                                                         oBox.max().y(),
                                                         oBox.max().z()));
         
-        *poBBox     = oResult;
+        *pfVolume = openvdb::tools::levelSetVolume(*m_roGrid, true);
     }
     
     inline bool bIsInside(Vector3 vecTest)
@@ -779,7 +813,7 @@ protected:
             Vector3 vecSample = oVoxelSize.vecToMM(Coord(x,y,z));
             
             // Boolean add to existing value, if one exists
-            float fValue = std::min(    oVoxelSize.fToVoxels(oLattice.fSdValue(vecSample)),
+            float fValue = std::min(    oLattice.fSdValue(vecSample),
                                         poAccess->getValue(xyz));
             
             SetSdValue(poAccess, xyz, fBackground, fValue);

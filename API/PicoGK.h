@@ -209,6 +209,16 @@ PICOGK_API PKVOXELS         Voxels_hCreate(                 PKINSTANCE          
 PICOGK_API PKVOXELS         Voxels_hCreateCopy(             PKINSTANCE          hInstance,
                                                             PKVOXELS            hSource);
 
+PICOGK_API PKVOXELS         Voxels_hCreateSphere(           PKINSTANCE          hInstance,
+                                                            const PKVector3*    pvecCenter,
+                                                            float               fRadius);
+
+PICOGK_API PKVOXELS         Voxels_hCreateCapsule(          PKINSTANCE          hInstance,
+                                                            const PKVector3*    pvecStart,
+                                                            const PKVector3*    pvecStop,
+                                                            float               fRadius1,
+                                                            float               fRadius2);
+
 PICOGK_API bool             Voxels_bIsValid(                PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis);
 
