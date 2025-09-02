@@ -47,6 +47,7 @@
 #include <openvdb/tools/RayIntersector.h>
 #include <openvdb/tools/LevelSetSphere.h>
 #include <openvdb/tools/LevelSetTubes.h>
+#include <openvdb/tools/LevelSetDilatedMesh.h>
 
 #include "PicoGKMesh.h"
 #include "PicoGKTrace.h"
@@ -127,6 +128,21 @@ public:
                                                                                             vecEnd.Z),
                                                                             fRadiusStart,
                                                                             fRadiusEnd,
+                                                                            oVoxSize,
+                                                                            oVoxSize.fToMM(nNarrowBand));
+        
+        assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
+        assert(bHasValidPicoGKTransform(m_roGrid));
+    }
+    
+    Voxels( VoxelSize oVoxSize,
+            int32_t nNarrowBand,
+            const Mesh& oMesh,
+            float fRadius)
+    {
+        m_roGrid = openvdb::tools::createLevelSetDilatedMesh<FloatGrid>(    (const std::vector<math::Vec3<float>>&) oMesh.vVertices(),
+                                                                            (const std::vector<Vec3I>&)             oMesh.vTriangles(),
+                                                                            fRadius,
                                                                             oVoxSize,
                                                                             oVoxSize.fToMM(nNarrowBand));
         

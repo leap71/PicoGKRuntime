@@ -219,6 +219,10 @@ PICOGK_API PKVOXELS         Voxels_hCreateCapsule(          PKINSTANCE          
                                                             float               fRadius1,
                                                             float               fRadius2);
 
+PICOGK_API PKVOXELS         Voxels_hCreateMeshShell(        PKINSTANCE          hLib,
+                                                            PKMESH              hMesh,
+                                                            float               fRadius);
+
 PICOGK_API bool             Voxels_bIsValid(                PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis);
 

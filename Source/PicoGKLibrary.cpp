@@ -434,6 +434,17 @@ PICOGK_API PKVOXELS Voxels_hCreateCapsule(  PKINSTANCE          hLib,
                                                             fRadius2));
 }
 
+PICOGK_API PKVOXELS Voxels_hCreateMeshShell(    PKINSTANCE          hLib,
+                                                PKMESH              hMesh,
+                                                float               fRadius)
+{
+    Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
+    return roLib->m_oVoxels.hAdd(std::make_shared<Voxels>(  roLib->fVoxelSizeMM(),
+                                                            PICOGK_VOXEL_DEFAULTNARROWBAND,
+                                                            *roLib->m_oMeshes.roGet(hMesh),
+                                                            fRadius));
+}
+
 PICOGK_API bool Voxels_bIsValid(    PKINSTANCE hLib,
                                     PKVOXELS hThis)
 {
