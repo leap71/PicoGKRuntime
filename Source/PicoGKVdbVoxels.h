@@ -90,6 +90,7 @@ public:
     Voxels(const Voxels& oSource)
     {
         PKTRACE(Voxels_CopyConstructor);
+        
         m_roGrid = deepCopyTypedGrid<FloatGrid>(oSource.m_roGrid);
         m_nSdfNarrowBand = oSource.m_nSdfNarrowBand;
         
@@ -102,12 +103,16 @@ public:
             const Vector3& vecCenter,
             float fRadius)
     {
+        PKTRACE(Voxels_SphereConstructor);
+        
         m_roGrid = openvdb::tools::createLevelSetSphere<FloatGrid>( fRadius,
                                                                     openvdb::Vec3f( vecCenter.X,
                                                                                     vecCenter.Y,
                                                                                     vecCenter.Z),
                                                                     oVoxSize,
-                                                                    oVoxSize.fToMM(nNarrowBand));
+                                                                    nNarrowBand);
+        
+        m_nSdfNarrowBand = nNarrowBand;
         
         assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
         assert(bHasValidPicoGKTransform(m_roGrid));
@@ -120,6 +125,8 @@ public:
             float fRadiusStart,
             float fRadiusEnd)
     {
+        PKTRACE(Voxels_CapsuleConstructor);
+        
         m_roGrid = openvdb::tools::createLevelSetTaperedCapsule<FloatGrid>( openvdb::Vec3f( vecStart.X,
                                                                                             vecStart.Y,
                                                                                             vecStart.Z),
@@ -130,6 +137,8 @@ public:
                                                                             fRadiusEnd,
                                                                             oVoxSize,
                                                                             oVoxSize.fToMM(nNarrowBand));
+        
+        m_nSdfNarrowBand = nNarrowBand;
         
         assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
         assert(bHasValidPicoGKTransform(m_roGrid));
@@ -145,6 +154,8 @@ public:
                                                                             fRadius,
                                                                             oVoxSize,
                                                                             oVoxSize.fToMM(nNarrowBand));
+        
+        m_nSdfNarrowBand = nNarrowBand;
         
         assert(m_roGrid->getGridClass() == GRID_LEVEL_SET);
         assert(bHasValidPicoGKTransform(m_roGrid));
@@ -168,7 +179,7 @@ public:
     {
         PKTRACE(Voxels_bIsEmpty);
         
-       if (m_roGrid->tree().empty())
+        if (m_roGrid->tree().empty())
             return true;
         
         // We check for values below 0, which are inside the object.
@@ -329,7 +340,7 @@ public:
         
         FloatGrid::Ptr roVoxelized = roFloatGridFromMesh(   oMesh,
                                                             oVoxelSize(),
-                                                            fBackgroundMM());
+                                                            m_nSdfNarrowBand);
         
         openvdb::tools::csgUnion(*m_roGrid, *roVoxelized);
     }
@@ -539,35 +550,18 @@ public:
             ProjectZSliceUp(fZStart, fZEnd);
     }
     
-    void CalculateProperties(   float* pfVolume,
-                                BBox3* poBBox)
+    float fCalculateVolume()
     {
+        PKTRACE(Voxels_fCalculateVolume);
+        
         if (m_roGrid->tree().empty())
         {
-            *pfVolume = 0.0f;
-            // Don't set bounding box (defaults to empty on C# side)
-            return;
+            return 0.0f;
         }
         
         RebuildGrid();
         
-        openvdb::CoordBBox oBox = m_roGrid->evalActiveVoxelBoundingBox();
-        if (oBox.empty())
-        {
-            // Don't set box (defaults to empty on C# side)
-            *pfVolume = 0.0f;
-            return;
-        }
-        
-        poBBox->vecMin = oVoxelSize().vecToMM(Coord(    oBox.min().x(),
-                                                        oBox.min().y(),
-                                                        oBox.min().z()));
-        
-        poBBox->vecMax = oVoxelSize().vecToMM(Coord(    oBox.max().x(),
-                                                        oBox.max().y(),
-                                                        oBox.max().z()));
-        
-        *pfVolume = openvdb::tools::levelSetVolume(*m_roGrid, true);
+        return openvdb::tools::levelSetVolume(*m_roGrid, true);
     }
     
     inline bool bIsInside(Vector3 vecTest)
@@ -795,7 +789,7 @@ protected:
             
             float fHalfVal = oVoxelSize().fToVoxels(fDistanceMM);
             
-            if (fHalfVal == 0.0f)
+            if (fHalfVal < m_nSdfNarrowBand)
                 fHalfVal = m_nSdfNarrowBand;
             
             std::cerr << "Halfval = " << fHalfVal << "\n";
@@ -838,7 +832,7 @@ protected:
     
     static FloatGrid::Ptr roFloatGridFromMesh(  const Mesh& oMesh,
                                                 VoxelSize oVoxelSize,
-                                                float fBackground)
+                                                int32_t nHalfWidth)
     {
         std::vector< openvdb::Vec3s >   oVertices;
         std::vector< openvdb::Vec3I >   oTriangles;
@@ -867,7 +861,7 @@ protected:
         return openvdb::tools::meshToLevelSet<openvdb::FloatGrid>(  *roTransform,
                                                                     oVertices,
                                                                     oTriangles,
-                                                                    fBackground);
+                                                                    nHalfWidth);
     }
     
     template <class TAccessor>

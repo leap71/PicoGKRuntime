@@ -604,15 +604,11 @@ PICOGK_API bool Voxels_bIsEqual(    PKINSTANCE hLib,
         ->bIsEqual(*roLib->m_oVoxels.roGet(hOther));
 }
 
-PICOGK_API void Voxels_CalculateProperties( PKINSTANCE hLib,
-                                            PKVOXELS hThis,
-                                            float* pfVolume,
-                                            PKBBox3* poBBox)
+PICOGK_API float Voxels_fCalculateVolume(   PKINSTANCE hLib,
+                                            PKVOXELS hThis)
 {
     Library::Instance::Ptr roLib = Library::oLib().roGetInstance(hLib);
-    roLib->m_oVoxels.roGet(hThis)
-        ->CalculateProperties(  pfVolume,
-                                poBBox);
+    return roLib->m_oVoxels.roGet(hThis)->fCalculateVolume();
 }
 
 PICOGK_API bool Voxels_bIsInside(   PKINSTANCE hLib,
@@ -716,7 +712,7 @@ PICOGK_API void Voxels_GetZSlice(   PKINSTANCE hLib,
     return roThis->GetZSlice(nZSlice, pfBuffer);
 }
 
-PICOGK_API void Voxels_GetInterpolatedSlice(    PKINSTANCE hLib,
+PICOGK_API void Voxels_GetInterpolatedZSlice(   PKINSTANCE hLib,
                                                 PKVOXELS    hThis,
                                                 float       fZSlice,
                                                 float*      pfBuffer,

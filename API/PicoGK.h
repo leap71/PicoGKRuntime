@@ -298,10 +298,8 @@ PICOGK_API bool             Voxels_bIsEqual(                PKINSTANCE          
                                                             PKVOXELS            hThis,
                                                             PKVOXELS            hOther);
 
-PICOGK_API void             Voxels_CalculateProperties(     PKINSTANCE          hInstance,
-                                                            PKVOXELS            hThis,
-                                                            float*              pfVolume,
-                                                            PKBBox3*            poBBox);
+PICOGK_API float            Voxels_fCalculateVolume(        PKINSTANCE          hInstance,
+                                                            PKVOXELS            hThis);
 
 PICOGK_API void             Voxels_GetSurfaceNormal(        PKINSTANCE          hInstance,
                                                             PKVOXELS            hThis,
