@@ -164,25 +164,18 @@ void Viewer::ViewQuad::Draw(    const Matrix4x4& matVP,
     Matrix4x4 matMVP = matVP;
     matMVP *= m_mat;
     
-    GLuint nGlTex = 0;
-    int nWidth;
-    int nHeight;
+    std::unique_ptr<GpuTextureList::UseTexture> roUseTex = oViewer.roGetTexture(m_hTexture);
     
-    bool bTexAvailable = oViewer.m_oTextures.bGetGlHandle(  m_hTexture,
-                                                            &nGlTex,
-                                                            &nWidth,
-                                                            &nHeight);
-    
-    if (nGlTex != 0)
+    if (roUseTex->bFound())
     {
         PKTRACE(Viewer_ViewQuad_Draw_GlTexAvailable);
     }
-    
+        
     oShader.DrawQuad(   matMVP,
-                        !bTexAvailable,
+                        !roUseTex->bFound(),
                         m_clr,
                         m_fAlpha,
-                        nGlTex,
+                        roUseTex->nGlTexHandle(),
                         m_bFlipX,
                         m_bFlipY,
                         m_bDoubleSided);

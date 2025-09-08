@@ -42,7 +42,6 @@
 #include <mutex>
 #include <unordered_map>
 #include <memory>
-
 #include "PicoGKTrace.h"
 
 namespace PicoGK
@@ -189,24 +188,6 @@ public:
         return m_hCurrent;
     }
     
-    bool bGetGlHandle(  uint64_t hObject,
-                        GLuint* pnGlTextureHandle,
-                        int* pnWidth,
-                        int* pnHeight ) const
-    {
-        PKTRACE(GpuTextureList_bGetGlHandle);
-        std::lock_guard lk(m_mtx);
-        
-        auto it = m_oActive.find(hObject);
-        if (it == m_oActive.end())
-            return false;
-        
-        *pnGlTextureHandle  = it->second.get()->nGlHandle();
-        *pnWidth            = it->second.get()->nWidth();
-        *pnHeight           = it->second.get()->nHeight();
-        return true;
-    }
-    
     void MarkForDestruction(uint64_t hObject)
     {
         PKTRACE(GpuTextureList_MarkForDestruction);
@@ -271,7 +252,6 @@ public:
         
         while (!m_oNew.empty())
         {
-            PKTRACE(GpuTextureList_ManageTextureState_New_Loop);
             auto node = m_oNew.extract(m_oNew.begin());
             node.mapped()->TransferToGpu();
             m_oActive.insert(std::move(node));
@@ -279,7 +259,6 @@ public:
         
         while (!m_oRefresh.empty())
         {
-            PKTRACE(GpuTextureList_ManageTextureState_Refresh_Loop);
             auto node = m_oRefresh.extract(m_oRefresh.begin());
             node.mapped()->TransferToGpu();
             m_oActive.insert(std::move(node));
@@ -305,8 +284,6 @@ public:
         
         for (const auto& node : m_oActive)
         {
-            PKTRACE(GpuTextureList_ShowAllTextures_Loop);
-
             if (node.second->nHeight() == 0)
                 continue;
 
@@ -333,6 +310,64 @@ public:
         }
     }
     
+    class UseTexture
+    {
+    public:
+        UseTexture( const GpuTextureList& oList,
+                    uint64_t hObject)
+        : m_lock(oList.m_mtx)
+        {
+            // Mutex lock locks list for lifetime of this object
+            PKTRACE(GpuTextureList_UseTexture_Constructor);
+            
+            auto it = oList.m_oActive.find(hObject);
+            if (it == oList.m_oActive.end())
+            {
+                m_nGlTexHandle  = 0;
+                m_nWidth        = 0;
+                m_nHeight       = 0;
+                return;
+            }
+            
+            m_nGlTexHandle  = it->second.get()->nGlHandle();
+            m_nWidth        = it->second.get()->nWidth();
+            m_nHeight       = it->second.get()->nHeight();
+        }
+        
+        ~UseTexture()
+        {
+            // mutex lock automatically unlocks when going out of scope
+        }
+        
+        bool bFound() const
+        {
+            return (m_nGlTexHandle != 0);
+        }
+        
+        GLuint nGlTexHandle() const
+        {
+            return m_nGlTexHandle;
+        }
+        
+        int32_t nWidth() const
+        {
+            return m_nWidth;
+        }
+        
+        int32_t nHeight() const
+        {
+            return m_nHeight;
+        }
+        
+    protected:
+        std::lock_guard<std::mutex> m_lock;
+        GLuint                      m_nGlTexHandle;
+        int32_t                     m_nWidth;
+        int32_t                     m_nHeight;
+        
+    };
+    
+protected:
     mutable std::mutex m_mtx;
     uint64_t                                                        m_hCurrent = 0;
     std::unordered_map<uint64_t, std::unique_ptr<GpuTextureRgba>>   m_oNew;

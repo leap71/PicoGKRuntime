@@ -43,10 +43,10 @@
 #include <string>
 #include <map>
 #include "PicoGKLibraryMgr.h"
-#include "PicoGKTrace.h"
 #include "PicoGKGLTexture.h"
 #include "PicoGKGLViewerShaders.h"
 #include "PicoGKGLObjects.h"
+#include "PicoGKTrace.h"
 
 struct GLFWwindow;
 struct ImGuiContext;
@@ -750,15 +750,9 @@ protected:
     GpuTextureList  m_oTextures;
     
 public:
-    bool bGetTexture(   uint64_t nTextureId,
-                        GLuint* pnGlTexture,
-                        int*    pnWidth,
-                        int*    pnHeight) const
+    std::unique_ptr<GpuTextureList::UseTexture> roGetTexture(int64_t hTexture) const
     {
-        return m_oTextures.bGetGlHandle(    nTextureId,
-                                            pnGlTexture,
-                                            pnWidth,
-                                            pnHeight);
+        return std::make_unique<GpuTextureList::UseTexture>(m_oTextures, hTexture);
     }
     
     void ShowAllTextures() const
