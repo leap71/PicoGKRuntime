@@ -36,10 +36,16 @@
 #ifndef PICOGKTRACE_H_
 #define PICOGKTRACE_H_
 
-#include <iostream>
+//#define PICOGKTRACE_ENABLE true
 
-//#define PKTRACE(func) PkTrace __##func(#func)
-#define PKTRACE(func)
+#include <iostream>
+#include <chrono>
+
+#if defined(PICOGKTRACE_ENABLE)
+#   define PKTRACE(func) PkTrace trace_##func(#func, PICOGKTRACE_ENABLE)
+#else
+#   define PKTRACE(func)
+#endif
 
 namespace PicoGK
 {
@@ -47,19 +53,33 @@ namespace PicoGK
 class PkTrace
 {
 public:
-    PkTrace(std::string strName)
+    PkTrace(std::string strName, bool bCostlyOnly)
     {
-        m_strName = strName;
-        std::cerr << m_strName << " - Entered\n";
+        m_timStart      = std::chrono::high_resolution_clock::now();
+        m_strName       = strName;
+        m_bCostlyOnly   = bCostlyOnly;
+        
+        if (!m_bCostlyOnly)
+            std::cerr << m_strName << " - Entered\n";
     }
     
     ~PkTrace()
     {
-        std::cerr << m_strName << " - Exited\n";
+        std::chrono::milliseconds oMS = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_timStart);
+        
+        if ((!m_bCostlyOnly) || (oMS.count() > 100))
+        {
+            std::cerr << m_strName << " - Exited ";
+            std::cerr << oMS << " elapsed\n";
+        }
     }
     
 protected:
     std::string m_strName;
+    bool        m_bCostlyOnly;
+    
+    std::chrono::time_point<std::chrono::high_resolution_clock>
+                                        m_timStart;
 };
     
 } // namespace PicoGK
