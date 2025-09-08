@@ -136,7 +136,7 @@ public:
                                                                             fRadiusStart,
                                                                             fRadiusEnd,
                                                                             oVoxSize,
-                                                                            oVoxSize.fToMM(nNarrowBand));
+                                                                            nNarrowBand);
         
         m_nSdfNarrowBand = nNarrowBand;
         
@@ -153,7 +153,7 @@ public:
                                                                             (const std::vector<Vec3I>&)             oMesh.vTriangles(),
                                                                             fRadius,
                                                                             oVoxSize,
-                                                                            oVoxSize.fToMM(nNarrowBand));
+                                                                            nNarrowBand);
         
         m_nSdfNarrowBand = nNarrowBand;
         
@@ -777,6 +777,9 @@ protected:
     /// Rebuilds the grid after possibly destructive changes to the signed distances
     void RebuildGrid(float fDistanceMM = 0.0f)
     {
+        /// Disabled until we determine it is necessary
+        return;
+        
         PKTRACE(Voxels_RebuildGrid);
         
         /// TODO — this is probably triggering way too often.
@@ -785,18 +788,16 @@ protected:
         
         if ((fDistanceMM > 0.0f) || (bLevelSetNeedsRebuild()))
         {
-            std::cerr << "--- Rebuilding Level Set '" << strDiagnose() << "'\n";
+            std::cerr << "- Rebuilding Level Set '" << strDiagnose() << " ... ";
             
             float fHalfVal = oVoxelSize().fToVoxels(fDistanceMM);
             
             if (fHalfVal < m_nSdfNarrowBand)
                 fHalfVal = m_nSdfNarrowBand;
             
-            std::cerr << "Halfval = " << fHalfVal << "\n";
-            
             m_roGrid = openvdb::tools::levelSetRebuild(*m_roGrid, 0.0f, fHalfVal, fHalfVal);
             
-            std::cerr << "--- Done - Result: '" << strDiagnose() << "'\n";
+            std::cerr << "Done - Result: '" << strDiagnose() << "'\n";
         }
     }
     
