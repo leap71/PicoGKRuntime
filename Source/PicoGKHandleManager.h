@@ -76,7 +76,7 @@ public:
 
         if (it == m_map.end())
         {
-            throw std::out_of_range(m_strName + ": Invalid Handle");
+            throw std::out_of_range(m_strName + ": Invalid Handle: " + std::to_string(h));
         }
 
         return it->second;
