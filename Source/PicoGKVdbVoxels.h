@@ -283,9 +283,8 @@ public:
         
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         
-        float fSizeVx = -oVoxelSize().fToVoxels(fSize); // openvdb treats offsets as inwards
-        
-        oFilter.offset(fSizeVx);
+        // OpenVDB treats offsets as inwards
+        oFilter.offset(-fSize);
         
         RebuildGrid();
     }
@@ -301,11 +300,9 @@ public:
         
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         
-        float fSize1Vx = -oVoxelSize().fToVoxels(fSize1); // openvdb treats offsets as inwards
-        float fSize2Vx = -oVoxelSize().fToVoxels(fSize2); // openvdb treats offsets as inwards
-        
-        oFilter.offset(fSize1Vx);
-        oFilter.offset(fSize2Vx);
+        // OpenVDB treats offsets as inwards
+        oFilter.offset(-fSize1);
+        oFilter.offset(-fSize2);
         
         RebuildGrid();
     }
@@ -319,17 +316,15 @@ public:
         
         openvdb::tools::LevelSetFilter<openvdb::FloatGrid> oFilter(*m_roGrid);
         
-        float fSizeVx = -oVoxelSize().fToVoxels(fSize); // openvdb treats offsets as inwards
-        
         // offset inwards first
-        oFilter.offset(-fSizeVx);
+        oFilter.offset(-fSize);
         
         // offset twice the size outwards next
-        oFilter.offset(fSizeVx * 2);
+        oFilter.offset(fSize * 2);
         
         // offset inwards again. Now we are back where we started
         // but have lost a lot of detail = smooth
-        oFilter.offset(-fSizeVx);
+        oFilter.offset(-fSize);
         
         RebuildGrid();
     }
@@ -379,7 +374,7 @@ public:
             Vector3 vecSample = oVoxelSize().vecToMM(Coord(x,y,z));
             openvdb::Coord xyz(x,y,z);
             
-            float fValue = std::min(    oVoxelSize().fToVoxels((*pfn)(&vecSample)),
+            float fValue = std::min(    (*pfn)(&vecSample),
                                         oAccess.getValue(xyz));
             
             SetSdValue(&oAccess, xyz, fBackgroundMM(), fValue);
