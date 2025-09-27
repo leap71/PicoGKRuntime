@@ -75,7 +75,6 @@ void Viewer::SideBar::Setup()
 
 void Viewer::SideBar::DrawMe()
 {
-    
     // Nothing to do (only children will be drawn)
 }
 
