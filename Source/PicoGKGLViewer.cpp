@@ -80,9 +80,6 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     
     m_roShaderProgMeshPoly  = std::make_unique<ShaderProgMeshPoly>();
     m_roShaderProgQuad      = std::make_unique<ShaderProgQuad>();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     m_psImGuiContext = psSharedImGuiContext;
     ImGui::SetCurrentContext(m_psImGuiContext);
@@ -525,9 +522,10 @@ void Viewer::Redraw(bool bRedraw3dScane)
         DrawGui();
         
         // Render ImGui
+        glEnable(GL_FRAMEBUFFER_SRGB);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
+        glDisable(GL_FRAMEBUFFER_SRGB);
         glfwSwapBuffers(m_pTheWindow);
     }
     
@@ -582,7 +580,6 @@ void Viewer::DrawScene()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
     

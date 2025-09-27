@@ -103,6 +103,7 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
     
     GLFWwindow* pWindow = glfwCreateWindow( (GLint) vecSize.X,
                                             (GLint) vecSize.Y,
