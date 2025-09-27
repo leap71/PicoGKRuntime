@@ -84,7 +84,7 @@ public:
     
     Coord()
     {
-#ifdef _DEBUG
+#ifdef DEBUG_BUILD
         X = std::numeric_limits<int32_t>::min();
         Y = std::numeric_limits<int32_t>::min();
         Z = std::numeric_limits<int32_t>::min();
