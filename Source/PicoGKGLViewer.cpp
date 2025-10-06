@@ -85,7 +85,6 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     m_psImGuiContext = psSharedImGuiContext;
     ImGui::SetCurrentContext(m_psImGuiContext);
     
-    // Then: backend init
     ImGui_ImplGlfw_InitForOpenGL(pTheWindow, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     
@@ -127,9 +126,8 @@ Viewer::~Viewer()
 
     if (m_psImGuiContext != nullptr)
     {
-        /// TODO
-        //ImGui::SetCurrentContext(m_psImGuiContext);
-        //ImGui::DestroyContext(m_psImGuiContext);
+        ImGui::SetCurrentContext(m_psImGuiContext);
+        ImGui::DestroyContext(m_psImGuiContext);
     }
     
     m_oTextures.CleanupAllTextures();
