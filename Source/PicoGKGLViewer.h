@@ -210,8 +210,10 @@ protected:
     void OnWindowSize(  int nWidth,
                         int nHeight);
     
-    std::unique_ptr<ShaderProgMeshPoly> m_roShaderProgMeshPoly;
-    std::unique_ptr<ShaderProgQuad>     m_roShaderProgQuad;
+    std::unique_ptr<ShaderProgMeshPoly>     m_roShaderProgMeshPoly;
+    std::unique_ptr<ShaderProgMeshPolyOit>  m_roShaderProgMeshPolyOit;
+    std::unique_ptr<ShaderProgOitComposite> m_roShaderProgOitComposite;
+    std::unique_ptr<ShaderProgQuad>         m_roShaderProgQuad;
     
     void Redraw(bool bDraw3dScene);
     
@@ -221,9 +223,12 @@ protected:
     
     void EnsureFrameBuffer(int nX, int nY);
     
-GLuint              m_nSceneFBO         = 0;
+    GLuint          m_nSceneFBO         = 0;
     GLuint          m_nSceneTex         = 0;
     GLuint          m_nSceneDepth       = 0;
+    GLuint          m_nOitFBO           = 0;
+    GLuint          m_nOitAccumTex      = 0;
+    GLuint          m_nOitRevealTex     = 0;
     int             m_nSceneWidth       = 0;
     int             m_nSceneHeight      = 0;
     ImGuiContext*   m_psImGuiContext    = nullptr;

@@ -49,6 +49,8 @@ class ShaderProgMeshPoly: protected GlShaderProgram
 public:
     ShaderProgMeshPoly();
     
+    ShaderProgMeshPoly(const std::string& strFragmentShader);
+    
     void SetLightingTextures(   const char* pDiffuseTextureDDS,
                                 uint32_t nDiffuseBufferSize,
                                 const char* pSpecularTextureDDS,
@@ -73,6 +75,8 @@ public:
                     int                 nErrorAngleDeg      = 55) const;    // 55º (90º is horizontal)
     
 private:
+    void Init();
+    
     static const std::string c_strVertShader;
     static const std::string c_strFragShader;
     
@@ -92,6 +96,31 @@ private:
     GLint m_nUfOverhangErrorCos     =-1;
 
     GLint m_nAvec3Pos               = -1;
+};
+
+class ShaderProgMeshPolyOit : public ShaderProgMeshPoly
+{
+public:
+    ShaderProgMeshPolyOit();
+    
+private:
+    static const std::string c_strFragShaderOit;
+};
+
+class ShaderProgOitComposite : GlShaderProgram
+{
+public:
+    ShaderProgOitComposite();
+    
+    void Use(   GLuint nAccum,
+                GLuint nReveal);
+    
+private:
+    static const std::string c_strVertShader;
+    static const std::string c_strFragShader;
+    
+    GLint   m_nUtexAccum    =-1;
+    GLint   m_nUtexReveal   =-1;
 };
 
 class ShaderProgQuad: protected GlShaderProgram

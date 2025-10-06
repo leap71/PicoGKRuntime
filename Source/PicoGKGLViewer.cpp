@@ -79,8 +79,10 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     
     CHECKGLERRORS;
     
-    m_roShaderProgMeshPoly  = std::make_unique<ShaderProgMeshPoly>();
-    m_roShaderProgQuad      = std::make_unique<ShaderProgQuad>();
+    m_roShaderProgMeshPoly      = std::make_unique<ShaderProgMeshPoly>();
+    m_roShaderProgMeshPolyOit   = std::make_unique<ShaderProgMeshPolyOit>();
+    m_roShaderProgOitComposite  = std::make_unique<ShaderProgOitComposite>();
+    m_roShaderProgQuad          = std::make_unique<ShaderProgQuad>();
     
     m_psImGuiContext = psSharedImGuiContext;
     ImGui::SetCurrentContext(m_psImGuiContext);
@@ -457,13 +459,26 @@ void Viewer::EnsureFrameBuffer(int nX, int nY)
         glDeleteRenderbuffers(1, &m_nSceneDepth);
     }
 
+    if (m_nOitFBO != 0)
+    {
+        glDeleteFramebuffers(1, &m_nOitFBO);
+        glDeleteTextures(1, &m_nOitAccumTex);
+        glDeleteTextures(1, &m_nOitRevealTex);
+        m_nOitFBO       = 0;
+        m_nOitAccumTex  = 0;
+        m_nOitRevealTex = 0;
+    }
+
     m_nSceneWidth   = nX;
     m_nSceneHeight  = nY;
 
+    // --------------------
+    // Scene FBO
+    // --------------------
     glGenFramebuffers(1, &m_nSceneFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
 
-    // Color texture
+    // Color texture (scene)
     glGenTextures(1, &m_nSceneTex);
     glBindTexture(GL_TEXTURE_2D, m_nSceneTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, nX, nY, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -480,8 +495,44 @@ void Viewer::EnsureFrameBuffer(int nX, int nY)
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     assert(status == GL_FRAMEBUFFER_COMPLETE);
 
+    // --------------------
+    // Weighted-Blended OIT FBO
+    // --------------------
+    glGenFramebuffers(1, &m_nOitFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_nOitFBO);
+
+    // Accumulation texture (RGBA16F)
+    glGenTextures(1, &m_nOitAccumTex);
+    glBindTexture(GL_TEXTURE_2D, m_nOitAccumTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, nX, nY, 0, GL_RGBA, GL_HALF_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_nOitAccumTex, 0);
+
+    // Revealage texture (R16F)
+    glGenTextures(1, &m_nOitRevealTex);
+    glBindTexture(GL_TEXTURE_2D, m_nOitRevealTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, nX, nY, 0, GL_RED, GL_HALF_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_nOitRevealTex, 0);
+
+    // Reuse the same depth buffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_nSceneDepth);
+
+    // Enable both draw buffers
+    GLenum bufs[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, bufs);
+
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    assert(status == GL_FRAMEBUFFER_COMPLETE);
+
+    // --------------------
+    // Cleanup
+    // --------------------
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
 
 void Viewer::Redraw(bool bRedraw3dScane)
 {

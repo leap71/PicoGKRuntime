@@ -51,6 +51,17 @@ namespace PicoGK
 ShaderProgMeshPoly::ShaderProgMeshPoly()
 : GlShaderProgram(c_strVertShader, c_strFragShader)
 {
+    Init();
+}
+
+ShaderProgMeshPoly::ShaderProgMeshPoly(const std::string& strFragmentShader)
+: GlShaderProgram(c_strVertShader, strFragmentShader)
+{
+    Init();
+}
+
+void ShaderProgMeshPoly::Init()
+{
     m_nUmat4VP                  = nUniformLoc("mat4VP");
     m_nUmat4OtoW                = nUniformLoc("mat4OtoW");
     m_nUvec3Eye                 = nUniformLoc("vec3Eye");
@@ -237,6 +248,149 @@ void main()
 }
 )FS";
 
+//
+//
+// class ShaderProgMeshPolyOit
+//
+//
+
+ShaderProgMeshPolyOit::ShaderProgMeshPolyOit()
+: ShaderProgMeshPoly(c_strFragShaderOit)
+{
+    
+}
+
+const std::string ShaderProgMeshPolyOit::c_strFragShaderOit = R"FS(
+#version 410 core
+//#extension GL_ARB_shader_texture_lod : enable
+
+in highp vec3 vec3World;
+
+uniform vec3    vec3Eye;
+uniform vec4    vec4Color;
+uniform float   fMetallic;
+uniform float   fRoughness;
+
+uniform bool    bWarnOverhang;
+uniform float   fOverhangWarningCos;
+uniform float   fOverhangErrorCos;
+
+uniform samplerCube texDiff;
+uniform samplerCube texSpec;
+
+layout(location = 0) out vec4 outAccum;   // accumulation buffer (RGBA16F)
+layout(location = 1) out vec3 outReveal;  // revealage buffer (R16F or RGB)
+
+void main()
+{
+    vec3 vec3N     = normalize(cross(dFdx(vec3World), dFdy(vec3World)));
+    vec3 vec3View  = normalize(vec3World - vec3Eye);
+    vec3 vec3Ref   = normalize(reflect(vec3View, vec3N));
+    vec3 vec3Color = vec3(vec4Color.r, vec4Color.g, vec4Color.b);
+
+    // --- Overhang visualization (copied exactly from original shader) ---
+    if (bWarnOverhang)
+    {
+        vec3 vec3Down = vec3(0, 0, -1);
+        float fDotN = dot(vec3N, vec3Down);
+
+        if (fDotN >= fOverhangWarningCos)
+        {
+            float fBlend = smoothstep(fOverhangErrorCos, fOverhangWarningCos, fDotN);
+            vec3Color = mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 0.5, 0.0), fBlend);
+            float a = 0.9;
+            vec3 premul = vec3Color * a;
+            outAccum  = vec4(premul, a);
+            outReveal = vec3(1.0 - a);
+            return;
+        }
+        else
+        {
+            vec3Color = vec3(0.0, 1.0, 0.0);
+        }
+    }
+
+    // --- Original lighting logic ---
+    float fVdotN   = clamp(dot(-vec3View, vec3N), 0, 1.0);
+    float fFresnel = fMetallic + (1.0 - fMetallic) * pow(1.0 - fVdotN, 5.0) * (1.0 - fRoughness * 0.9);
+
+    vec3 vec3Diff  = textureLod(texDiff, vec3N, 0).xyz * vec3Color;
+    vec3 vec3Spec  = textureLod(texSpec, vec3Ref, fRoughness * 6.0).xyz;
+
+    vec3 vec3NonM  = vec3Diff + vec3Spec * fFresnel;
+    vec3 vec3Metal = vec3Color * vec3Spec;
+    float fMix     = smoothstep(0.25, 0.45, fMetallic);
+
+    vec3 rgb = mix(vec3NonM, vec3Metal, fMix);
+    float a = vec4Color.a;
+
+    // --- Weighted Blended outputs ---
+    float w = 1.0; // depth weight (optional: exp(-z * scale))
+    outAccum  = vec4(rgb * a * w, a * w);
+    outReveal = vec3(1.0 - a);
+}
+)FS";
+
+
+//
+//
+// class ShaderProgOitComposite : GlShaderProgram
+//
+//
+
+ShaderProgOitComposite::ShaderProgOitComposite()
+: GlShaderProgram(c_strVertShader, c_strFragShader)
+{
+    m_nUtexAccum    = nUniformLoc("texAccum");
+    m_nUtexReveal   = nUniformLoc("texReveal");
+}
+
+void ShaderProgOitComposite::Use(   GLuint nAccum,
+                                    GLuint nReveal)
+{
+    GlShaderProgram::Use();
+    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, nAccum);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, nReveal);
+}
+    
+const std::string ShaderProgOitComposite::c_strVertShader = R"VS(
+#version 410 core
+
+layout(location = 0) in vec2 vec2InPos;
+layout(location = 1) in vec2 vec2InUV;
+out vec2 vec2UV;
+
+void main()
+{
+    vec2UV = vec2InUV;
+    gl_Position = vec4(vec2InPos, 0.0, 1.0);
+}
+)VS";
+
+const std::string ShaderProgOitComposite::c_strFragShader = R"FS(
+#version 410 core
+        
+in  vec2 vec2UV;
+out vec4 vec4FragColor;
+
+uniform sampler2D texAccum;
+uniform sampler2D texReveal;
+
+void main()
+{
+    vec4 vec4A      = texture(texAccum, vec2UV);
+    float fReveal   = texture(texReveal, vec2UV).r;
+
+    // Avoid divide-by-zero
+    vec3 rgb = (vec4A.a > 1e-6) ? (vec4A.rgb / vec4A.a) : vec3(0.0);
+    float fAlpha = 1.0 - fReveal;
+
+    vec4FragColor = vec4(rgb, fAlpha);
+}
+)FS";
 
 //
 //
