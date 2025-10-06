@@ -34,7 +34,7 @@
 //
 
 
-#include "gl/gl.h"
+#include "gl/glad.h"
 #include "PicoGKGLViewerManager.h"
 #include <GLFW/glfw3.h>
 #include "PicoGKGLViewer.h"
@@ -95,8 +95,8 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
     
     glfwSetErrorCallback(ErrorCallback);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            //required for Mac OS
     //glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     //glfwWindowHint(GLFW_SAMPLES, 6);

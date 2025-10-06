@@ -33,7 +33,7 @@
 // limitations under the License.
 //
 
-#include "gl/gl.h"
+#include "gl/glad.h"
 #include "PicoGKGLViewer.h"
 #include "PicoGKGLTexture.h"
 
@@ -74,7 +74,8 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     m_vecMousePos.Y = 0.0f;
     
     glfwMakeContextCurrent(m_pTheWindow);
-    gladLoadGL(glfwGetProcAddress);
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        throw std::runtime_error("Unable to initialize OpenGL");
     
     CHECKGLERRORS;
     

@@ -33,7 +33,7 @@
 // limitations under the License.
 //
 
-#include "gl/gl.h"
+#include "gl/glad.h"
 #include "PicoGKTypes.h"
 #include "PicoGK.h"
 
