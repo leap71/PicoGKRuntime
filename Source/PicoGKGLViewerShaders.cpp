@@ -174,8 +174,10 @@ void ShaderProgMeshPoly::SetLightingTextures(   const char* pDiffuseTextureDDS,
 const std::string ShaderProgMeshPoly::c_strVertShader =
 R"VS(
 #version 330 core
+
 in  vec3 vec3Pos;
 out vec3 vec3World;
+
 uniform mat4 mat4OtoW;
 uniform mat4 mat4VP;
 
@@ -184,6 +186,7 @@ void main()
     vec3World   = (mat4OtoW * vec4(vec3Pos, 1)).xyz;
     gl_Position = mat4VP * vec4(vec3World, 1);
 }
+
 )VS";
 
 const std::string ShaderProgMeshPoly::c_strFragShader = R"FS(
@@ -262,9 +265,8 @@ ShaderProgMeshPolyOit::ShaderProgMeshPolyOit()
 
 const std::string ShaderProgMeshPolyOit::c_strFragShaderOit = R"FS(
 #version 410 core
-//#extension GL_ARB_shader_texture_lod : enable
 
-in highp vec3 vec3World;
+in highp vec3   vec3World;
 
 uniform vec3    vec3Eye;
 uniform vec4    vec4Color;
@@ -278,8 +280,8 @@ uniform float   fOverhangErrorCos;
 uniform samplerCube texDiff;
 uniform samplerCube texSpec;
 
-layout(location = 0) out vec4 outAccum;   // accumulation buffer (RGBA16F)
-layout(location = 1) out vec3 outReveal;  // revealage buffer (R16F or RGB)
+layout(location = 0) out vec4   vec4OutAccum;
+layout(location = 1) out float  fOutReveal;
 
 void main()
 {
@@ -288,7 +290,6 @@ void main()
     vec3 vec3Ref   = normalize(reflect(vec3View, vec3N));
     vec3 vec3Color = vec3(vec4Color.r, vec4Color.g, vec4Color.b);
 
-    // --- Overhang visualization (copied exactly from original shader) ---
     if (bWarnOverhang)
     {
         vec3 vec3Down = vec3(0, 0, -1);
@@ -300,8 +301,8 @@ void main()
             vec3Color = mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 0.5, 0.0), fBlend);
             float a = 0.9;
             vec3 premul = vec3Color * a;
-            outAccum  = vec4(premul, a);
-            outReveal = vec3(1.0 - a);
+            vec4OutAccum  = vec4(premul, a);
+            fOutReveal = a;
             return;
         }
         else
@@ -310,7 +311,8 @@ void main()
         }
     }
 
-    // --- Original lighting logic ---
+    // Lighting logic from standard shader
+
     float fVdotN   = clamp(dot(-vec3View, vec3N), 0, 1.0);
     float fFresnel = fMetallic + (1.0 - fMetallic) * pow(1.0 - fVdotN, 5.0) * (1.0 - fRoughness * 0.9);
 
@@ -324,10 +326,13 @@ void main()
     vec3 rgb = mix(vec3NonM, vec3Metal, fMix);
     float a = vec4Color.a;
 
-    // --- Weighted Blended outputs ---
-    float w = 1.0; // depth weight (optional: exp(-z * scale))
-    outAccum  = vec4(rgb * a * w, a * w);
-    outReveal = vec3(1.0 - a);
+    // OIT weighted blend output
+
+    float z = gl_FragCoord.z;
+    float w = clamp(0.03 / (1e-5 + pow(z, 7.0)), 1e-2, 3e3);
+
+    vec4OutAccum    = vec4(rgb * a * w, a * w);
+    fOutReveal      = a;
 }
 )FS";
 
@@ -341,8 +346,51 @@ void main()
 ShaderProgOitComposite::ShaderProgOitComposite()
 : GlShaderProgram(c_strVertShader, c_strFragShader)
 {
-    m_nUtexAccum    = nUniformLoc("texAccum");
-    m_nUtexReveal   = nUniformLoc("texReveal");
+    m_nUtexAccum        = nUniformLoc("texAccum");
+    m_nUtexReveal       = nUniformLoc("texReveal");
+    
+    // Set up fullscreen quad VAO and VBO
+    struct SVertex
+    {
+        float x, y, u, v;
+    };
+
+    // Triangle strip order: bottom-left -> bottom-right -> top-left -> top-right
+    const SVertex aVertices[4] =
+    {
+        { -1.0f, -1.0f, 0.0f, 0.0f },  // Bottom-left
+        {  1.0f, -1.0f, 1.0f, 0.0f },  // Bottom-right
+        { -1.0f,  1.0f, 0.0f, 1.0f },  // Top-left
+        {  1.0f,  1.0f, 1.0f, 1.0f }   // Top-right
+    };
+
+    glGenVertexArrays(1, &m_nVAO);
+    glBindVertexArray(m_nVAO);
+
+    glGenBuffers(1, &m_nVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_nVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aVertices), aVertices, GL_STATIC_DRAW);
+
+    // Position attribute (location 0: vec2)
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SVertex), (void*)offsetof(SVertex, x));
+
+    // UV attribute (location 1: vec2)
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SVertex), (void*)offsetof(SVertex, u));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+ShaderProgOitComposite::~ShaderProgOitComposite()
+{
+    if (m_nVBO)
+        glDeleteBuffers(1, &m_nVBO);
+
+    if (m_nVAO)
+        glDeleteVertexArrays(1, &m_nVAO);
 }
 
 void ShaderProgOitComposite::Use(   GLuint nAccum,
@@ -354,6 +402,26 @@ void ShaderProgOitComposite::Use(   GLuint nAccum,
     glBindTexture(GL_TEXTURE_2D, nAccum);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, nReveal);
+    
+    // Bind textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, nAccum);
+    glUniform1i(m_nUtexAccum, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, nReveal);
+    glUniform1i(m_nUtexReveal, 1);
+
+    // Draw fullscreen quad
+    glBindVertexArray(m_nVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    // Cleanup texture bindings
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
     
 const std::string ShaderProgOitComposite::c_strVertShader = R"VS(
@@ -361,6 +429,7 @@ const std::string ShaderProgOitComposite::c_strVertShader = R"VS(
 
 layout(location = 0) in vec2 vec2InPos;
 layout(location = 1) in vec2 vec2InUV;
+
 out vec2 vec2UV;
 
 void main()
@@ -372,20 +441,22 @@ void main()
 
 const std::string ShaderProgOitComposite::c_strFragShader = R"FS(
 #version 410 core
-        
-in  vec2 vec2UV;
-out vec4 vec4FragColor;
+
+in vec2     vec2UV;
+out vec4    vec4FragColor;
+
+uniform vec3 rgbBackground;
 
 uniform sampler2D texAccum;
 uniform sampler2D texReveal;
 
 void main()
 {
-    vec4 vec4A      = texture(texAccum, vec2UV);
-    float fReveal   = texture(texReveal, vec2UV).r;
+    vec4 vec4AccumColor = texture(texAccum, vec2UV);
+    float fReveal       = texture(texReveal, vec2UV).r;
 
-    // Avoid divide-by-zero
-    vec3 rgb = (vec4A.a > 1e-6) ? (vec4A.rgb / vec4A.a) : vec3(0.0);
+    vec3 rgb = (vec4AccumColor.a > 1e-6) ? (vec4AccumColor.rgb / vec4AccumColor.a) : vec3(0.0);
+
     float fAlpha = 1.0 - fReveal;
 
     vec4FragColor = vec4(rgb, fAlpha);
@@ -507,10 +578,11 @@ void main()
 in vec2     vec2UV;
 out vec4    vec4FragColor;
 
+uniform float   fAlpha;
+uniform bool    bRenderSolid;
+uniform vec4    vec4SolidColor;
+
 uniform sampler2D   texTexture;
-uniform float       fAlpha;
-uniform bool        bRenderSolid;
-uniform vec4        vec4SolidColor;
 
 void main()
 {

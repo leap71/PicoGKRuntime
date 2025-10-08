@@ -107,10 +107,12 @@ private:
     static const std::string c_strFragShaderOit;
 };
 
-class ShaderProgOitComposite : GlShaderProgram
+class ShaderProgOitComposite : protected GlShaderProgram
 {
 public:
     ShaderProgOitComposite();
+    
+    ~ShaderProgOitComposite();
     
     void Use(   GLuint nAccum,
                 GLuint nReveal);
@@ -119,8 +121,11 @@ private:
     static const std::string c_strVertShader;
     static const std::string c_strFragShader;
     
-    GLint   m_nUtexAccum    =-1;
-    GLint   m_nUtexReveal   =-1;
+    GLint   m_nUtexAccum        =-1;
+    GLint   m_nUtexReveal       =-1;
+    
+    GLuint m_nVAO = 0;
+    GLuint m_nVBO = 0;
 };
 
 class ShaderProgQuad: protected GlShaderProgram
