@@ -77,6 +77,8 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Unable to initialize OpenGL");
     
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    
     CHECKGLERRORS;
     
     m_roShaderProgMeshPoly      = std::make_unique<ShaderProgMeshPoly>();
@@ -125,12 +127,6 @@ Viewer::~Viewer()
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-
-    if (m_psImGuiContext != nullptr)
-    {
-        ImGui::SetCurrentContext(m_psImGuiContext);
-        ImGui::DestroyContext(m_psImGuiContext);
-    }
     
     m_oTextures.CleanupAllTextures();
 
@@ -481,7 +477,8 @@ void Viewer::EnsureFrameBuffer(int nX, int nY)
     // Color texture (scene)
     glGenTextures(1, &m_nSceneTex);
     glBindTexture(GL_TEXTURE_2D, m_nSceneTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, nX, nY, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, nX, nY, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_nSceneTex, 0);
@@ -613,57 +610,86 @@ void Viewer::DrawScene()
                                 &matVP,
                                 &vecEye);
     }
-    
-    // Bind FBO instead of default framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+
+    CHECKGLERRORS;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, m_nOitFBO);
     glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
-    
+
+    const GLfloat clrZero[4] = {0, 0, 0, 0};
+    const GLfloat clrOne[4]  = {1, 1, 1, 1};
+
+    glClearBufferfv(GL_COLOR, 0, clrZero);   // accum
+    glClearBufferfv(GL_COLOR, 1, clrOne);    // revealage
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);                   // depth test yes, writes off
+    glEnable(GL_BLEND);
     glEnable(GL_FRAMEBUFFER_SRGB);
+
+    // Per-attachment blend funcs for Weighted Blended OIT
+    glBlendFunci(0, GL_ONE, GL_ONE);                     // accum
+    glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);    // revealage
+    glBlendEquation(GL_FUNC_ADD);
+
+    CHECKGLERRORS;
+
+    // Draw transparent meshes
+    
+    glEnable(GL_CULL_FACE);
+
+    m_roShaderProgMeshPolyOit->Use(matVP, vecEye);
+
+    for (auto& Pair : m_oGroups)
+    {
+        auto poGroup = Pair.second;
+        poGroup->Draw(*m_roShaderProgMeshPolyOit);
+    }
+
+    CHECKGLERRORS;
+
+    // Composite pass
+    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    
+    glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
     
     glClearColor(   clrBackground.R,
                     clrBackground.G,
                     clrBackground.B,
                     1);
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    
-    glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_FALSE);
-    
+
+    m_roShaderProgOitComposite->Use(    m_nOitAccumTex,
+                                        m_nOitRevealTex);
+
     CHECKGLERRORS;
-    
-    m_roShaderProgQuad->Use();
-    m_oQuads.DrawAll(matVP, *this, *m_roShaderProgQuad);
-    
-    CHECKGLERRORS;
-    
-    glEnable(GL_CULL_FACE);
-    
-    m_roShaderProgMeshPoly->Use(matVP, vecEye);
-    
-    for (auto Pair : m_oGroups)
+
+    if (!m_strScreenShotPath.empty())
     {
-        Group::Ptr poGroup = Pair.second;
-        poGroup->Draw(*m_roShaderProgMeshPoly);
-    }
-    
-    CHECKGLERRORS;
-    
-    if (m_strScreenShotPath != "")
-    {
-        std::vector<unsigned char> image(m_nSceneWidth * m_nSceneHeight * 3); // 3 bytes per pixel (RGB)
+        std::vector<unsigned char> image(m_nSceneWidth * m_nSceneHeight * 3);
         glReadPixels(0, 0, m_nSceneWidth, m_nSceneHeight, GL_BGR, GL_UNSIGNED_BYTE, image.data());
-        
-        // Save the image as a TGA file
         SaveTGA(m_strScreenShotPath, image, m_nSceneWidth, m_nSceneHeight);
-        m_strScreenShotPath = "";
+        m_strScreenShotPath.clear();
     }
+
+    // Cleanup
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_FRAMEBUFFER_SRGB);
+
+    CHECKGLERRORS;
 }
+
 
 void Viewer::DrawGui()
 {
