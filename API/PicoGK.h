@@ -645,6 +645,11 @@ PICOGK_API  void            Viewer_RemoveMesh(              PKINSTANCE          
                                                             PKVIEWER            hThis,
                                                             PKMESH              hMesh);
 
+PICOGK_API  void            Viewer_SetMeshMatrix(           PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKMESH              hMesh,
+                                                            const PKMatrix4x4*  pmat);
+
 PICOGK_API  void            Viewer_AddVoxels(               PKINSTANCE          hLib,
                                                             PKVIEWER            hThis,
                                                             int32_t             nGroupID,
@@ -654,6 +659,11 @@ PICOGK_API  void            Viewer_RemoveVoxels(            PKINSTANCE          
                                                             PKVIEWER            hThis,
                                                             PKVOXELS            hVoxels);
 
+PICOGK_API  void            Viewer_SetVoxelsMatrix(         PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKVOXELS            hVoxels,
+                                                            const PKMatrix4x4*  pmat);
+
 PICOGK_API  void            Viewer_AddPolyLine(             PKINSTANCE          hLib,
                                                             PKVIEWER            hThis,
                                                             int32_t             nGroupID,
@@ -662,6 +672,11 @@ PICOGK_API  void            Viewer_AddPolyLine(             PKINSTANCE          
 PICOGK_API  void            Viewer_RemovePolyLine(          PKINSTANCE          hLib,
                                                             PKVIEWER            hThis,
                                                             PKPOLYLINE          hPolyLine);
+
+PICOGK_API  void            Viewer_SetPolyLineMatrix(       PKINSTANCE          hLib,
+                                                            PKVIEWER            hThis,
+                                                            PKPOLYLINE          hPolyLine,
+                                                            const PKMatrix4x4*  pmat);
 
 PICOGK_API  void            Viewer_RemoveAllObjects(        PKVIEWER            hThis);
 

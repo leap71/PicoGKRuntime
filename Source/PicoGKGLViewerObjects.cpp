@@ -48,11 +48,20 @@ Viewer::Group::ViewPolyLine::ViewPolyLine(  const ShaderProgMeshPoly& oShader,
     m_oBBox             = oPoly.oBBox();
 }
 
+void Viewer::Group::ViewPolyLine::SetMatrix(const Matrix4x4& mat)
+{
+    m_mat = mat;
+}
+
 void Viewer::Group::ViewPolyLine::Draw( const ShaderProgMeshPoly& oShader,
                                         const Material& oMaterial,
                                         const Matrix4x4& mat)
 {
-    oShader.SetValues(  mat,
+    // Apply object matrix first, then apply group matrix
+    Matrix4x4 matResult = mat;
+    matResult *= m_mat;
+    
+    oShader.SetValues(  matResult,
                         m_clrLine);
     
     GlBind oBind(*m_roVertexBuffer);
@@ -109,6 +118,11 @@ Viewer::Group::ViewMesh::ViewMesh(  const ShaderProgMeshPoly& oShader,
     CHECKGLERRORS;
 }
 
+void Viewer::Group::ViewMesh::SetMatrix(const Matrix4x4& mat)
+{
+    m_mat = mat;
+}
+
 void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     const Material& sMaterial,
                                     const Matrix4x4& mat,
@@ -116,7 +130,11 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     int nWarningAngleDeg,
                                     int nErrorAngleDeg)
 {
-    oShader.SetValues(  mat,
+    // Apply object matrix first, then apply group matrix
+    Matrix4x4 matResult = mat;
+    matResult *= m_mat;
+    
+    oShader.SetValues(  matResult,
                         sMaterial.clr,
                         sMaterial.fMetallic,
                         sMaterial.fRoughness,

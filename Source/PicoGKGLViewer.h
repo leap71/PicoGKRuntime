@@ -98,6 +98,10 @@ public:
                     int64_t hLib,
                     int64_t hMesh);
     
+    void SetMeshMatrix( int64_t hLib,
+                        int64_t hMesh,
+                       const Matrix4x4& mat);
+    
     void RemoveMesh(    int64_t hLib,
                         int64_t hMesh);
     
@@ -108,12 +112,20 @@ public:
     void RemoveVoxels(  int64_t hLib,
                         int64_t hVoxels);
     
+    void SetVoxelsMatrix(   int64_t             hLib,
+                            int64_t             hVoxels,
+                            const Matrix4x4&    mat);
+    
     void AddPolyLine(   int32_t nGroupID,
                         int64_t hLib,
                         int64_t hPoly);
         
     void RemovePolyLine(    int64_t hLib,
                             int64_t hPoly);
+    
+    void SetPolyLineMatrix( int64_t             hLib,
+                            int64_t             hPolyLine,
+                            const Matrix4x4&    mat);
     
     int64_t hAddQuad(   uint64_t            hTexObject,
                         ColorFloat          clrDefault,
@@ -267,6 +279,25 @@ protected:
             }
         }
         
+        void SetMeshMatrix( int64_t hLib,
+                            int64_t hMesh,
+                            const Matrix4x4& mat)
+        {
+            PKTRACE(SetMeshMatrix);
+            
+            auto it = m_oViewMeshes.find(std::make_pair(hLib, hMesh));
+            
+            if (it == m_oViewMeshes.end())
+            {
+                assert(false);
+                // Trying to operate on a Mesh object that doesn't exist
+            }
+            else
+            {
+                it->second->SetMatrix(mat);
+            }
+        }
+        
         bool bFindMesh(int64_t hLib, int64_t hMesh)
         {
             return !(m_oViewMeshes.find(std::make_pair(hLib, hMesh)) == m_oViewMeshes.end());
@@ -306,6 +337,13 @@ protected:
             }
         }
         
+        void SetVoxelsMatrix(   int64_t hLib,
+                                int64_t hVoxels,
+                                const Matrix4x4& mat)
+        {
+            SetMeshMatrix(hLib, hVoxels, mat);
+        }
+        
         bool bFindVoxels(int64_t hLib, int64_t hVoxels)
         {
             return !(m_oViewMeshes.find(std::make_pair(hLib, hVoxels)) == m_oViewMeshes.end());
@@ -322,6 +360,23 @@ protected:
                 return; // nothing to do
             
             m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_unique<ViewPolyLine>(oShader, *roPoly);
+        }
+        
+        void SetPolyLineMatrix( int64_t hLib,
+                                int64_t hPoly,
+                                const Matrix4x4& mat)
+        {
+            auto it = m_oViewPolyLines.find(std::make_pair(hLib, hPoly));
+            
+            if (it == m_oViewPolyLines.end())
+            {
+                assert(false);
+                // Trying to set a PolyLine object that doesn't exist
+            }
+            else
+            {
+                it->second->SetMatrix(mat);
+            }
         }
         
         void RemovePolyLine(int64_t hLib, int64_t hPoly)
@@ -427,6 +482,8 @@ protected:
             ViewMesh(   const ShaderProgMeshPoly& oShader,
                         const Mesh& oMesh);
             
+            void SetMatrix(const Matrix4x4& mat);
+            
             void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
                         const Matrix4x4& mat,
@@ -436,6 +493,7 @@ protected:
             
             std::unique_ptr<GlElementBuffer<Vector3>>   m_roElementBuffer;
             BBox3                                       m_oBBox;
+            Matrix4x4                                   m_mat;
         };
         
         struct ViewPolyLine
@@ -445,6 +503,8 @@ protected:
             ViewPolyLine(   const ShaderProgMeshPoly& oShader,
                             const PolyLine& oPoly);
             
+            void SetMatrix(const Matrix4x4& mat);
+            
             void Draw(  const ShaderProgMeshPoly& oShaderProg,
                         const Material& sMaterial,
                         const Matrix4x4& mat);
@@ -452,6 +512,7 @@ protected:
             std::unique_ptr<GlVertexBuffer<Vector3>>    m_roVertexBuffer;
             ColorFloat                                  m_clrLine;
             BBox3                                       m_oBBox;
+            Matrix4x4                                   m_mat;
         };
         
         std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewMesh>>        m_oViewMeshes;

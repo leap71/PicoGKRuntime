@@ -1499,6 +1499,19 @@ PICOGK_API void Viewer_RemoveMesh(  PKINSTANCE hLib,
     poThis->RemoveMesh(hLib, hMesh);
 }
 
+PICOGK_API  void Viewer_SetMeshMatrix(  PKINSTANCE          hLib,
+                                        PKVIEWER            hThis,
+                                        PKMESH              hMesh,
+                                        const PKMatrix4x4*  pmat)
+{
+    PKTRACE(Viewer_SetMeshMatrix);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetMeshMatrix(hLib, hMesh, *pmat);
+}
+
 PICOGK_API void Viewer_AddVoxels(   PKINSTANCE hLib,
                                     PKVIEWER    hThis,
                                     int32_t     nGroupID,
@@ -1522,6 +1535,19 @@ PICOGK_API void Viewer_RemoveVoxels(    PKINSTANCE  hLib,
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
     poThis->RemoveVoxels(hLib, hVoxels);
+}
+
+PICOGK_API  void Viewer_SetVoxelsMatrix(    PKINSTANCE          hLib,
+                                            PKVIEWER            hThis,
+                                            PKVOXELS            hVoxels,
+                                            const PKMatrix4x4*  pmat)
+{
+    PKTRACE(Viewer_SetVoxelsMatrix);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetVoxelsMatrix(hLib, hVoxels, *pmat);
 }
 
 
@@ -1550,6 +1576,19 @@ PICOGK_API void Viewer_RemovePolyLine(  PKINSTANCE hLib,
     poThis->RemovePolyLine(hLib, hPolyLine);
 }
 
+PICOGK_API  void Viewer_SetPolyLineMatrix(  PKINSTANCE          hLib,
+                                            PKVIEWER            hThis,
+                                            PKPOLYLINE          hPolyLine,
+                                            const PKMatrix4x4*  pmat)
+{
+    PKTRACE(Viewer_SetPolyLineMatrix);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->SetPolyLineMatrix(hLib, hPolyLine, *pmat);
+}
+
 PICOGK_API void Viewer_RemoveAllObjects(PKVIEWER hThis)
 {
     PKTRACE(Viewer_RemoveAllObjects);
@@ -1559,7 +1598,6 @@ PICOGK_API void Viewer_RemoveAllObjects(PKVIEWER hThis)
     
     poThis->RemoveAllObjects();
 }
-
 
 PICOGK_API void Viewer_SetGroupVisible( PKVIEWER    hThis,
                                         int32_t     nGroupID,

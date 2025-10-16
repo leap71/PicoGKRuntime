@@ -228,6 +228,22 @@ void Viewer::RemoveMesh(    int64_t         hLib,
     }
 }
 
+void Viewer::SetMeshMatrix( int64_t             hLib,
+                            int64_t             hMesh,
+                            const Matrix4x4&    mat)
+{
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        if (poGroup->bFindMesh(hLib, hMesh))
+        {
+            poGroup->SetMeshMatrix(hLib, hMesh, mat);
+            RequestUpdate();
+            return;
+        }
+    }
+}
+
 void Viewer::AddVoxels(     int32_t         nGroupID,
                             int64_t         hLib,
                             int64_t         hVoxels)
@@ -256,6 +272,22 @@ void Viewer::RemoveVoxels(  int64_t hLib,
     }
 }
 
+void Viewer::SetVoxelsMatrix(   int64_t             hLib,
+                                int64_t             hVoxels,
+                                const Matrix4x4&    mat)
+{
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        if (poGroup->bFindVoxels(hLib, hVoxels))
+        {
+            poGroup->SetVoxelsMatrix(hLib, hVoxels, mat);
+            RequestUpdate();
+            return;
+        }
+    }
+}
+
 void Viewer::AddPolyLine(   int32_t nGroupID,
                             int64_t hLib,
                             int64_t hPoly)
@@ -277,6 +309,22 @@ void Viewer::RemovePolyLine(    int64_t hLib,
         if (poGroup->bFindPolyLine(hLib, hPoly))
         {
             poGroup->RemovePolyLine(hLib, hPoly);
+            RequestUpdate();
+            return;
+        }
+    }
+}
+
+void Viewer::SetPolyLineMatrix( int64_t             hLib,
+                                int64_t             hPolyLine,
+                                const Matrix4x4&    mat)
+{
+    for (auto Pair : m_oGroups)
+    {
+        Group::Ptr poGroup = Pair.second;
+        if (poGroup->bFindPolyLine(hLib, hPolyLine))
+        {
+            poGroup->SetPolyLineMatrix(hLib, hPolyLine, mat);
             RequestUpdate();
             return;
         }
