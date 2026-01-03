@@ -6,7 +6,7 @@
 #
 # For more information, please visit https://picogk.org
 #
-# PicoGK is developed and maintained by LEAP 71 - © 2023-2025 by LEAP 71
+# PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 # https://leap71.com
 #
 # Computational Engineering will profoundly change our physical world in the
@@ -36,8 +36,8 @@
 cmake_minimum_required(VERSION 3.25.1)
 
 # Define the version
-set(LIB_VERSION_MAJOR 25)
-set(LIB_VERSION_MINOR 2)
+set(LIB_VERSION_MAJOR 26)
+set(LIB_VERSION_MINOR 1)
 set(LIB_VERSION_SUBMINOR 0)
 set(LIB_VERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_SUBMINOR}")
 
