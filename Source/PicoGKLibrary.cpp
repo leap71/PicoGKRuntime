@@ -1447,6 +1447,17 @@ PICOGK_API  void Viewer_RequestScreenShot(  PKVIEWER        hThis,
     poThis->RequestScreenShot(pszScreenShotPath);
 }
 
+PICOGK_API void Viewer_EnableExperimental(  PKVIEWER    hThis,
+                                            bool        bEnable)
+{
+    PKTRACE(Viewer_EnableExperimental);
+    
+    Viewer* poThis = (Viewer*) hThis;
+    assert(ViewerManager::oMgr().bIsValid(poThis));
+    
+    poThis->EnableExperimental(bEnable);
+}
+
 PICOGK_API void Viewer_RequestClose(PKVIEWER hThis)
 {
     PKTRACE(Viewer_RequestClose);

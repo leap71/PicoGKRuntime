@@ -628,6 +628,9 @@ PICOGK_API  bool            Viewer_bPoll(                   PKVIEWER            
 PICOGK_API  void            Viewer_RequestScreenShot(       PKVIEWER            hThis,
                                                             const char*         pszScreenShotPath);
 
+PICOGK_API void             Viewer_EnableExperimental(      PKVIEWER            hThis,
+                                                            bool                bEnable);
+
 PICOGK_API  void            Viewer_RequestClose(            PKVIEWER            hThis);
 
 PICOGK_API bool             Viewer_bLoadLightSetup(         PKVIEWER            hThis,

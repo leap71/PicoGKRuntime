@@ -92,6 +92,15 @@ public:
     
     void RequestScreenShot(const std::string& strScreenShotPath);
     
+    void EnableExperimental(bool bEnable)
+    {
+        if (bEnable != m_bEnableExperimental)
+        {
+            m_bEnableExperimental = bEnable;
+            RequestUpdate();
+        }
+    }
+    
     void RequestClose();
     
     void AddMesh(   int32_t nGroupID,
@@ -191,6 +200,8 @@ public:
     
 protected:
     GLFWwindow*                         m_pTheWindow                = nullptr;
+    
+    bool                                m_bEnableExperimental       = false;
     
     Vector2                             m_vecMousePos;
     bool                                m_bRedrawNeeded             = true;

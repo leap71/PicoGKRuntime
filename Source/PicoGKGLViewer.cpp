@@ -661,62 +661,93 @@ void Viewer::DrawScene()
 
     CHECKGLERRORS;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_nOitFBO);
-    glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
-
-    const GLfloat clrZero[4] = {0, 0, 0, 0};
-    const GLfloat clrOne[4]  = {1, 1, 1, 1};
-
-    glClearBufferfv(GL_COLOR, 0, clrZero);   // accum
-    glClearBufferfv(GL_COLOR, 1, clrOne);    // revealage
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);                   // depth test yes, writes off
-    glEnable(GL_BLEND);
-    glEnable(GL_FRAMEBUFFER_SRGB);
-
-    // Per-attachment blend funcs for Weighted Blended OIT
-    glBlendFunci(0, GL_ONE, GL_ONE);                     // accum
-    glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);    // revealage
-    glBlendEquation(GL_FUNC_ADD);
-
-    CHECKGLERRORS;
-
-    // Draw transparent meshes
-    
     glEnable(GL_CULL_FACE);
-
-    m_roShaderProgMeshPolyOit->Use(matVP, vecEye);
-
-    for (auto& Pair : m_oGroups)
+    
+    if (m_bEnableExperimental)
     {
-        auto poGroup = Pair.second;
-        poGroup->Draw(*m_roShaderProgMeshPolyOit);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_nOitFBO);
+        glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
+
+        const GLfloat clrZero[4] = {0, 0, 0, 0};
+        const GLfloat clrOne[4]  = {1, 1, 1, 1};
+
+        glClearBufferfv(GL_COLOR, 0, clrZero);   // accum
+        glClearBufferfv(GL_COLOR, 1, clrOne);    // revealage
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);                   // depth test yes, writes off
+        glEnable(GL_BLEND);
+        glEnable(GL_FRAMEBUFFER_SRGB);
+
+        // Per-attachment blend funcs for Weighted Blended OIT
+        glBlendFunci(0, GL_ONE, GL_ONE);                     // accum
+        glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);    // revealage
+        glBlendEquation(GL_FUNC_ADD);
+        
+        CHECKGLERRORS;
+        
+        m_roShaderProgMeshPolyOit->Use(matVP, vecEye);
+
+        for (auto& Pair : m_oGroups)
+        {
+            auto poGroup = Pair.second;
+            poGroup->Draw(*m_roShaderProgMeshPolyOit);
+        }
+
+        CHECKGLERRORS;
+
+        // Composite pass
+        glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        
+        glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
+        
+        glClearColor(   clrBackground.R,
+                        clrBackground.G,
+                        clrBackground.B,
+                        1);
+
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        m_roShaderProgOitComposite->Use(    m_nOitAccumTex,
+                                            m_nOitRevealTex);
     }
+    else
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
+        glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
 
-    CHECKGLERRORS;
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_TRUE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Composite pass
-    glBindFramebuffer(GL_FRAMEBUFFER, m_nSceneFBO);
-    glEnable(GL_FRAMEBUFFER_SRGB);
-    
-    glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);
-    
-    glClearColor(   clrBackground.R,
-                    clrBackground.G,
-                    clrBackground.B,
-                    1);
+        // Clear both color and depth
+        glClearColor(   clrBackground.R,
+                        clrBackground.G,
+                        clrBackground.B,
+                        1.0f);
+            
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        CHECKGLERRORS;
+        
+        m_roShaderProgMeshPoly->Use(matVP, vecEye);
 
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    m_roShaderProgOitComposite->Use(    m_nOitAccumTex,
-                                        m_nOitRevealTex);
+        for (auto& Pair : m_oGroups)
+        {
+            auto poGroup = Pair.second;
+            poGroup->Draw(*m_roShaderProgMeshPoly);
+        }
+    }
 
     CHECKGLERRORS;
 
