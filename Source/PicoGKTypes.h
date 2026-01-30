@@ -303,20 +303,20 @@ struct Matrix4x4
     {
         Matrix4x4 result;
 
-        for (int col = 0; col < 4; ++col)
+        for (int row = 0; row < 4; ++row)
         {
-            for (int row = 0; row < 4; ++row)
+            for (int col = 0; col < 4; ++col)
             {
                 float sum = 0.0f;
                 for (int i = 0; i < 4; ++i)
                 {
-                    sum += matrix.m[row + i * 4] * other.matrix.m[col * 4 + i];
+                    sum += matrix.m[row * 4 + i] * other.matrix.m[i * 4 + col];
                 }
-                result.matrix.m[col * 4 + row] = sum;
+                result.matrix.m[row * 4 + col] = sum;
             }
         }
 
-        *this = result; // Update the current matrix with the result
+        *this = result;
     }
 };
 
