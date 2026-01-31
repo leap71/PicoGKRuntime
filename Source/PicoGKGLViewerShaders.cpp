@@ -548,7 +548,9 @@ void ShaderProgQuad::DrawQuad(  const Matrix4x4& matMVP,
         glUniform1i(m_nUtexTexture, 2); // Tell shader that texTexture = texture unit 2
     }
     
+    glBindVertexArray(m_nVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
 }
 
 /*static*/ const std::string ShaderProgQuad::c_strVertShader = R"VS(
