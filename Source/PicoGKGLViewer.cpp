@@ -661,8 +661,6 @@ void Viewer::DrawScene()
 
     CHECKGLERRORS;
 
-    glEnable(GL_CULL_FACE);
-    
     if (m_bEnableExperimental)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_nOitFBO);
@@ -685,8 +683,7 @@ void Viewer::DrawScene()
         glBlendFunci(1, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);    // revealage
         glBlendEquation(GL_FUNC_ADD);
         
-        CHECKGLERRORS;
-        
+        glEnable(GL_CULL_FACE);
         m_roShaderProgMeshPolyOit->Use(matVP, vecEye);
 
         for (auto& Pair : m_oGroups)
@@ -737,8 +734,7 @@ void Viewer::DrawScene()
                         1.0f);
             
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        CHECKGLERRORS;
+        glEnable(GL_CULL_FACE);
         
         m_roShaderProgMeshPoly->Use(matVP, vecEye);
 
@@ -748,7 +744,12 @@ void Viewer::DrawScene()
             poGroup->Draw(*m_roShaderProgMeshPoly);
         }
     }
-
+    
+    CHECKGLERRORS;
+    
+    m_roShaderProgQuad->Use();
+    m_oQuads.DrawAll(matVP, *this, *m_roShaderProgQuad);
+    
     CHECKGLERRORS;
 
     if (!m_strScreenShotPath.empty())
