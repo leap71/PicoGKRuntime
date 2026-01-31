@@ -179,8 +179,8 @@ void Viewer::ViewQuad::Draw(    const Matrix4x4& matVP,
 {
     PKTRACE(Viewer_ViewQuad_Draw);
     
-    Matrix4x4 matMVP = matVP;
-    matMVP *= m_mat;
+    Matrix4x4 matMVP = m_mat;
+    matMVP *= matVP;
     
     std::unique_ptr<GpuTextureList::UseTexture> roUseTex = oViewer.roGetTexture(m_hTexture);
     
