@@ -237,7 +237,7 @@ void main()
         }
     }
     
-    float fVdotN   = clamp(dot(-vec3View, vec3N), 0, 1.0);
+    float fVdotN   = clamp(dot(-vec3View, vec3N), .0f, 1.0);
     float fFresnel = fMetallic + (1.0 - fMetallic) * pow(1.0 - fVdotN, 5.0) * (1.0 - fRoughness * 0.9);
     
     vec3 vec3Diff  = textureLod(texDiff, vec3N, 0).xyz * vec3Color;
@@ -313,7 +313,7 @@ void main()
 
     // Lighting logic from standard shader
 
-    float fVdotN   = clamp(dot(-vec3View, vec3N), 0, 1.0);
+    float fVdotN   = clamp(dot(-vec3View, vec3N), .0f, 1.0);
     float fFresnel = fMetallic + (1.0 - fMetallic) * pow(1.0 - fVdotN, 5.0) * (1.0 - fRoughness * 0.9);
 
     vec3 vec3Diff  = textureLod(texDiff, vec3N, 0).xyz * vec3Color;
