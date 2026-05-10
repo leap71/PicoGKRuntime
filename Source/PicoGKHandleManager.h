@@ -93,7 +93,7 @@ public:
     /// Check if a handle is valid (exists)
     inline bool bIsValid(Handle h) const 
     {
-        std::unique_lock lk(m_mtx);
+        std::shared_lock lk(m_mtx);
         return m_map.count(h) != 0;
     }
 
