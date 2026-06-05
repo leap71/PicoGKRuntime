@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -81,9 +81,15 @@ public:
         m_roGrids = roGrids;
     }
     
+    int64_t nMemUsage() const
+    {
+        return sizeof(VdbFile) + m_nMemUsage;
+    }
+    
     int32_t nAddGrid(   std::string                     strGridName,
                         const openvdb::FloatGrid::Ptr   roGrid)
     {
+        m_nMemUsage += roGrid->memUsage();
         openvdb::FloatGrid::Ptr roCopy = deepCopyTypedGrid<FloatGrid>(roGrid);
         roCopy->setName(strGridName);
         m_roGrids->push_back(roCopy);
@@ -173,8 +179,8 @@ public:
     }
 
 protected:
-    
-    openvdb::GridPtrVecPtr m_roGrids;
+    int64_t                 m_nMemUsage = 0;
+    openvdb::GridPtrVecPtr  m_roGrids;
 };
 }
 #endif

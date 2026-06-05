@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -42,9 +42,14 @@
 #include "PicoGKMesh.h"
 #include <string>
 #include <map>
-#include "gl/gl.h"
+#include "PicoGKLibraryMgr.h"
+#include "PicoGKGLTexture.h"
+#include "PicoGKGLViewerShaders.h"
+#include "PicoGKGLObjects.h"
+#include "PicoGKTrace.h"
 
 struct GLFWwindow;
+struct ImGuiContext;
 
 namespace PicoGK
 {
@@ -62,7 +67,8 @@ public:
     // Plus viewers are never shared, so shared pointers are
     // just overkill
 
-    Viewer( GLFWwindow*,
+    Viewer( GLFWwindow*             pTheWindow,
+            ImGuiContext*           psSharedImGuiContext,
             PKPFUpdateRequested     pfnUpdateCallback,
             PKPFKeyPressed          pfnKeyPressedCallback,
             PKPFMouseMoved          pfnMouseMoveCallback,
@@ -86,23 +92,95 @@ public:
     
     void RequestScreenShot(const std::string& strScreenShotPath);
     
+    void EnableExperimental(bool bEnable)
+    {
+        if (bEnable != m_bEnableExperimental)
+        {
+            m_bEnableExperimental = bEnable;
+            RequestUpdate();
+        }
+    }
+    
     void RequestClose();
     
-    void AddMesh(   int32_t             nGroupID,
-                    const Mesh::Ptr*    proMesh);
+    void AddMesh(   int32_t nGroupID,
+                    int64_t hLib,
+                    int64_t hMesh);
     
-    void RemoveMesh(const Mesh::Ptr* proMesh);
+    void SetMeshMatrix( int64_t hLib,
+                        int64_t hMesh,
+                       const Matrix4x4& mat);
     
-    void AddPolyLine(   int32_t                 nGroupID,
-                        const PolyLine::Ptr*    proPoly);
+    void RemoveMesh(    int64_t hLib,
+                        int64_t hMesh);
+    
+    void AddVoxels( int32_t nGroupID,
+                    int64_t hLib,
+                    int64_t hVoxels);
+    
+    void RemoveVoxels(  int64_t hLib,
+                        int64_t hVoxels);
+    
+    void SetVoxelsMatrix(   int64_t             hLib,
+                            int64_t             hVoxels,
+                            const Matrix4x4&    mat);
+    
+    void AddPolyLine(   int32_t nGroupID,
+                        int64_t hLib,
+                        int64_t hPoly);
         
-    void RemovePolyLine(const PolyLine::Ptr* proPoly);
+    void RemovePolyLine(    int64_t hLib,
+                            int64_t hPoly);
+    
+    void SetPolyLineMatrix( int64_t             hLib,
+                            int64_t             hPolyLine,
+                            const Matrix4x4&    mat);
+    
+    int64_t hAddQuad(   uint64_t            hTexObject,
+                        ColorFloat          clrDefault,
+                        float               fAlpha,
+                        const Matrix4x4&    mat,
+                        bool                bFlipX,
+                        bool                bFlipY,
+                        bool                bDoubleSided)
+    {
+        PKTRACE(Viewer_hAddQuad);
+        
+        return m_oQuads.hAdd(std::make_shared<ViewQuad>(    *m_roShaderProgQuad,
+                                                            hTexObject,
+                                                            clrDefault,
+                                                            fAlpha,
+                                                            mat,
+                                                            bFlipX,
+                                                            bFlipY,
+                                                            bDoubleSided));
+        
+        RequestUpdate();
+    }
+    
+    void SetQuadMatrix(uint64_t hQuad, const Matrix4x4& mat)
+    {
+        m_oQuads.roGet(hQuad)->SetMatrix(mat);
+        RequestUpdate();
+    }
+    
+    void RemoveQuad(uint64_t hQuad)
+    {
+        bool bResult = m_oQuads.bDestroy(hQuad);
+        assert(bResult == true);
+        RequestUpdate();
+    }
+    
+    void RemoveAllObjects();
 
     void SetGroupVisible(   int32_t     nGroupID,
                             bool        bVisible);
     
-    void SetGroupStatic(    int32_t     nGroupID,
-                            bool        bStatic);
+    void EnableGroupWarnOverhang(   int32_t nGroupID,
+                                    float   fWarning,
+                                    float   fError);
+
+    void DisableGroupWarnOverhang(int32_t nGroupID);
     
     void SetGroupMaterial(  int32_t     nGroupID,
                             ColorFloat  clr,
@@ -112,8 +190,19 @@ public:
     void SetGroupMatrix(    int32_t             nGroupID,
                             const Matrix4x4&    mat);
     
+    GLFWwindow* pTheWindow() const      {return m_pTheWindow;}
+    
+    BBox3 oBBox()
+    {
+        RecalculateInformationIfNeeded();
+        return m_oBBox;
+    }
+    
 protected:
     GLFWwindow*                         m_pTheWindow                = nullptr;
+    
+    bool                                m_bEnableExperimental       = false;
+    bool                                m_bOpenGL4                  = false;
     
     Vector2                             m_vecMousePos;
     bool                                m_bRedrawNeeded             = true;
@@ -127,56 +216,69 @@ protected:
     PKPFScrollWheel                     m_pfnScrollWheelCallback    = nullptr;
     PKPFWindowSize                      m_pfnWindowSizeCallback     = nullptr;
     
-    static const std::string            m_strVertexShader;
-    static const std::string            m_strFragmentShader;
+    void OnKeyPressed(  int iKey,
+                        int iScanCode,
+                        int iAction,
+                        int iModifiers);
     
-    struct ShaderConfig
-    {
-        uint32_t    nVertexShader         = 0;
-        uint32_t    nFragmentShader       = 0;
-        uint32_t    nProgram              = 0;
-
-        GLuint      nTexDiffuse           = 0;
-        GLuint      nTexSpecular          = 0;
-
-        int         iOtoWUniform          = -1;
-        int         iMVPUniform           = -1;
-        int         iEyeUniform           = -1;
-        int         iColorUniform         = -1;
-        int         iMetallicUniform      = -1;
-        int         iRoughnessUniform     = -1;
-        int         iDiffuseUniform       = -1;
-        int         iSpecularUniform      = -1;
-
-        int         iPosAttrib            = -1;
-    } m_sConfig;
+    void OnMouseMoved(  double dMouseX,
+                        double dMouseY);
     
-    void Redraw();
-
+    void OnMouseButton( int iButton,
+                        int iAction,
+                        int iModifiers);
+    
+    void OnScrollWheel( double dX,
+                        double dY);
+    
+    void OnWindowSize(  int nWidth,
+                        int nHeight);
+    
+    std::unique_ptr<ShaderProgMeshPoly>     m_roShaderProgMeshPoly;
+    std::unique_ptr<ShaderProgMeshPolyOit>  m_roShaderProgMeshPolyOit;
+    std::unique_ptr<ShaderProgOitComposite> m_roShaderProgOitComposite;
+    std::unique_ptr<ShaderProgQuad>         m_roShaderProgQuad;
+    
+    void Redraw(bool bDraw3dScene);
+    
+    void DrawScene();
+    
+    void DrawGui();
+    
+    void EnsureFrameBuffer(int nX, int nY);
+    
+    GLuint          m_nSceneFBO         = 0;
+    GLuint          m_nSceneTex         = 0;
+    GLuint          m_nSceneDepth       = 0;
+    GLuint          m_nOitFBO           = 0;
+    GLuint          m_nOitAccumTex      = 0;
+    GLuint          m_nOitRevealTex     = 0;
+    int             m_nSceneWidth       = 0;
+    int             m_nSceneHeight      = 0;
+    ImGuiContext*   m_psImGuiContext    = nullptr;
+    
     class Group
     {
     public:
         PKSHAREDPTR(Group);
         
-        Group()
+        void AddMesh(   int64_t hLib,
+                        int64_t hMesh,
+                        const ShaderProgMeshPoly& oShader)
         {
-            m_bStatic  = false;
-            m_bVisible = true;
-        }
-        
-        ~Group()
-        {
+            PKTRACE(AddMesh);
             
+            auto roLib  = Library::oLib().roGetInstance(hLib);
+            auto roMesh = roLib->m_oMeshes.roGet(hMesh);
+            
+            m_oViewMeshes[std::make_pair(hLib, hMesh)] = std::make_unique<ViewMesh>(oShader, *roMesh);
         }
         
-        void AddMesh(const Mesh::Ptr* proMesh)
+        void RemoveMesh(int64_t hLib, int64_t hMesh)
         {
-            m_oViewMeshes[proMesh] = std::make_shared<ViewMesh>(*proMesh);
-        }
-        
-        void RemoveMesh(const Mesh::Ptr* proMesh)
-        {
-            auto it = m_oViewMeshes.find(proMesh);
+            PKTRACE(RemoveMesh);
+            
+            auto it = m_oViewMeshes.find(std::make_pair(hLib, hMesh));
             
             if (it == m_oViewMeshes.end())
             {
@@ -189,19 +291,109 @@ protected:
             }
         }
         
-        bool bFindMesh(const Mesh::Ptr* proMesh)
+        void SetMeshMatrix( int64_t hLib,
+                            int64_t hMesh,
+                            const Matrix4x4& mat)
         {
-            return !(m_oViewMeshes.find(proMesh) == m_oViewMeshes.end());
+            PKTRACE(SetMeshMatrix);
+            
+            auto it = m_oViewMeshes.find(std::make_pair(hLib, hMesh));
+            
+            if (it == m_oViewMeshes.end())
+            {
+                assert(false);
+                // Trying to operate on a Mesh object that doesn't exist
+            }
+            else
+            {
+                it->second->SetMatrix(mat);
+            }
         }
         
-        void AddPolyLine(const PolyLine::Ptr* proPoly)
+        bool bFindMesh(int64_t hLib, int64_t hMesh)
         {
-            m_oViewPolyLines[proPoly] = std::make_shared<ViewPolyLine>(*proPoly);
+            return !(m_oViewMeshes.find(std::make_pair(hLib, hMesh)) == m_oViewMeshes.end());
         }
         
-        void RemovePolyLine(const PolyLine::Ptr* proPoly)
+        void AddVoxels( int64_t hLib, int64_t hVoxels,
+                       const ShaderProgMeshPoly& oShader)
         {
-            auto it = m_oViewPolyLines.find(proPoly);
+            PKTRACE(AddVoxels);
+            
+            auto roLib      = Library::oLib().roGetInstance(hLib);
+            auto roVoxels   = roLib->m_oVoxels.roGet(hVoxels);
+            
+            // Transform to Mesh
+            Mesh::Ptr roNew = roVoxels->roAsMesh();
+            if (roNew->nVertexCount() == 0)
+                return; // Empty Voxel Field cannot be added
+
+            m_oViewMeshes[std::make_pair(hLib, hVoxels)] = std::make_unique<ViewMesh>(oShader, *roNew);
+        }
+        
+        void RemoveVoxels(int64_t hLib, int64_t hVoxels)
+        {
+            PKTRACE(RemoveVoxels);
+            
+            // Find a mesh that is stored with the voxel ID
+            auto it = m_oViewMeshes.find(std::make_pair(hLib, hVoxels));
+            
+            if (it == m_oViewMeshes.end())
+            {
+                assert(false);
+                // Trying to remove a Voxels object that doesn't exist
+            }
+            else
+            {
+                m_oViewMeshes.erase(it);
+            }
+        }
+        
+        void SetVoxelsMatrix(   int64_t hLib,
+                                int64_t hVoxels,
+                                const Matrix4x4& mat)
+        {
+            SetMeshMatrix(hLib, hVoxels, mat);
+        }
+        
+        bool bFindVoxels(int64_t hLib, int64_t hVoxels)
+        {
+            return !(m_oViewMeshes.find(std::make_pair(hLib, hVoxels)) == m_oViewMeshes.end());
+        }
+        
+        void AddPolyLine(   int64_t hLib,
+                            int64_t hPoly,
+                            const ShaderProgMeshPoly& oShader)
+        {
+            auto roLib  = Library::oLib().roGetInstance(hLib);
+            auto roPoly = roLib->m_oPolyLines.roGet(hPoly);
+            
+            if (roPoly->nVertexCount() == 0)
+                return; // nothing to do
+            
+            m_oViewPolyLines[std::make_pair(hLib, hPoly)] = std::make_unique<ViewPolyLine>(oShader, *roPoly);
+        }
+        
+        void SetPolyLineMatrix( int64_t hLib,
+                                int64_t hPoly,
+                                const Matrix4x4& mat)
+        {
+            auto it = m_oViewPolyLines.find(std::make_pair(hLib, hPoly));
+            
+            if (it == m_oViewPolyLines.end())
+            {
+                assert(false);
+                // Trying to set a PolyLine object that doesn't exist
+            }
+            else
+            {
+                it->second->SetMatrix(mat);
+            }
+        }
+        
+        void RemovePolyLine(int64_t hLib, int64_t hPoly)
+        {
+            auto it = m_oViewPolyLines.find(std::make_pair(hLib, hPoly));
             
             if (it == m_oViewPolyLines.end())
             {
@@ -214,9 +406,16 @@ protected:
             }
         }
         
-        inline bool bFindPolyLine(const PicoGK::PolyLine::Ptr* proPoly)
+        inline bool bFindPolyLine(int64_t hLib, int64_t hPoly)
         {
-            return !(m_oViewPolyLines.find(proPoly) == m_oViewPolyLines.end());
+            return !(m_oViewPolyLines.find(std::make_pair(hLib, hPoly)) == m_oViewPolyLines.end());
+        }
+        
+        
+        inline void RemoveAllObjects()
+        {
+            m_oViewMeshes.clear();
+            m_oViewPolyLines.clear();
         }
         
         inline void SetVisible(bool bVisible)
@@ -229,14 +428,17 @@ protected:
             return m_bVisible;
         }
         
-        inline void SetStatic(bool bStatic)
+        inline void EnableWarnOverhang( float fWarning,
+                                        float fError)
         {
-            m_bStatic = bStatic;
+            m_bWarnOverhang     = true;
+            m_fWarningOverhang  = fWarning;
+            m_fErrorOverhang    = fError;
         }
         
-        inline bool bStatic() const
+        inline void DisableWarnOverhang()
         {
-            return m_bStatic;
+            m_bWarnOverhang = false;
         }
         
         void SetMaterial(   ColorFloat  clr,
@@ -254,12 +456,15 @@ protected:
             m_mat = mat;
         }
         
-        void Draw(  const Matrix4x4& matModelTrans,
-                    const ShaderConfig& sConfig);
+        void Draw(const ShaderProgMeshPoly& oShaderProg);
+        
+        BBox3 oCalculateBBox() const;
         
     protected:
-        bool m_bVisible;
-        bool m_bStatic;
+        bool    m_bVisible          = true;
+        bool    m_bWarnOverhang     = false;
+        float   m_fWarningOverhang  = 0.0f;
+        float   m_fErrorOverhang    = 0.0f;
         
         Matrix4x4 m_mat;
         
@@ -286,43 +491,44 @@ protected:
         {
             PKSHAREDPTR(ViewMesh);
             
-            ViewMesh(const Mesh::Ptr& roMesh);
+            ViewMesh(   const ShaderProgMeshPoly& oShader,
+                        const Mesh& oMesh);
             
-            void Draw(  const ShaderConfig& sConfig,
+            void SetMatrix(const Matrix4x4& mat);
+            
+            void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
-                        const Matrix4x4& mat);
+                        const Matrix4x4& mat,
+                        bool    bWarnOverhang,
+                        float   fWarning,
+                        float   fError);
             
-            struct GLParams
-            {
-                GLuint  nVertexArray;
-                GLuint  nArrayBuffer;
-                GLuint  nElementArrayBuffer;
-            } sGLParams;
-            
-            Mesh::Ptr m_roMesh;
+            std::unique_ptr<GlElementBuffer<Vector3>>   m_roElementBuffer;
+            BBox3                                       m_oBBox;
+            Matrix4x4                                   m_mat;
         };
         
         struct ViewPolyLine
         {
             PKSHAREDPTR(ViewPolyLine);
             
-            ViewPolyLine(const PolyLine::Ptr& roPoly);
+            ViewPolyLine(   const ShaderProgMeshPoly& oShader,
+                            const PolyLine& oPoly);
             
-            void Draw(  const ShaderConfig& sConfig,
+            void SetMatrix(const Matrix4x4& mat);
+            
+            void Draw(  const ShaderProgMeshPoly& oShaderProg,
                         const Material& sMaterial,
                         const Matrix4x4& mat);
             
-            struct GLParams
-            {
-                GLuint  nVertexArray;
-                GLuint  nArrayBuffer;
-            } sGLParams;
-            
-            PolyLine::Ptr m_roPolyLine;
+            std::unique_ptr<GlVertexBuffer<Vector3>>    m_roVertexBuffer;
+            ColorFloat                                  m_clrLine;
+            BBox3                                       m_oBBox;
+            Matrix4x4                                   m_mat;
         };
         
-        std::map<const Mesh::Ptr*,      ViewMesh::Ptr>        m_oViewMeshes;
-        std::map<const PolyLine::Ptr*,  ViewPolyLine::Ptr>    m_oViewPolyLines;
+        std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewMesh>>        m_oViewMeshes;
+        std::map<std::pair<int64_t, int64_t>, std::unique_ptr<ViewPolyLine>>    m_oViewPolyLines;
     };
     
     Group::Ptr roGroupAt(int nGroupID)
@@ -345,76 +551,307 @@ protected:
     }
     
     std::map<int,Group::Ptr> m_oGroups;
-};
+    
+    class ViewQuad
+    {
+    public:
+        ViewQuad(   const ShaderProgQuad& oShader,
+                    uint64_t    hTexObject,
+                    ColorFloat  clrDefault,
+                    float       fAlpha,
+                    Matrix4x4   mat,
+                    bool        bFlipX,
+                    bool        bFlipY,
+                    bool        bDoubleSided);
+        
+        void SetMatrix(const Matrix4x4& matNew)
+        {
+            m_mat = matNew;
+        }
+        
+        void Draw(  const Matrix4x4& matVP,
+                    const Viewer& oViewer,
+                    const ShaderProgQuad& oShader) const;
+        
+        Matrix4x4   m_mat;
+        ColorFloat  m_clr;
+        float       m_fAlpha;
+        uint64_t    m_hTexture;
+        bool        m_bFlipX;
+        bool        m_bFlipY;
+        bool        m_bDoubleSided;
+    };
+    
+    class QuadHandleManager : public HandleManager<ViewQuad>
+    {
+    public:
+        QuadHandleManager(std::string strName)
+        : HandleManager(strName)
+        {
+            
+        }
+        
+        void DrawAll(   const Matrix4x4& matVP,
+                        const Viewer& oViewer,
+                        const ShaderProgQuad& oShader)
+        {
+            std::shared_lock lk(m_mtx);
+            for (const auto& oPair : m_map)
+            {
+                oPair.second->Draw(matVP, oViewer, oShader);
+            }
+        }
+    } m_oQuads;
+    
+    void RecalculateInformationIfNeeded();
+    
+    void RecalcNeeded()     {m_bRecalcNeeded = true;}
+    
+    bool                    m_bRecalcNeeded = true;
+    
+    BBox3                   m_oBBox;
+    
+    // Viewer GUI elements
+  
+    class GuiElement
+    {
+    public:
+        PKSHAREDPTR(GuiElement);
+        
+        GuiElement( Viewer*         poViewer,
+                    std::string     strName,
+                    bool            bVisible = true)
+        
+            :   PKINIT(poViewer),
+                m_strName(strName),
+                PKINIT(bVisible)
+        {
+           /// TODO, find out if we need to make handle available
+        }
+        
+        void AddChild(GuiElement::Ptr roChild)
+        {
+            m_oChildren.push_back(roChild);
+        }
+        
+        void RemoveChild(GuiElement::Ptr roChild)
+        {
+            auto it = std::find(m_oChildren.begin(), m_oChildren.end(), roChild);
+            if (it != m_oChildren.end())
+            {
+                m_oChildren.erase(it);
+            }
+        }
+        
+        virtual void Draw()
+        {
+            if (!m_bVisible)
+                return;
+            
+            Setup();
+            
+            DrawMe();
+            
+            for (auto roElement : m_oChildren)
+            {
+                roElement->Draw();
+                roElement->m_bIsItemHovered = ImGui::IsItemHovered();
+            }
+            
+            m_bIsWindowHovered = ImGui::IsWindowHovered();
+            Close();
+        }
+        
+        void SetVisible(bool bVisible) {m_bVisible = bVisible;}
+        
+    protected:
+        
+        virtual void Setup() = 0;
+        
+        virtual void DrawMe() = 0;
+        
+        virtual void Close() = 0;
+        
+        Viewer*                         m_poViewer;
+        std::string                     m_strName;
+        GuiElement::Ptr                 m_roParent;
+        bool                            m_bVisible;
+        std::deque<GuiElement::Ptr>     m_oChildren;
+        
+        bool                            m_bIsItemHovered      = false;
+        bool                            m_bIsWindowHovered    = false;
+    };
+    
+    class SideBar : public GuiElement
+    {
+    public:
+        PKSHAREDPTR(SideBar);
+        
+        SideBar(    Viewer*     poViewer,
+                    bool        bLeft,
+                    int         nMin,
+                    int         nMax,
+                    int         nDef,
+                    ColorFloat  clrBackground,
+                    ColorFloat  clrBackgroundHv,
+                    bool        bVisible = true)
+        
+        :   GuiElement(     poViewer,
+                            bLeft ? "Sidebar_Left" : "Sidebar_Right",
+                            bVisible),
+            PKINIT(bLeft),
+            PKINIT(nMin),
+            PKINIT(nMax),
+            PKINIT(nDef),
+            PKINIT(clrBackground),
+            PKINIT(clrBackgroundHv)
+        {
+            
+        }
+        
+    protected:
+        virtual void Setup();
+        
+        virtual void DrawMe();
+        
+        virtual void Close();
+        
+        bool        m_bLeft;
+        int         m_nMin;
+        int         m_nMax;
+        int         m_nDef;
+        ColorFloat  m_clrBackground;
+        ColorFloat  m_clrBackgroundHv;
+    };
+    
+    class TextLabel : public GuiElement
+    {
+    public:
+        PKSHAREDPTR(TextLabel);
+        
+        TextLabel(  Viewer*         poViewer,
+                    ColorFloat      clrText,
+                    std::string     strText,
+                    bool            bVisible = true)
+        
+        :   GuiElement( poViewer,
+                        strText,
+                        bVisible),
+            PKINIT(strText),
+            PKINIT(clrText)
+        {
+            
+        }
+        
+    protected:
+        virtual void Setup();
+        
+        virtual void DrawMe();
+        
+        virtual void Close();
+        
+        std::string m_strText;
+        ColorFloat  m_clrText;
+    };
+    
+    class Slider : public GuiElement
+    {
+    public:
+        PKSHAREDPTR(GuiElement);
+        
+        Slider(     Viewer*         poViewer,
+                    ColorFloat      clrFrameBg,
+                    ColorFloat      clrFrameBgHv,
+                    ColorFloat      clrFrameBgActive,
+                    ColorFloat      clrGrab,
+                    ColorFloat      clrGrabActive,
+                    ColorFloat      clrText,
+                    std::string     strText,
+                    float           fMin,
+                    float           fMax,
+                    float           fValue,
+                    bool            bVisible = true)
+        
+        :   GuiElement( poViewer,
+                        strText,
+                        bVisible),
+            PKINIT(clrFrameBg),
+            PKINIT(clrFrameBgHv),
+            PKINIT(clrFrameBgActive),
+            PKINIT(clrGrab),
+            PKINIT(clrGrabActive),
+            PKINIT(clrText),
+            PKINIT(fMin),
+            PKINIT(fMax),
+            PKINIT(fValue)
+        {
+            
+        }
+        
+    protected:
+        virtual void Setup();
+        
+        virtual void DrawMe();
+        
+        virtual void Close();
+        
+        ColorFloat      m_clrFrameBg;
+        ColorFloat      m_clrFrameBgHv;
+        ColorFloat      m_clrFrameBgActive;
+        ColorFloat      m_clrGrab;
+        ColorFloat      m_clrGrabActive;
+        ColorFloat      m_clrText;
+        float           m_fMin;
+        float           m_fMax;
+        float           m_fValue;
+    };
 
-class ViewerManager
-{
 public:
-    
-    Viewer* poCreate(   const std::string&      strWindowTitle,
-                        const Vector2&          vecSize,
-                        PKFInfo                 pfnInfoCallback,
-                        PKPFUpdateRequested     pfnUpdateCallback,
-                        PKPFKeyPressed          pfnKeyPressedCallback,
-                        PKPFMouseMoved          pfnMouseMoveCallback,
-                        PKPFMouseButton         pfnMouseButtonCallback,
-                        PKPFScrollWheel         pfnScrollWheelCallback,
-                        PKPFWindowSize          pfnWindowSizeCallback);
-
-    void Destroy(Viewer* poViewer);
-    
-    bool bIsValid(const Viewer* poViewer) const;
-    
-    bool bExists(const Viewer* poViewer) const;
-    
-    void ReportInfo(const std::string strInfo, bool bFatal);
-    
-    static ViewerManager& oMgr()
+    uint64_t hGpuTexCreate( int nWidth,
+                            int nHeight,
+                            const char* pBuffer)
     {
-        static ViewerManager oSingleton;
-        return oSingleton;
+        return m_oTextures.hAdd(nWidth, nHeight, pBuffer);
     }
     
-    static void Info(   const std::string strInfo,
-                        bool bFatalError = false)
+    void GpuTexRefresh(uint64_t hTex, const char* pBuffer)
     {
-        oMgr().ReportInfo(strInfo, bFatalError);
+        m_oTextures.Refresh(hTex, pBuffer);
     }
     
-    static void KeyPressed( GLFWwindow* psWindow,
-                            int iKey,
-                            int iScanCode,
-                            int iAction,
-                            int iModifiers);
-
-    static void MouseMoved( GLFWwindow* psWindow,
-                            double dMouseX,
-                            double dMouseY);
-
-    static void MouseButton(    GLFWwindow* psWindow,
-                                int iButton,
-                                int iAction,
-                                int iModifiers);
-    
-    static void ScrollWheel(    GLFWwindow* psWindow,
-                                double dX,
-                                double dY);
-    
-    static void WindowSize(     GLFWwindow* psWindow,
-                                int nWidth,
-                                int nHeight);
-    
-    ViewerManager(const ViewerManager&)                 = delete;
-    ViewerManager& operator = (const ViewerManager&)    = delete;
-    
-private:
-    ViewerManager();
-    
-    ~ViewerManager();
+    void GpuTexMarkForCleanup(uint64_t hTex)
+    {
+        m_oTextures.MarkForDestruction(hTex);
+    }
     
 protected:
-    PKFInfo                         m_pfnInfoCallback;
-    std::map<GLFWwindow*, Viewer*>  m_oViewers;
+    GpuTextureList  m_oTextures;
+    
+public:
+    std::unique_ptr<GpuTextureList::UseTexture> roGetTexture(int64_t hTexture) const
+    {
+        return std::make_unique<GpuTextureList::UseTexture>(m_oTextures, hTexture);
+    }
+    
+    void ShowAllTextures() const
+    {
+        m_oTextures.ShowAllTextures();
+    }
+    
+public:
+    uint64_t hCreateSideBar(    bool                bLeft,
+                                int                 nMin,
+                                int                 nMax,
+                                int                 nDef,
+                                ColorFloat          clrBackground,
+                                ColorFloat          clrBackgroundHv);
+    
+    void DestroySideBar(uint64_t hSideBar);
+    
+protected:
+    HandleManager<GuiElement>   m_oGuiElements;
+    uint64_t                    m_hSideBarLeft     = 0;
+    uint64_t                    m_hSideBarRight    = 0;
 };
 
 } // namespace PicoGK

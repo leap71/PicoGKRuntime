@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -178,7 +178,6 @@ protected:
         return s * sqrtf(std::min(  cax * cax + cay * cay * baba,
                                     cbx * cbx + cby * cby * baba));
     }
-    
     Vector3 m_vecS;
     Vector3 m_vecE;
     float   m_fRadS;
@@ -191,6 +190,11 @@ class Lattice
 {
 public:
     PKSHAREDPTR(Lattice);
+    
+    int64_t nMemUsage() const
+    {
+        return sizeof(Lattice) + m_oSpheres.capacity() * sizeof(LatticeSphere) + m_oBeams.capacity() * sizeof(LatticeBeam);
+    }
     
     void AddSphere( Vector3 vecCenter,
                     float fRadius)

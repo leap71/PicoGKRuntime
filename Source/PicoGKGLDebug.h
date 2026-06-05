@@ -33,78 +33,19 @@
 // limitations under the License.
 //
 
-#ifndef PICOGKGLPOLYLINE_H_
-#define PICOGKGLPOLYLINE_H_
-
-#include "PicoGKTypes.h"
-#include <vector>
-#include <memory>
-#include <assert.h>
+#ifndef PICOGKGLDEBUG_H_
+#define PICOGKGLDEBUG_H_
 
 namespace PicoGK
 {
-class PolyLine
-{
-public:
-    PKSHAREDPTR(PolyLine);
-    
-    PolyLine(const ColorFloat& clr)
-    {
-        m_clrLines = clr;
-    }
-    
-    PolyLine(const PolyLine&)            = default;
-    
-    PolyLine& operator=(const PolyLine&) = default;
-    
-    ~PolyLine()
-    {
-    }
-    
-    int64_t nMemUsage() const
-    {
-        return sizeof(PolyLine) + m_oVertices.capacity() * sizeof(Vector3);
-    }
-    
-    int32_t nAddVertex(const Vector3& vec)
-    {
-        m_oBBox.Include(vec);
-        m_oVertices.push_back(vec);
-        return int32_t(m_oVertices.size() - 1);
-    }
 
-    void GetVertex( int32_t nIndex,
-                    Vector3* pvec) const
-    {
-        assert(nIndex < m_oVertices.size());
-        *pvec = m_oVertices[nIndex];
-    }
+bool bCheckGLErrors();
+#define CHECKGLERRORS assert(bCheckGLErrors())
 
-    int32_t nVertexCount() const
-    {
-        return (int32_t) m_oVertices.size();
-    }
-    
-    const std::vector<Vector3>& vVertices() const
-    {
-        return m_oVertices;
-    }
+bool bCheckShaderErrors(GLuint nShader);
+#define CHECKSHADERERRORS(nShader)    assert(bCheckShaderErrors(nShader));
 
-    ColorFloat clrLines() const
-    {
-        return m_clrLines;
-    }
-    
-    inline BBox3 oBBox() const
-    {
-        return m_oBBox;
-    }
-    
-protected:
-    std::vector<Vector3>    m_oVertices;
-    ColorFloat              m_clrLines;
-    BBox3                   m_oBBox;
-};
 }
 
-#endif
+#endif // #ifndef PICOGKGLTEXTURE_H_
+

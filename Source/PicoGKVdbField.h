@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -49,9 +49,10 @@ class Field
 {
 public:
     
-    Field()
+    Field(float fVoxelSizeMM)
     {
         m_roGrid = TFieldType::create();
+        m_roGrid->setTransform(openvdb::math::Transform::createLinearTransform(fVoxelSizeMM));
     };
     
     Field(typename TFieldType::Ptr roGrid)
@@ -64,10 +65,35 @@ public:
         m_roGrid = deepCopyTypedGrid<TFieldType>(oSource.m_roGrid);
     };
     
+    int64_t nMemUsage() const
+    {
+        return sizeof(TFieldType) + m_roGrid->memUsage();
+    }
+    
     typename TFieldType::Ptr roVdbGrid() const {return m_roGrid;}
+    
+    inline VoxelSize oVoxelSize() const
+    {
+        assert(bHasValidPicoGKTransform(m_roGrid));
+        return VoxelSize(m_roGrid->voxelSize().x());
+    }
     
 protected:
     typename TFieldType::Ptr             m_roGrid;
+    
+    static bool bHasValidPicoGKTransform(const TFieldType::Ptr roGrid)
+    {
+        if (!roGrid->transform().isLinear())
+            return false;
+            
+        if (roGrid->voxelSize().x() != roGrid->voxelSize().y())
+            return false;
+        
+        if (roGrid->voxelSize().x() != roGrid->voxelSize().z())
+            return false;
+        
+        return true;
+    }
 };
 
 class ScalarField : public Field<FloatGrid>
@@ -75,8 +101,8 @@ class ScalarField : public Field<FloatGrid>
 public:
     typedef std::shared_ptr<ScalarField> Ptr;
     
-    ScalarField()
-    : Field()
+    ScalarField(float fVoxelSizeMM)
+    : Field(fVoxelSizeMM)
     {
         m_roGrid->setGridClass(GRID_FOG_VOLUME);
     }
@@ -120,40 +146,37 @@ public:
     }
     
     void SetValue(  Vector3     vecPos,
-                    VoxelSize   oVoxelSize,
                     float       fValue)
     {
         auto oAccess = m_roGrid->getAccessor();
         
-        openvdb::Coord xyz(     oVoxelSize.iToVoxels(vecPos.X),
-                                oVoxelSize.iToVoxels(vecPos.Y),
-                                oVoxelSize.iToVoxels(vecPos.Z));
+        openvdb::Coord xyz(     oVoxelSize().iToVoxels(vecPos.X),
+                                oVoxelSize().iToVoxels(vecPos.Y),
+                                oVoxelSize().iToVoxels(vecPos.Z));
         
         oAccess.setValue(xyz, fValue);
     }
     
     bool bGetValue( Vector3 vecPos,
-                    VoxelSize oVoxelSize,
                     float* pfValue)
     {
         auto oAccess = m_roGrid->getConstAccessor();
     
-        openvdb::Coord xyz( oVoxelSize.iToVoxels(vecPos.X),
-                            oVoxelSize.iToVoxels(vecPos.Y),
-                            oVoxelSize.iToVoxels(vecPos.Z));
+        openvdb::Coord xyz( oVoxelSize().iToVoxels(vecPos.X),
+                            oVoxelSize().iToVoxels(vecPos.Y),
+                            oVoxelSize().iToVoxels(vecPos.Z));
         
         *pfValue = oAccess.getValue(xyz);
         return oAccess.isValueOn(xyz);
     }
     
-    void RemoveValue(   Vector3 vecPos,
-                        VoxelSize oVoxelSize)
+    void RemoveValue(Vector3 vecPos)
     {
         auto oAccess = m_roGrid->getAccessor();
         
-        openvdb::Coord xyz(     oVoxelSize.iToVoxels(vecPos.X),
-                                oVoxelSize.iToVoxels(vecPos.Y),
-                                oVoxelSize.iToVoxels(vecPos.Z));
+        openvdb::Coord xyz(     oVoxelSize().iToVoxels(vecPos.X),
+                                oVoxelSize().iToVoxels(vecPos.Y),
+                                oVoxelSize().iToVoxels(vecPos.Z));
         
         oAccess.setValueOff(xyz);
     }
@@ -192,15 +215,14 @@ public:
         }
     }
     
-    void TraverseActive(    PKFnTraverseActiveS pfnCallback,
-                            VoxelSize oVoxelSize)
+    void TraverseActive(PKFnTraverseActiveS pfnCallback)
     {
         for (auto iter = m_roGrid->cbeginValueOn(); iter; ++iter)
         {
             openvdb::Coord xyz = iter.getCoord();
-            Vector3 vecLocation = oVoxelSize.vecToMM(   Coord(  xyz.x(),
-                                                                xyz.y(),
-                                                                xyz.z()));
+            Vector3 vecLocation = oVoxelSize().vecToMM(   Coord(    xyz.x(),
+                                                                    xyz.y(),
+                                                                    xyz.z()));
             pfnCallback(    &vecLocation,
                             iter.getValue());
         }
@@ -217,8 +239,8 @@ class VectorField : public Field<Vec3SGrid>
 public:
     typedef std::shared_ptr<VectorField> Ptr;
     
-    VectorField()
-    : Field()
+    VectorField(float fVoxelSizeMM)
+    : Field(fVoxelSizeMM)
     {
     }
     
@@ -274,28 +296,26 @@ public:
     }
     
     void SetValue(  Vector3 vecPos,
-                    VoxelSize oVoxelSize,
                     Vector3 vecValue)
     {
         auto oAccess = m_roGrid->getAccessor();
         
         Vec3s vec(vecValue.X, vecValue.Y, vecValue.Z);
-        openvdb::Coord xyz( oVoxelSize.iToVoxels(vecPos.X),
-                            oVoxelSize.iToVoxels(vecPos.Y),
-                            oVoxelSize.iToVoxels(vecPos.Z));
+        openvdb::Coord xyz( oVoxelSize().iToVoxels(vecPos.X),
+                            oVoxelSize().iToVoxels(vecPos.Y),
+                            oVoxelSize().iToVoxels(vecPos.Z));
         
         oAccess.setValue(xyz, vec);
     }
     
     bool bGetValue( Vector3 vecPos,
-                    VoxelSize oVoxelSize,
                     Vector3* pvecValue)
     {
         auto oAccess = m_roGrid->getConstAccessor();
     
-        openvdb::Coord xyz( oVoxelSize.iToVoxels(vecPos.X),
-                            oVoxelSize.iToVoxels(vecPos.Y),
-                            oVoxelSize.iToVoxels(vecPos.Z));
+        openvdb::Coord xyz( oVoxelSize().iToVoxels(vecPos.X),
+                            oVoxelSize().iToVoxels(vecPos.Y),
+                            oVoxelSize().iToVoxels(vecPos.Z));
         
         Vec3s vec = oAccess.getValue(xyz);
         
@@ -306,27 +326,25 @@ public:
         return oAccess.isValueOn(xyz);
     }
     
-    void RemoveValue(   Vector3 vecPos,
-                        VoxelSize oVoxelSize)
+    void RemoveValue(Vector3 vecPos)
     {
         auto oAccess = m_roGrid->getAccessor();
         
-        openvdb::Coord xyz(     oVoxelSize.iToVoxels(vecPos.X),
-                                oVoxelSize.iToVoxels(vecPos.Y),
-                                oVoxelSize.iToVoxels(vecPos.Z));
+        openvdb::Coord xyz(     oVoxelSize().iToVoxels(vecPos.X),
+                                oVoxelSize().iToVoxels(vecPos.Y),
+                                oVoxelSize().iToVoxels(vecPos.Z));
         
         oAccess.setValueOff(xyz);
     }
     
-    void TraverseActive(    PKFnTraverseActiveV pfnCallback,
-                            VoxelSize oVoxelSize)
+    void TraverseActive(PKFnTraverseActiveV pfnCallback)
     {
         for (auto iter = m_roGrid->cbeginValueOn(); iter; ++iter)
         {
             openvdb::Coord xyz = iter.getCoord();
-            Vector3 vecLocation = oVoxelSize.vecToMM(   Coord(  xyz.x(),
-                                                                xyz.y(),
-                                                                xyz.z()));
+            Vector3 vecLocation = oVoxelSize().vecToMM(   Coord(    xyz.x(),
+                                                                    xyz.y(),
+                                                                    xyz.z()));
             auto oValue = iter.getValue();
             
             Vector3 vecValue(   oValue.x(),

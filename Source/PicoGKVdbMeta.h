@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -63,6 +63,14 @@ public:
     int32_t nCount() const
     {
         return (int32_t) m_roMetaMap->metaCount();
+    }
+    
+    int64_t nMemUsage() const
+    {
+        // This is way too small, but since it is a fairly irrelevant data
+        // type, it doesn't warrent spending too much time on counting all
+        // the elements, etc.
+        return sizeof(*m_roMetaMap);
     }
     
     std::string strNameAt(int32_t nIndex)

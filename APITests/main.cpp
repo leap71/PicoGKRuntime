@@ -23,7 +23,7 @@
 #include <assert.h>
 
 // Change this to run tests
-#define TESTFILE_PATH "/Users/richard/PicoGK_TestFiles"
+#define TESTFILE_PATH "/Users/yourusername/PicoGK_Testfiles"
 
 PKVIEWER g_hViewer = nullptr;
 
@@ -73,11 +73,8 @@ void SetIdentityMatrix(PKMatrix4x4* pmat)
 void UpdateRequested(   PKVIEWER            hViewer,
                         const PKVector2*    pvecViewport,
                         PKColorFloat*       pclrBackground,
-                        PKMatrix4x4*        pmatModelViewProjection,
-                        PKMatrix4x4*        pmatModelTransform,
-                        PKMatrix4x4*        pmatStatic,
-                        PKVector3*          pvecEyePosition,
-                        PKVector3*          pvecEyeStatic)
+                        PKMatrix4x4*        pmatViewProjection,
+                        PKVector3*          pvecEyePosition)
 {
     assert(hViewer == g_hViewer);
     
@@ -85,10 +82,6 @@ void UpdateRequested(   PKVIEWER            hViewer,
     pclrBackground->R = ((float)(rand() % 10000)) / 10000.0f;
     pclrBackground->G = ((float)(rand() % 10000)) / 10000.0f;
     pclrBackground->A = 0.0f;
-    
-    static PKMatrix4x4 matTrans;
-    
-    SetIdentityMatrix(&matTrans);
     
     static PKMatrix4x4 mat;
     mat.vec1.X = -0.6971824f;
@@ -111,8 +104,7 @@ void UpdateRequested(   PKVIEWER            hViewer,
     mat.vec4.Z = 33.2254829f;
     mat.vec4.W = 33.2542801f;
     
-    *pmatModelTransform         = matTrans;
-    *pmatModelViewProjection    = mat;
+    *pmatViewProjection    = mat;
     
     PKVector3 vecEye;
     vecEye.X = 20.493336f;
@@ -147,7 +139,11 @@ void KeyPressed(        PKVIEWER    hViewer,
 }
 
 void MouseMoved(    PKVIEWER            hViewer,
-                    const PKVector2*    vecMousePos)
+                    const PKVector2*    vecMousePos,
+                    bool                bShift,
+                    bool                bCtrl,
+                    bool                bAlt,
+                    bool                bCmd)
 {
     assert(hViewer == g_hViewer);
     
@@ -156,7 +152,11 @@ void MouseMoved(    PKVIEWER            hViewer,
 
 void ScrollWheel(   PKVIEWER            hViewer,
                     const PKVector2*    vecOffset,
-                    const PKVector2*    vecMousePos)
+                    const PKVector2*    vecMousePos,
+                    bool                bShift,
+                    bool                bCtrl,
+                    bool                bAlt,
+                    bool                bCmd)
 {
     assert(hViewer == g_hViewer);
     
@@ -184,8 +184,6 @@ int main(int argc, const char * argv[])
 {
     char pszInfo[PKINFOSTRINGLEN];
     
-    Library_Init(1.0f);
-    
     Library_GetName(pszInfo);
     std::cout << pszInfo << " ";
     
@@ -195,11 +193,15 @@ int main(int argc, const char * argv[])
     Library_GetBuildInfo(pszInfo);
     std::cout << pszInfo << "\n";
     
-    PKMESH hMesh = Mesh_hCreate();
-    assert(Mesh_bIsValid(hMesh));
+    PKINSTANCE hLib = Library_hCreateInstance(1.0f);
+    
+    PKMESH hMesh = Mesh_hCreate(hLib);
+    assert(Mesh_bIsValid(hLib, hMesh));
     
     std::vector<PKVector3>  oVertices;
     std::vector<PKTriangle> oTriangles;
+    
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
     if (!PicoGKStl::bReadStlFile(  TESTFILE_PATH"/Teapot.stl",
                                     &oVertices,
@@ -212,14 +214,16 @@ int main(int argc, const char * argv[])
         std::cout << "Mesh with " << oVertices.size() << " vertices\n";
         for (auto vec : oVertices)
         {
-            Mesh_nAddVertex(hMesh, &vec);
+            Mesh_nAddVertex(hLib, hMesh, &vec);
         }
         
         for (auto tri : oTriangles)
         {
-            Mesh_nAddTriangle(hMesh, &tri);
+            Mesh_nAddTriangle(hLib, hMesh, &tri);
         }
     }
+    
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
     PKVector2 vecSize;
     vecSize.X = 2048;
@@ -256,9 +260,9 @@ int main(int argc, const char * argv[])
         std::cout << "Failed to load viewer textures from " << TESTFILE_PATH << "\n";
     }
             
-    PKVOXELS hVoxels = Voxels_hCreate();
-    assert(Voxels_bIsValid(hVoxels));
-    Voxels_RenderMesh(hVoxels, hMesh);
+    PKVOXELS hVoxels = Voxels_hCreate(hLib);
+    assert(Voxels_bIsValid(hLib, hVoxels));
+    Voxels_RenderMesh(hLib, hVoxels, hMesh);
     
     PKVector3 vecSearch;
     vecSearch.X = 50;
@@ -267,7 +271,7 @@ int main(int argc, const char * argv[])
     
     PKVector3 vecSurface;
     
-    if (Voxels_bClosestPointOnSurface(hVoxels, &vecSearch, &vecSurface))
+    if (Voxels_bClosestPointOnSurface(hLib, hVoxels, &vecSearch, &vecSurface))
     {
         PKColorFloat clr;
         clr.R = 1.0f;
@@ -275,39 +279,49 @@ int main(int argc, const char * argv[])
         clr.B = 0.0f;
         clr.A = 1.0f;
         
-        PKPOLYLINE hPoly = PolyLine_hCreate(&clr);
+        PKPOLYLINE hPoly = PolyLine_hCreate(hLib, &clr);
         
-        PolyLine_nAddVertex(hPoly, &vecSearch);
-        PolyLine_nAddVertex(hPoly, &vecSurface);
+        PolyLine_nAddVertex(hLib, hPoly, &vecSearch);
+        PolyLine_nAddVertex(hLib, hPoly, &vecSurface);
         
-        Viewer_AddPolyLine(g_hViewer, 0, hPoly);
+        Viewer_AddPolyLine(hLib, g_hViewer, 0, hPoly);
     }
     
-    PKVDBFILE hVdb = VdbFile_hCreate();
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
-    int nIndex = VdbFile_nAddVoxels(hVdb, "Voxels", hVoxels);
+    PKVDBFILE hVdb = VdbFile_hCreate(hLib);
     
-    if (!VdbFile_bSaveToFile(hVdb, TESTFILE_PATH"/Voxels.vdb"))
+    int nIndex = VdbFile_nAddVoxels(hLib,hVdb, "Voxels", hVoxels);
+    
+    if (!VdbFile_bSaveToFile(hLib, hVdb, TESTFILE_PATH"/Voxels.vdb"))
     {
         std::cout << "Failed to save Vdb to " << TESTFILE_PATH << "\n";
     }
     
-    VdbFile_Destroy(hVdb);
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
-    PKVDBFILE   hVdbRead    = VdbFile_hCreateFromFile(TESTFILE_PATH"/Voxels.vdb");
+    VdbFile_Destroy(hLib, hVdb);
+    
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
+    
+    PKVDBFILE   hVdbRead    = VdbFile_hCreateFromFile(hLib, TESTFILE_PATH"/Voxels.vdb");
     PKVOXELS    hVoxelsRead = hVoxels;
-    if (hVdbRead == nullptr)
+    if (hVdbRead == 0)
     {
         std::cout << "Failed to read Vdb from " << TESTFILE_PATH << "\n";
     }
     else
     {
-        hVoxelsRead = VdbFile_hGetVoxels(hVdbRead, nIndex);
-        VdbFile_Destroy(hVdbRead);
+        hVoxelsRead = VdbFile_hGetVoxels(hLib, hVdbRead, nIndex);
+        VdbFile_Destroy(hLib, hVdbRead);
     }
+    
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
 
-    PKMESH hFromVoxels = Mesh_hCreateFromVoxels(hVoxelsRead);
-    Viewer_AddMesh(g_hViewer, 0, hFromVoxels);
+    Viewer_AddVoxels(hLib, g_hViewer, 0, hVoxelsRead);
+    
+    // Try again, which should replace them
+    Viewer_AddVoxels(hLib, g_hViewer, 0, hVoxelsRead);
     
     Viewer_RequestUpdate(g_hViewer);
     
@@ -316,18 +330,21 @@ int main(int argc, const char * argv[])
         std::this_thread::yield();
     }
     
-    Viewer_RemoveMesh(g_hViewer, hFromVoxels);
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
-    PKLATTICE hLattice = Lattice_hCreate();
-    assert(Lattice_bIsValid(hLattice));
-    Lattice_Destroy(hLattice);
+    Viewer_RemoveVoxels(hLib, g_hViewer, hVoxelsRead);
     
-    Mesh_Destroy(hMesh);
-    Mesh_Destroy(hFromVoxels);
-    Voxels_Destroy(hVoxels);
+    PKLATTICE hLattice = Lattice_hCreate(hLib);
+    assert(Lattice_bIsValid(hLib, hLattice));
+    Lattice_Destroy(hLib, hLattice);
+    
+    Mesh_Destroy(hLib, hMesh);
+    Voxels_Destroy(hLib, hVoxels);
     
     if (hVoxelsRead != hVoxels)
-        Voxels_Destroy(hVoxelsRead);
+        Voxels_Destroy(hLib, hVoxelsRead);
+    
+    std::cout << "Current Mem Usage " << Library_nTotalMemUsage(hLib) / 1024 << " KB\n";
     
     return 0;
 }

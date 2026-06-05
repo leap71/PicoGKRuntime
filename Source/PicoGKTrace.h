@@ -33,78 +33,56 @@
 // limitations under the License.
 //
 
-#ifndef PICOGKGLPOLYLINE_H_
-#define PICOGKGLPOLYLINE_H_
+#ifndef PICOGKTRACE_H_
+#define PICOGKTRACE_H_
 
-#include "PicoGKTypes.h"
-#include <vector>
-#include <memory>
-#include <assert.h>
+//#define PICOGKTRACE_ENABLE true
+
+#include <iostream>
+#include <chrono>
+
+#if defined(PICOGKTRACE_ENABLE)
+#   define PKTRACE(func) PkTrace trace_##func(#func, PICOGKTRACE_ENABLE)
+#else
+#   define PKTRACE(func)
+#endif
 
 namespace PicoGK
 {
-class PolyLine
+
+class PkTrace
 {
 public:
-    PKSHAREDPTR(PolyLine);
-    
-    PolyLine(const ColorFloat& clr)
+    PkTrace(std::string strName, bool bCostlyOnly)
     {
-        m_clrLines = clr;
+        m_timStart      = std::chrono::high_resolution_clock::now();
+        m_strName       = strName;
+        m_bCostlyOnly   = bCostlyOnly;
+        
+        if (!m_bCostlyOnly)
+            std::cerr << m_strName << " - Entered\n";
     }
     
-    PolyLine(const PolyLine&)            = default;
-    
-    PolyLine& operator=(const PolyLine&) = default;
-    
-    ~PolyLine()
+    ~PkTrace()
     {
-    }
-    
-    int64_t nMemUsage() const
-    {
-        return sizeof(PolyLine) + m_oVertices.capacity() * sizeof(Vector3);
-    }
-    
-    int32_t nAddVertex(const Vector3& vec)
-    {
-        m_oBBox.Include(vec);
-        m_oVertices.push_back(vec);
-        return int32_t(m_oVertices.size() - 1);
-    }
-
-    void GetVertex( int32_t nIndex,
-                    Vector3* pvec) const
-    {
-        assert(nIndex < m_oVertices.size());
-        *pvec = m_oVertices[nIndex];
-    }
-
-    int32_t nVertexCount() const
-    {
-        return (int32_t) m_oVertices.size();
-    }
-    
-    const std::vector<Vector3>& vVertices() const
-    {
-        return m_oVertices;
-    }
-
-    ColorFloat clrLines() const
-    {
-        return m_clrLines;
-    }
-    
-    inline BBox3 oBBox() const
-    {
-        return m_oBBox;
+        std::chrono::milliseconds oMS = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_timStart);
+        
+        if ((!m_bCostlyOnly) || (oMS.count() > 100))
+        {
+            std::cerr << m_strName << " - Exited ";
+            std::cerr << oMS << " elapsed\n";
+        }
     }
     
 protected:
-    std::vector<Vector3>    m_oVertices;
-    ColorFloat              m_clrLines;
-    BBox3                   m_oBBox;
+    std::string m_strName;
+    bool        m_bCostlyOnly;
+    
+    std::chrono::time_point<std::chrono::high_resolution_clock>
+                                        m_timStart;
 };
-}
+    
+} // namespace PicoGK
 
 #endif
+

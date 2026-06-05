@@ -33,78 +33,58 @@
 // limitations under the License.
 //
 
-#ifndef PICOGKGLPOLYLINE_H_
-#define PICOGKGLPOLYLINE_H_
+#ifndef PICOGKGLSHADER_H_
+#define PICOGKGLSHADER_H_
 
-#include "PicoGKTypes.h"
-#include <vector>
-#include <memory>
-#include <assert.h>
+#include <string>
+#include <stdexcept>
 
 namespace PicoGK
 {
-class PolyLine
+
+class GlShaderProgram
 {
 public:
-    PKSHAREDPTR(PolyLine);
+    GlShaderProgram(    const std::string& strVertexShader,
+                        const std::string& strFragmentShader);
     
-    PolyLine(const ColorFloat& clr)
-    {
-        m_clrLines = clr;
-    }
+    virtual ~GlShaderProgram();
     
-    PolyLine(const PolyLine&)            = default;
+    virtual void Use() const;
     
-    PolyLine& operator=(const PolyLine&) = default;
+    std::string strListUniforms() const;
     
-    ~PolyLine()
-    {
-    }
+    std::string strListAttributes() const;
     
-    int64_t nMemUsage() const
-    {
-        return sizeof(PolyLine) + m_oVertices.capacity() * sizeof(Vector3);
-    }
-    
-    int32_t nAddVertex(const Vector3& vec)
-    {
-        m_oBBox.Include(vec);
-        m_oVertices.push_back(vec);
-        return int32_t(m_oVertices.size() - 1);
-    }
-
-    void GetVertex( int32_t nIndex,
-                    Vector3* pvec) const
-    {
-        assert(nIndex < m_oVertices.size());
-        *pvec = m_oVertices[nIndex];
-    }
-
-    int32_t nVertexCount() const
-    {
-        return (int32_t) m_oVertices.size();
-    }
-    
-    const std::vector<Vector3>& vVertices() const
-    {
-        return m_oVertices;
-    }
-
-    ColorFloat clrLines() const
-    {
-        return m_clrLines;
-    }
-    
-    inline BBox3 oBBox() const
-    {
-        return m_oBBox;
-    }
+    static std::string strGlTypeToString(GLenum eType);
     
 protected:
-    std::vector<Vector3>    m_oVertices;
-    ColorFloat              m_clrLines;
-    BBox3                   m_oBBox;
+    GLuint m_hProgram = 0;
+    
+    enum class EShaderType {Vertex, Fragment};
+    
+    GLuint hCompileShader(  EShaderType eType,
+                            const std::string& strSource) const;
+    
+    GLint nUniformLoc(const std::string& strName) const;
+    
+    GLint nAttribLoc(const std::string& strName) const;
+    
+public:
+    class ShaderProgramException : public std::runtime_error
+    {
+    public:
+        ShaderProgramException(const std::string& strMessage)
+        : std::runtime_error("Shader program error: " + strMessage)
+        {
+            
+        }
+    };
 };
-}
+
+
+    
+} // namespace PicoGK
 
 #endif
+

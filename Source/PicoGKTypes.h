@@ -6,7 +6,7 @@
 //
 // For more information, please visit https://picogk.org
 //
-// PicoGK is developed and maintained by LEAP 71 - © 2023-2024 by LEAP 71
+// PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 // https://leap71.com
 //
 // Computational Engineering will profoundly change our physical world in the
@@ -42,6 +42,7 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include "imgui.h"
 
 #define PKINIT(var)                 m_##var(var)
 #define PKSHAREDPTR(class)          typedef std::shared_ptr<class> Ptr;
@@ -62,6 +63,11 @@ struct ColorFloat
     float G;
     float B;
     float A;
+    
+    ImVec4 sToImVec4()
+    {
+        return ImVec4(R,G,B,A);
+    }
 };
 
 struct Coord
@@ -78,7 +84,7 @@ public:
     
     Coord()
     {
-#ifdef _DEBUG
+#ifdef DEBUG_BUILD
         X = std::numeric_limits<int32_t>::min();
         Y = std::numeric_limits<int32_t>::min();
         Z = std::numeric_limits<int32_t>::min();
@@ -297,20 +303,20 @@ struct Matrix4x4
     {
         Matrix4x4 result;
 
-        for (int col = 0; col < 4; ++col)
+        for (int row = 0; row < 4; ++row)
         {
-            for (int row = 0; row < 4; ++row)
+            for (int col = 0; col < 4; ++col)
             {
                 float sum = 0.0f;
                 for (int i = 0; i < 4; ++i)
                 {
-                    sum += matrix.m[row + i * 4] * other.matrix.m[col * 4 + i];
+                    sum += matrix.m[row * 4 + i] * other.matrix.m[i * 4 + col];
                 }
-                result.matrix.m[col * 4 + row] = sum;
+                result.matrix.m[row * 4 + col] = sum;
             }
         }
 
-        *this = result; // Update the current matrix with the result
+        *this = result;
     }
 };
 
@@ -347,7 +353,7 @@ struct BBox3
         for (int n=0;n<3;n++)
         {
             vecMin.v[n] = std::min<float>(oBB.vecMin.v[n], vecMin.v[n]);
-            vecMax.v[n] = std::min<float>(oBB.vecMax.v[n], vecMax.v[n]);
+            vecMax.v[n] = std::max<float>(oBB.vecMax.v[n], vecMax.v[n]);
         }
     }
     
@@ -369,12 +375,12 @@ public:
         m_fVoxelSizeMM = f;
     }
     
-    operator float()
+    operator float() const
     {
         return m_fVoxelSizeMM;
     }
     
-    Coord xyzToVoxels(const Vector3& vecMM)
+    Coord xyzToVoxels(const Vector3& vecMM) const
     {
         Coord xyzVoxels(    iToVoxels(vecMM.X),
                             iToVoxels(vecMM.Y),
@@ -383,17 +389,17 @@ public:
         return xyzVoxels;
     }
 
-    inline int32_t iToVoxels(float fMM)
+    inline int32_t iToVoxels(float fMM) const
     {
-        return (int) 0.5f + fToVoxels(fMM);
+        return (int32_t) std::lround(fToVoxels(fMM));
     }
     
-    inline float fToVoxels(float fMM)
+    inline float fToVoxels(float fMM) const
     {
         return fMM / m_fVoxelSizeMM;
     }
 
-    Vector3 vecToMM(const Coord& xyzVoxels)
+    Vector3 vecToMM(const Coord& xyzVoxels) const
     {
         Vector3 vecMM(  fToMM(xyzVoxels.X),
                         fToMM(xyzVoxels.Y),
@@ -402,7 +408,7 @@ public:
         return vecMM;
     }
     
-    Vector3 vecToVoxels(const Vector3& vecMM)
+    Vector3 vecToVoxels(const Vector3& vecMM) const
     {
         Vector3 vecVox( fToVoxels(vecMM.X),
                         fToVoxels(vecMM.Y),
@@ -411,7 +417,7 @@ public:
         return vecVox;
     }
 
-    float fToMM(int iVoxels)
+    float fToMM(int iVoxels) const
     {
         return iVoxels * m_fVoxelSizeMM;
     }

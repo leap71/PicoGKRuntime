@@ -6,7 +6,7 @@
 #
 # For more information, please visit https://picogk.org
 #
-# PicoGK is developed and maintained by LEAP 71 - © 2023-2025 by LEAP 71
+# PicoGK is developed and maintained by LEAP 71 - © 2023-2026 by LEAP 71
 # https://leap71.com
 #
 # Computational Engineering will profoundly change our physical world in the
@@ -36,14 +36,16 @@
 cmake_minimum_required(VERSION 3.25.1)
 
 # Define the version
-set(LIB_VERSION_MAJOR 1)
-set(LIB_VERSION_MINOR 7)
-set(LIB_VERSION_SUBMINOR 1)
+set(LIB_VERSION_MAJOR 26)
+set(LIB_VERSION_MINOR 2)
+set(LIB_VERSION_SUBMINOR 0)
 set(LIB_VERSION "${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}.${LIB_VERSION_SUBMINOR}")
 
 cmake_policy( SET CMP0091 NEW ) #enable MSVC_RUNTIME_LIBRARY property
 cmake_policy( SET CMP0042 NEW ) #enable MACOSX_RPATH
 set( CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" )
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(PicoGK VERSION ${LIB_VERSION})
@@ -143,6 +145,30 @@ target_sources(${LIB_NAME} PRIVATE ${API_HEADERS})
 # Add the header files from the CPP folder to the library target
 file(GLOB CPP_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h")
 target_sources(${LIB_NAME} PRIVATE ${CPP_HEADERS})
+
+# Specify ImGui source files
+set(IMGUI_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_glfw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+# Add ImGui files to the main library
+target_sources(${LIB_NAME}
+    PRIVATE
+    ${IMGUI_SOURCES}
+)
+
+# Include ImGui headers for the library
+target_include_directories(${LIB_NAME}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+)
 
 # Organize files into virtual folders using the source_group command
 source_group("PicoGK API" FILES ${API_HEADERS})
