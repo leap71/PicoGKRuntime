@@ -1650,15 +1650,15 @@ PICOGK_API void Viewer_SetGroupMatrix(  PKVIEWER            hThis,
 
 PICOGK_API void Viewer_EnableGroupWarnOverhang( PKVIEWER    hThis,
                                                 int32_t     nGroupID,
-                                                int32_t     nWarningAngleDeg,
-                                                int32_t     nErrorAngleDeg)
+                                                float       fWarning,
+                                                float       fError)
 {
     PKTRACE(Viewer_EnableGroupWarnOverhang);
     
     Viewer* poThis = (Viewer*) hThis;
     assert(ViewerManager::oMgr().bIsValid(poThis));
     
-    poThis->EnableGroupWarnOverhang(nGroupID, nWarningAngleDeg, nErrorAngleDeg);
+    poThis->EnableGroupWarnOverhang(nGroupID, fWarning, fError);
 }
 
 PICOGK_API void Viewer_DisableGroupWarnOverhang(    PKVIEWER    hThis,

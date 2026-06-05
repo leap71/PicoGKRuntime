@@ -176,9 +176,9 @@ public:
     void SetGroupVisible(   int32_t     nGroupID,
                             bool        bVisible);
     
-    void EnableGroupWarnOverhang(   int32_t     nGroupID,
-                                    int32_t     nWarningAngleDeg,
-                                    int32_t     nErrorAngleDeg);
+    void EnableGroupWarnOverhang(   int32_t nGroupID,
+                                    float   fWarning,
+                                    float   fError);
 
     void DisableGroupWarnOverhang(int32_t nGroupID);
     
@@ -202,6 +202,7 @@ protected:
     GLFWwindow*                         m_pTheWindow                = nullptr;
     
     bool                                m_bEnableExperimental       = false;
+    bool                                m_bOpenGL4                  = false;
     
     Vector2                             m_vecMousePos;
     bool                                m_bRedrawNeeded             = true;
@@ -427,12 +428,12 @@ protected:
             return m_bVisible;
         }
         
-        inline void EnableWarnOverhang( int nWarningAngleDeg,
-                                        int nErrorAngleDeg)
+        inline void EnableWarnOverhang( float fWarning,
+                                        float fError)
         {
             m_bWarnOverhang     = true;
-            m_nWarningAngleDeg  = nWarningAngleDeg;
-            m_nErrorAngleDeg    = nErrorAngleDeg;
+            m_fWarningOverhang  = fWarning;
+            m_fErrorOverhang    = fError;
         }
         
         inline void DisableWarnOverhang()
@@ -462,8 +463,8 @@ protected:
     protected:
         bool    m_bVisible          = true;
         bool    m_bWarnOverhang     = false;
-        int     m_nWarningAngleDeg  = 0;
-        int     m_nErrorAngleDeg    = 0;
+        float   m_fWarningOverhang  = 0.0f;
+        float   m_fErrorOverhang    = 0.0f;
         
         Matrix4x4 m_mat;
         
@@ -498,9 +499,9 @@ protected:
             void Draw(  const ShaderProgMeshPoly& oShader,
                         const Material& sMaterial,
                         const Matrix4x4& mat,
-                        bool bWarnOverhang,
-                        int nWarningAngleDeg,
-                        int nErrorAngleDeg);
+                        bool    bWarnOverhang,
+                        float   fWarning,
+                        float   fError);
             
             std::unique_ptr<GlElementBuffer<Vector3>>   m_roElementBuffer;
             BBox3                                       m_oBBox;

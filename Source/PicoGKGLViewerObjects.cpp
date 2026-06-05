@@ -86,8 +86,8 @@ void Viewer::Group::Draw(const ShaderProgMeshPoly& oShader)
                                 m_sMaterial,
                                 m_mat,
                                 m_bWarnOverhang,
-                                m_nWarningAngleDeg,
-                                m_nErrorAngleDeg);
+                                m_fWarningOverhang,
+                                m_fErrorOverhang);
     }
 }
 
@@ -127,8 +127,8 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                                     const Material& sMaterial,
                                     const Matrix4x4& mat,
                                     bool bWarnOverhang,
-                                    int nWarningAngleDeg,
-                                    int nErrorAngleDeg)
+                                    float fWarning,
+                                    float fError)
 {
     // Apply object matrix first, then apply group matrix
     Matrix4x4 matResult = mat;
@@ -139,8 +139,8 @@ void Viewer::Group::ViewMesh::Draw( const ShaderProgMeshPoly& oShader,
                         sMaterial.fMetallic,
                         sMaterial.fRoughness,
                         bWarnOverhang,
-                        nWarningAngleDeg,
-                        nErrorAngleDeg);
+                        fWarning,
+                        fError);
     
     GlBind oBind(*m_roElementBuffer);
     glDrawElements(GL_TRIANGLES, m_roElementBuffer->nIndexCount(), GL_UNSIGNED_INT, nullptr);

@@ -51,6 +51,34 @@
 namespace PicoGK
 {
 
+static bool bGetOpenGLVersion(int* pnMajor, int* pnMinor)
+{
+    if (pnMajor == nullptr || pnMinor == nullptr)
+        return false;
+
+    *pnMajor = 0;
+    *pnMinor = 0;
+
+    // Requires a current context and loaded GL function pointers.
+    glGetIntegerv(GL_MAJOR_VERSION, pnMajor);
+    glGetIntegerv(GL_MINOR_VERSION, pnMinor);
+
+    GLenum e = glGetError();
+    return e == GL_NO_ERROR && *pnMajor > 0;
+}
+
+static bool bIsOpenGLAtLeast(int nReqMajor, int nReqMinor)
+{
+    int nMajor = 0;
+    int nMinor = 0;
+
+    if (!bGetOpenGLVersion(&nMajor, &nMinor))
+        return false;
+
+    return (nMajor > nReqMajor) ||
+           (nMajor == nReqMajor && nMinor >= nReqMinor);
+}
+
 Viewer::Viewer( GLFWwindow*             pTheWindow,
                 ImGuiContext*           psSharedImGuiContext,
                 PKPFUpdateRequested     pfnUpdateCallback,
@@ -77,14 +105,21 @@ Viewer::Viewer( GLFWwindow*             pTheWindow,
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         throw std::runtime_error("Unable to initialize OpenGL");
     
+    m_bOpenGL4 = bIsOpenGLAtLeast(4,1);
+    
     glEnable(GL_FRAMEBUFFER_SRGB);
     
     CHECKGLERRORS;
     
     m_roShaderProgMeshPoly      = std::make_unique<ShaderProgMeshPoly>();
-    m_roShaderProgMeshPolyOit   = std::make_unique<ShaderProgMeshPolyOit>();
-    m_roShaderProgOitComposite  = std::make_unique<ShaderProgOitComposite>();
-    m_roShaderProgQuad          = std::make_unique<ShaderProgQuad>();
+    
+    if (m_bOpenGL4)
+    {
+        m_roShaderProgMeshPolyOit   = std::make_unique<ShaderProgMeshPolyOit>();
+        m_roShaderProgOitComposite  = std::make_unique<ShaderProgOitComposite>();
+    }
+    
+    m_roShaderProgQuad = std::make_unique<ShaderProgQuad>();
     
     m_psImGuiContext = psSharedImGuiContext;
     ImGui::SetCurrentContext(m_psImGuiContext);
@@ -111,8 +146,6 @@ bool Viewer::bLoadLightSetup(   const char* pDiffuseTextureDDS,
                                                     nDiffuseBufferSize,
                                                     pSpecularTextureDDS,
                                                     nSpecularBufferSize);
-    
-    
     
     CHECKGLERRORS;
     
@@ -349,11 +382,11 @@ void Viewer::SetGroupVisible(   int32_t     nGroupID,
     RequestUpdate();
 }
 
-void Viewer::EnableGroupWarnOverhang(   int32_t     nGroupID,
-                                        int32_t     nWarningAngleDeg,
-                                        int32_t     nErrorAngleDeg)
+void Viewer::EnableGroupWarnOverhang(   int32_t nGroupID,
+                                        float   fWarning,
+                                        float   fError)
 {
-    roGroupAt(nGroupID)->EnableWarnOverhang(nWarningAngleDeg, nErrorAngleDeg);
+    roGroupAt(nGroupID)->EnableWarnOverhang(fWarning, fError);
     RequestUpdate();
 }
 
@@ -661,7 +694,7 @@ void Viewer::DrawScene()
 
     CHECKGLERRORS;
 
-    if (m_bEnableExperimental)
+    if (m_bOpenGL4 && m_bEnableExperimental)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_nOitFBO);
         glViewport(0, 0, m_nSceneWidth, m_nSceneHeight);

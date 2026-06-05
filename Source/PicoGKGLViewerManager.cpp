@@ -79,6 +79,33 @@ ViewerManager::~ViewerManager()
     glfwTerminate();
 }
 
+static GLFWwindow* pCreateWindowWithGLVersion(
+    int                 nWidth,
+    int                 nHeight,
+    const std::string&  strWindowTitle,
+    int                 nMajor,
+    int                 nMinor)
+{
+    glfwDefaultWindowHints();
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, nMajor);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, nMinor);
+
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // required on macOS
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
+
+    return glfwCreateWindow(
+        nWidth,
+        nHeight,
+        strWindowTitle.c_str(),
+        nullptr,
+        nullptr);
+}
+
 Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
                                     const Vector2&      vecSize,
                                     PKFInfo             pfnInfoCallback,
@@ -89,27 +116,28 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
                                     PKPFScrollWheel     pfnScrollWheelCallback,
                                     PKPFWindowSize      pfnWindowSizeCallback)
 {
-    std::unique_lock lk(m_mtx);
-    
-    m_pfnInfoCallback = pfnInfoCallback;
+    {
+        std::unique_lock lk(m_mtx);
+        m_pfnInfoCallback = pfnInfoCallback;
+    }
     
     glfwSetErrorCallback(ErrorCallback);
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            //required for Mac OS
-    //glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
-    //glfwWindowHint(GLFW_SAMPLES, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
     
-    GLFWwindow* pWindow = glfwCreateWindow( (GLint) vecSize.X,
-                                            (GLint) vecSize.Y,
-                                            strWindowTitle.c_str(),
-                                            NULL,  // which monitor
-                                            NULL); // "share" ??
+     // Try OpenGL 4.1
+    GLFWwindow* pWindow = pCreateWindowWithGLVersion(   (GLint) vecSize.X,
+                                                        (GLint) vecSize.Y,
+                                                        strWindowTitle.c_str(),
+                                                        4,1);
+
+    if (pWindow == nullptr)
+    {
+        ViewerManager::Info("Failed to create OpenGL 4.1 context, trying OpenGL 3.3", false);
+        // Failed, fall back to OpenGL 3.3
+        pWindow = pCreateWindowWithGLVersion(   (GLint) vecSize.X,
+                                                (GLint) vecSize.Y,
+                                                strWindowTitle.c_str(),
+                                                3,3);
+    }
 
     if (pWindow == nullptr)
     {
@@ -117,11 +145,35 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
         return nullptr;
     }
     
-    glfwSetKeyCallback(         pWindow, KeyPressed);
-    glfwSetCursorPosCallback(   pWindow, MouseMoved);
-    glfwSetMouseButtonCallback( pWindow, MouseButton);
-    glfwSetScrollCallback(      pWindow, ScrollWheel);
-    glfwSetWindowSizeCallback(  pWindow, WindowSize);
+    glfwMakeContextCurrent(pWindow);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        ViewerManager::Info("Unable to initialize OpenGL", true);
+        return nullptr;
+    }
+
+    const GLubyte* pVersion  = glGetString(GL_VERSION);
+    const GLubyte* pRenderer = glGetString(GL_RENDERER);
+    const GLubyte* pVendor   = glGetString(GL_VENDOR);
+
+    ViewerManager::Info(
+        std::string("OpenGL: ") +
+        (pVersion  ? reinterpret_cast<const char*>(pVersion)  : "<unknown version>") +
+        " / " +
+        (pRenderer ? reinterpret_cast<const char*>(pRenderer) : "<unknown renderer>") +
+        " / " +
+        (pVendor   ? reinterpret_cast<const char*>(pVendor)   : "<unknown vendor>"),
+        false);
+    
+    {
+        std::unique_lock lk(m_mtx);
+        glfwSetKeyCallback(         pWindow, KeyPressed);
+        glfwSetCursorPosCallback(   pWindow, MouseMoved);
+        glfwSetMouseButtonCallback( pWindow, MouseButton);
+        glfwSetScrollCallback(      pWindow, ScrollWheel);
+        glfwSetWindowSizeCallback(  pWindow, WindowSize);
+    }
     
     Viewer* poViewer = new Viewer(  pWindow,
                                     m_psSharedImGuiContext,
@@ -132,7 +184,10 @@ Viewer* ViewerManager::poCreate(    const std::string&  strWindowTitle,
                                     pfnScrollWheelCallback,
                                     pfnWindowSizeCallback);
 
-    m_oViewers[pWindow] = poViewer;
+    {
+        std::unique_lock lk(m_mtx);
+        m_oViewers[pWindow] = poViewer;
+    }
     
     poViewer->RequestUpdate();
     return poViewer;

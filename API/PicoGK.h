@@ -699,8 +699,8 @@ PICOGK_API void             Viewer_SetGroupMatrix(          PKVIEWER            
 
 PICOGK_API void             Viewer_EnableGroupWarnOverhang( PKVIEWER    hThis,
                                                             int32_t     nGroupID,
-                                                            int32_t     nWarningAngleDeg,
-                                                            int32_t     nErrorAngleDeg);
+                                                            float       fWarning,
+                                                            float       fError);
 
 PICOGK_API void             Viewer_DisableGroupWarnOverhang(PKVIEWER    hThis,
                                                             int32_t     nGroupID);
