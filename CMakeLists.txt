@@ -59,10 +59,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Lib)
 set(PICOGK_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # Define the library name
-if( WIN32 )
+if( WIN32 OR (UNIX AND NOT APPLE) )
+	# picogk.26.2.dll / picogk.26.2.so, the name the PicoGK C# library imports
 	set(LIB_NAME "picogk.${LIB_VERSION_MAJOR}.${LIB_VERSION_MINOR}")
 else()
-	# unix-like systems automatically append version number
+	# macOS automatically appends the version number
 	set(LIB_NAME "picogk")
 endif()
 
