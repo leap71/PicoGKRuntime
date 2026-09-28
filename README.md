@@ -10,4 +10,18 @@ PicoGK Runtime is based on the [OpenVDB](https://github.com/AcademySoftwareFound
 
 For more information, [please see the main PicoGK repository](https://github.com/leap71/PicoGK).
 
+## Building on Linux
+
+The runtime builds on Linux x86-64 with GCC and the system packages for Boost, TBB and Blosc (tested on Ubuntu 26.04 with GCC 15.2 and CMake 4.2).
+
+```sh
+git clone --recursive https://github.com/leap71/PicoGKRuntime
+cd PicoGKRuntime
+sh Install_Dependencies/Linux.sh
+cmake -S . -B Build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build Build
+```
+
+This produces `Build/lib/picogk.26.2.so` (also copied to `Dist/`), the name the PicoGK C# library loads. Place it next to your application, or in a directory listed in `LD_LIBRARY_PATH`. OpenVDB is linked statically; TBB, Blosc, Boost.Iostreams and zlib are loaded from the system.
+
 PicoGK was developed by Lin Kayser, and is maintained by [LEAP 71](www.leap71.com). PicoGK and PicoGK Runtime are released under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) (SPDX Apache-2.0).  
