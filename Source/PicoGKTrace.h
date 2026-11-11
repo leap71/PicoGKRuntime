@@ -70,7 +70,7 @@ public:
         if ((!m_bCostlyOnly) || (oMS.count() > 100))
         {
             std::cerr << m_strName << " - Exited ";
-            std::cerr << oMS << " elapsed\n";
+            std::cerr << oMS.count() << " ms elapsed\n";
         }
     }
     
