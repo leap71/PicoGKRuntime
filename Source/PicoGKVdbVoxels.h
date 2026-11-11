@@ -387,7 +387,7 @@ public:
     {
         PKTRACE(Voxels_IntersectImplicit);
         
-        Voxels oVox(oVoxelSize(), fBackgroundMM());
+        Voxels oVox(oVoxelSize(), m_nSdfNarrowBand);
         
         CoordBBox oBBox = m_roGrid->evalActiveVoxelBoundingBox();
         
@@ -479,7 +479,7 @@ public:
         }
         
         // Close the last slice, and update the background
-        for(int32_t z = iZEnd; z > iZEnd - (int) (0.5f + m_roGrid->background()); z--)
+        for(int32_t z = iZEnd; z > iZEnd - m_nSdfNarrowBand; z--)
         {
             for(int32_t x = oBBox.min().x(); x <= oBBox.max().x(); x++)
             for(int32_t y = oBBox.min().y(); y <= oBBox.max().y(); y++)
@@ -520,7 +520,7 @@ public:
         }
         
         // Close the last slice, and update the background
-        for(int32_t z = iZEnd; z < iZEnd + (int) (0.5f + m_roGrid->background()); z++)
+        for(int32_t z = iZEnd; z < iZEnd + m_nSdfNarrowBand; z++)
         {
             for(int32_t x = oBBox.min().x(); x <= oBBox.max().x(); x++)
             for(int32_t y = oBBox.min().y(); y <= oBBox.max().y(); y++)
